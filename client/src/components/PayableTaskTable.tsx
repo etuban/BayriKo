@@ -66,11 +66,11 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
         <table className="min-w-full divide-y divide-border">
           <thead>
             <tr>
-              <th className="px-6 py-2 text-left text-xs font-medium text-foreground uppercase tracking-wider bg-primary text-white">Task</th>
-              <th className="px-6 py-2 text-left text-xs font-medium text-foreground uppercase tracking-wider bg-primary text-white hidden print:table-cell">Date</th>
-              <th className="px-6 py-2 text-left text-xs font-medium text-foreground uppercase tracking-wider bg-primary text-white">Hours</th>
-              <th className="px-6 py-2 text-left text-xs font-medium text-foreground uppercase tracking-wider bg-primary text-white">Rate</th>
-              <th className="px-6 py-2 text-right text-xs font-medium text-foreground uppercase tracking-wider bg-primary text-white">Total</th>
+              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white">Task</th>
+              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white hidden print:table-cell">Date</th>
+              <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-20">Hours</th>
+              <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-24">Rate</th>
+              <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider bg-primary text-white w-20 sm:w-24">Total</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-card">
@@ -81,7 +81,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                   className="bg-muted/90 font-semibold cursor-pointer print:cursor-default hover:bg-muted/100"
                   onClick={() => toggleProject(group.projectId)}
                 >
-                  <td colSpan={5} className="px-6 py-3 flex items-center justify-between">
+                  <td colSpan={5} className="px-4 sm:px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center">
                       <span className="print:hidden mr-2">
                         {expandedProjects[group.projectId] ? 
@@ -109,24 +109,24 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                       index % 2 === 1 ? 'bg-muted/30' : ''
                     )}
                   >
-                    <td className="px-6 py-3 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-3">
                       <div className="text-xs font-medium">{task.title}</div>
                     </td>
-                    <td className="px-6 py-3 whitespace-nowrap hidden print:table-cell">
+                    <td className="px-4 sm:px-6 py-3 hidden print:table-cell">
                       <div className="text-xs">
                         {task.startDate ? formatDateTime(task.startDate, task.startTime).replace(/,.+$/, '') : ''}
                         {task.endDate && task.startDate !== task.endDate ? ` - ${formatDateTime(task.endDate, task.endTime).replace(/,.+$/, '')}` : ''}
                       </div>
                     </td>
-                    <td className="px-6 py-3 whitespace-nowrap text-xs text-center">
+                    <td className="px-4 sm:px-6 py-3 text-xs text-center">
                       {typeof task.hours === 'number' ? task.hours.toFixed(2) : task.hours}
                     </td>
-                    <td className="px-6 py-3 whitespace-nowrap text-xs text-center">
+                    <td className="px-4 sm:px-6 py-3 text-xs text-center">
                       {task.pricingType === 'hourly' 
                         ? `${formatCurrency((task.hourlyRate || 0) / 100, task.currency || 'PHP')}/hr` 
                         : 'Fixed'}
                     </td>
-                    <td className="px-6 py-3 whitespace-nowrap text-right text-xs font-medium">
+                    <td className="px-4 sm:px-6 py-3 text-right text-xs font-medium">
                       {formatCurrency(task.totalAmount || 0, task.currency || 'PHP')}
                     </td>
                   </tr>
@@ -136,10 +136,10 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
             
             {/* Grand Total Row */}
             <tr className="bg-primary/10 font-bold">
-              <td colSpan={4} className="px-6 py-3 whitespace-nowrap text-right text-sm font-semibold">
+              <td colSpan={4} className="px-4 sm:px-6 py-3 text-right text-sm font-semibold">
                 Grand Total
               </td>
-              <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-bold">
+              <td className="px-4 sm:px-6 py-3 text-right text-sm font-bold">
                 {formatCurrency(grandTotal, tasks[0]?.currency || 'PHP')}
               </td>
             </tr>

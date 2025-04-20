@@ -48,7 +48,22 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden font-sans">
-      {/* Sidebar - Fixed position for larger screens */}
+      {/* Mobile Sidebar - This will be toggled via header menu button */}
+      <div className="fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 sm:hidden" 
+        id="mobile-sidebar-overlay" 
+        style={{ display: 'none' }} 
+        onClick={() => {
+          document.getElementById('mobile-sidebar')?.classList.add('hidden');
+          document.getElementById('mobile-sidebar-overlay')?.style.setProperty('display', 'none');
+        }}
+      >
+      </div>
+      
+      <div id="mobile-sidebar" className="fixed top-0 left-0 h-full z-40 hidden sm:hidden w-64">
+        <Sidebar />
+      </div>
+      
+      {/* Desktop Sidebar - Fixed position for larger screens */}
       <div className="fixed top-0 left-0 h-full z-20 hidden sm:block">
         <Sidebar />
       </div>
@@ -56,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <div 
         className={cn(
-          "flex-1 flex flex-col overflow-hidden transition-all duration-300",
+          "flex-1 flex flex-col overflow-hidden transition-all duration-300 w-full",
           sidebarCollapsed ? "sm:ml-20" : "sm:ml-64"
         )}
       >
@@ -64,7 +79,7 @@ export function Layout({ children }: LayoutProps) {
         <Header />
         
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-dark-bg p-6">
+        <main className="flex-1 overflow-y-auto bg-dark-bg p-3 sm:p-6">
           {children}
         </main>
       </div>

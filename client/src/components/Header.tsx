@@ -13,9 +13,20 @@ export function Header() {
   
   // Toggle sidebar on mobile
   const toggleSidebar = () => {
-    const sidebar = document.querySelector('aside');
-    sidebar?.classList.toggle('hidden');
-    sidebar?.classList.toggle('sm:block');
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
+    
+    if (mobileSidebar && overlay) {
+      // If sidebar is hidden, show it
+      if (mobileSidebar.classList.contains('hidden')) {
+        mobileSidebar.classList.remove('hidden');
+        overlay.style.setProperty('display', 'block');
+      } else {
+        // Otherwise hide it
+        mobileSidebar.classList.add('hidden');
+        overlay.style.setProperty('display', 'none');
+      }
+    }
   };
   
   // Get page title from location
@@ -72,14 +83,14 @@ export function Header() {
         </Button>
         
         <div className="flex items-center text-lg font-semibold">
-          <span>{getPageTitle()}</span>
-          <span className="mx-2 text-gray-500">/</span>
+          <span className="hidden xs:inline">{getPageTitle()}</span>
+          <span className="hidden xs:inline mx-2 text-gray-500">/</span>
           <span className="text-primary">{getPageSubtitle()}</span>
         </div>
       </div>
       
       {/* Right: Actions */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Theme Toggle */}
         <Button 
           variant="ghost" 
@@ -93,13 +104,14 @@ export function Header() {
         {/* Notifications */}
         <NotificationDropdown />
         
-        {/* Create New Task Button */}
+        {/* Create New Task Button - Text on desktop, icon on mobile */}
         <Button 
           variant="default" 
           className="bg-primary hover:bg-primary/90 text-white"
           onClick={() => openDrawer('new')}
         >
-          New Task
+          <span className="hidden sm:inline">New Task</span>
+          <span className="sm:hidden">+</span>
         </Button>
       </div>
     </header>
