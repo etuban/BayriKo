@@ -37,7 +37,7 @@ export default function LoginPage() {
     try {
       setAuthError(null);
       await login(data.email, data.password);
-      setLocation('/'); // Redirect to homepage after successful login
+      setLocation('/dashboard'); // Redirect to dashboard after successful login
     } catch (error: any) {
       setAuthError(error.message || 'Failed to login. Please check your credentials.');
     }
@@ -50,9 +50,9 @@ export default function LoginPage() {
           <div className="w-16 h-16 rounded-full bg-dark-bg flex items-center justify-center mb-4">
             <GiReceiveMoney className="w-10 h-10 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold text-center">MyByd</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">BayadMin</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account to continue
+            Your Task to Invoice tool
           </CardDescription>
         </CardHeader>
         <CardContent>
