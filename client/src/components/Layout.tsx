@@ -49,19 +49,30 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden font-sans">
       {/* Mobile Sidebar - This will be toggled via header menu button */}
-      <div className="fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 sm:hidden" 
+      <div className="fixed inset-0 bg-black/70 z-30 transition-opacity duration-300 sm:hidden" 
         id="mobile-sidebar-overlay" 
         style={{ display: 'none' }} 
         onClick={() => {
-          document.getElementById('mobile-sidebar')?.classList.add('hidden');
-          document.getElementById('mobile-sidebar-overlay')?.style.setProperty('display', 'none');
-          document.body.style.overflow = 'auto';
+          const mobileMenu = document.getElementById('mobile-sidebar');
+          const overlay = document.getElementById('mobile-sidebar-overlay');
+          if (mobileMenu) mobileMenu.classList.add('hidden');
+          if (overlay) overlay.style.display = 'none';
+          document.body.classList.remove('overflow-hidden');
         }}
       >
       </div>
       
       <div id="mobile-sidebar" className="fixed top-0 left-0 h-full z-40 hidden sm:hidden w-64 bg-background shadow-xl">
-        <Sidebar />
+        <Sidebar 
+          mobile={true} 
+          onClose={() => {
+            const mobileMenu = document.getElementById('mobile-sidebar');
+            const overlay = document.getElementById('mobile-sidebar-overlay');
+            if (mobileMenu) mobileMenu.classList.add('hidden');
+            if (overlay) overlay.style.display = 'none';
+            document.body.classList.remove('overflow-hidden');
+          }} 
+        />
       </div>
       
       {/* Desktop Sidebar - Fixed position for larger screens */}

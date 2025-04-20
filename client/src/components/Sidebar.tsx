@@ -11,27 +11,36 @@ import {
   FolderKanban, 
   Users, 
   Settings,
-  PanelLeftClose,
-  PanelLeftOpen,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  X
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export function Sidebar() {
+interface SidebarProps {
+  mobile?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
   
-  // Check localStorage for saved sidebar state
+  // Check localStorage for saved sidebar state (desktop mode only)
   useEffect(() => {
-    const savedState = localStorage.getItem('sidebarCollapsed');
-    if (savedState !== null) {
-      setCollapsed(savedState === 'true');
+    if (!mobile) {
+      const savedState = localStorage.getItem('sidebarCollapsed');
+      if (savedState !== null) {
+        setCollapsed(savedState === 'true');
+      }
     }
-  }, []);
+  }, [mobile]);
   
-  // Toggle sidebar and save state
+  // Toggle sidebar and save state (desktop mode only)
   const toggleSidebar = () => {
+    if (mobile) return;
+    
     const newState = !collapsed;
     setCollapsed(newState);
     localStorage.setItem('sidebarCollapsed', String(newState));
@@ -79,25 +88,45 @@ export function Sidebar() {
     },
   ];
 
+  // Handle navigation click on mobile view
+  const handleNavClick = () => {
+    if (mobile && onClose) {
+      // Close mobile sidebar when navigation item is clicked
+      onClose();
+    }
+  };
+
   return (
     <aside 
       className={cn(
         "bg-background border-r border-border flex-shrink-0 transition-all duration-300 overflow-hidden relative h-full",
-        collapsed ? "w-20" : "w-64",
-        "hidden sm:block" // Hide on mobile, use toggle in header
+        mobile ? "w-64" : (collapsed ? "w-20" : "w-64"),
+        !mobile && "hidden sm:block" // Hide on mobile for desktop sidebar
       )}
     >
+      {/* Mobile Close Button */}
+      {mobile && onClose && (
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="absolute top-3 right-3 z-20"
+          onClick={onClose}
+        >
+          <X className="h-5 w-5" />
+        </Button>
+      )}
+      
       {/* Logo and App Name */}
       <div className="flex items-center p-4 border-b border-border">
         <div className="bg-primary p-2 rounded-md">
           <GiReceiveMoney className="w-6 h-6 text-white" />
         </div>
-        {!collapsed && <h1 className="ml-3 text-xl font-semibold">BayadMin</h1>}
+        {(!collapsed || mobile) && <h1 className="ml-3 text-xl font-semibold">BayadMin</h1>}
       </div>
       
       {/* Navigation Items */}
       <nav className="p-4">
-        {!collapsed && (
+        {(!collapsed || mobile) && (
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             Main Menu
           </h2>
@@ -115,11 +144,12 @@ export function Sidebar() {
                         ? "bg-primary text-white"
                         : "hover:bg-muted"
                     )}
+                    onClick={handleNavClick}
                   >
                     {React.cloneElement(item.icon, { 
-                      className: collapsed ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3" 
+                      className: collapsed && !mobile ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3" 
                     })}
-                    {!collapsed && <span>{item.title}</span>}
+                    {(!collapsed || mobile) && <span>{item.title}</span>}
                   </a>
                 </Link>
               </li>
@@ -128,20 +158,22 @@ export function Sidebar() {
       </nav>
       
       {/* User Profile Section */}
-      {!collapsed && <UserProfileCard user={user} />}
+      {(!collapsed || mobile) && <UserProfileCard user={user} />}
       
-      {/* Toggle Button */}
-      <button 
-        onClick={toggleSidebar}
-        className="absolute top-1/2 -right-3 bg-primary text-white rounded-full p-1.5 shadow-md hover:bg-primary/90 transition-colors z-10"
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        {collapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
-      </button>
+      {/* Toggle Button - Desktop only */}
+      {!mobile && (
+        <button 
+          onClick={toggleSidebar}
+          className="absolute top-1/2 -right-3 bg-primary text-white rounded-full p-1.5 shadow-md hover:bg-primary/90 transition-colors z-10"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+      )}
     </aside>
   );
 }

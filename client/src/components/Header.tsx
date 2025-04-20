@@ -15,20 +15,21 @@ export function Header() {
   const toggleSidebar = () => {
     const mobileSidebar = document.getElementById('mobile-sidebar');
     const overlay = document.getElementById('mobile-sidebar-overlay');
+    const body = document.body;
     
     if (mobileSidebar && overlay) {
       // If sidebar is hidden, show it
       if (mobileSidebar.classList.contains('hidden')) {
         mobileSidebar.classList.remove('hidden');
-        overlay.style.setProperty('display', 'block');
+        overlay.style.display = 'block';
         // Prevent scrolling on the body when sidebar is open
-        document.body.style.overflow = 'hidden';
+        body.classList.add('overflow-hidden');
       } else {
         // Otherwise hide it
         mobileSidebar.classList.add('hidden');
-        overlay.style.setProperty('display', 'none');
+        overlay.style.display = 'none';
         // Re-enable scrolling when sidebar is closed
-        document.body.style.overflow = 'auto';
+        body.classList.remove('overflow-hidden');
       }
     }
   };
