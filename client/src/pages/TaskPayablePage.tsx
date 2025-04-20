@@ -56,81 +56,128 @@ export default function TaskPayablePage() {
     queryKey: ["/api/projects"],
   });
 
-  // Print handler setup with fixed configuration
-  const handlePrint = useReactToPrint({
+  // Function to handle manual printing
+  const print = () => {
+    const contentToPrint = componentRef.current;
+    if (!contentToPrint) return;
+    
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow pop-ups for printing');
+      return;
+    }
+    
+    // Setup the print window
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          body {
+            font-family: 'Inter', Arial, sans-serif;
+            color: #333;
+            line-height: 1.4;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .print-header {
+            color: #008000;
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+          }
+          .invoice-details {
+            margin-bottom: 30px;
+          }
+          .info-block {
+            margin-bottom: 20px;
+          }
+          .info-block h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+          }
+          .info-block p {
+            font-size: 14px;
+            margin: 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          th {
+            background-color: #008000;
+            color: white;
+            font-size: 12px;
+            text-align: left;
+            padding: 8px;
+          }
+          td {
+            padding: 8px;
+            font-size: 12px;
+            border-bottom: 1px solid #ddd;
+          }
+          .project-header {
+            background-color: #f2f2f2;
+            font-weight: bold;
+          }
+          .right-align {
+            text-align: right;
+          }
+          .center-align {
+            text-align: center;
+          }
+          tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          .grand-total {
+            font-weight: bold;
+            background-color: #e6f7e6;
+            font-size: 14px;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          ${contentToPrint.innerHTML}
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    
+    // Wait for everything to load then print
+    printWindow.onload = function() {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.onafterprint = function() {
+        printWindow.close();
+      };
+    };
+  };
+  
+  // React-to-print setup (no longer used, but we'll keep as backup)
+  const reactToPrintRef = useReactToPrint({
     documentTitle: "Invoice",
     content: () => componentRef.current,
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 10mm;
-      }
-      @media print {
-        body {
-          font-family: 'Inter', sans-serif;
-          -webkit-print-color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        .print-header {
-          color: #008000 !important;
-        }
-        .bg-background, .bg-card, .bg-muted, .bg-dark-bg, .bg-dark-surface {
-          background-color: white !important;
-        }
-        .border-border, .border-dark-border {
-          border-color: #ddd !important;
-        }
-        .text-gray-400 {
-          color: #666 !important;
-        }
-        
-        /* Table styling for printing */
-        .print\\:table {
-          display: table !important;
-          width: 100% !important;
-        }
-        .print\\:table-row {
-          display: table-row !important;
-        }
-        .print\\:table-cell {
-          display: table-cell !important;
-        }
-        .print\\:colspan-4, .print\\:colspan-5 {
-          column-span: all !important;
-        }
-        
-        /* Hide elements that should not print */
-        .print\\:hidden {
-          display: none !important;
-        }
-        
-        /* Show elements that should print */
-        .print\\:block {
-          display: block !important;
-        }
-        
-        /* Font size adjustments */
-        .text-xs {
-          font-size: 9px !important;
-        }
-        .text-sm {
-          font-size: 10px !important;
-        }
-        
-        .bg-primary {
-          background-color: #008000 !important;
-          color: white !important;
-        }
-        
-        /* Make sure all print elements are visible */
-        .hidden.print\\:block, 
-        .hidden.print\\:table, 
-        .hidden.print\\:table-row, 
-        .hidden.print\\:table-cell {
-          display: block !important;
-        }
-      }
-    `,
   });
 
   // Download PDF handler
@@ -496,7 +543,7 @@ export default function TaskPayablePage() {
         <Button
           variant="secondary"
           className="flex items-center"
-          onClick={() => handlePrint()}
+          onClick={print}
           disabled={!data || data.tasks.length === 0}
         >
           <Printer className="w-4 h-4 mr-2" />

@@ -80,8 +80,9 @@ export function Header() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="mr-4 text-gray-400 hover:text-white lg:hidden"
+          className="mr-4 text-gray-400 hover:text-foreground sm:hidden"
           onClick={toggleSidebar}
+          type="button"
         >
           <Menu className="h-6 w-6" />
         </Button>

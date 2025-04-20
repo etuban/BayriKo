@@ -60,7 +60,7 @@ export function Layout({ children }: LayoutProps) {
       >
       </div>
       
-      <div id="mobile-sidebar" className="fixed top-0 left-0 h-full z-40 hidden sm:hidden w-64">
+      <div id="mobile-sidebar" className="fixed top-0 left-0 h-full z-40 hidden sm:hidden w-64 bg-background shadow-xl">
         <Sidebar />
       </div>
       
