@@ -55,6 +55,7 @@ export function Layout({ children }: LayoutProps) {
         onClick={() => {
           document.getElementById('mobile-sidebar')?.classList.add('hidden');
           document.getElementById('mobile-sidebar-overlay')?.style.setProperty('display', 'none');
+          document.body.style.overflow = 'auto';
         }}
       >
       </div>

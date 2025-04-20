@@ -21,10 +21,14 @@ export function Header() {
       if (mobileSidebar.classList.contains('hidden')) {
         mobileSidebar.classList.remove('hidden');
         overlay.style.setProperty('display', 'block');
+        // Prevent scrolling on the body when sidebar is open
+        document.body.style.overflow = 'hidden';
       } else {
         // Otherwise hide it
         mobileSidebar.classList.add('hidden');
         overlay.style.setProperty('display', 'none');
+        // Re-enable scrolling when sidebar is closed
+        document.body.style.overflow = 'auto';
       }
     }
   };

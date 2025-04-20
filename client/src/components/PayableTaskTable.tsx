@@ -63,88 +63,118 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
   return (
     <div className="bg-background border border-border rounded-lg overflow-hidden print-friendly">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-border">
-          <thead>
-            <tr>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white">Task</th>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white hidden print:table-cell">Date</th>
-              <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-20">Hours</th>
-              <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-24">Rate</th>
-              <th className="px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider bg-primary text-white w-20 sm:w-24">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border bg-card">
-            {tasksByProject.map((group) => (
-              <React.Fragment key={group.projectId.toString()}>
-                {/* Project Header Row */}
-                <tr 
-                  className="bg-muted/90 font-semibold cursor-pointer print:cursor-default hover:bg-muted/100"
-                  onClick={() => toggleProject(group.projectId)}
-                >
-                  <td colSpan={5} className="px-4 sm:px-6 py-3 flex items-center justify-between">
-                    <div className="flex items-center">
-                      <span className="print:hidden mr-2">
-                        {expandedProjects[group.projectId] ? 
-                          <ChevronUp className="h-4 w-4" /> : 
-                          <ChevronDown className="h-4 w-4" />
-                        }
-                      </span>
-                      <span className="text-sm font-bold">
-                        {group.projectName}
-                      </span>
-                    </div>
-                    <span className="text-sm font-bold">
-                      {formatCurrency(group.subtotal, group.tasks[0]?.currency || 'PHP')}
+        {/* Header Row - table format for printing, flex for display */}
+        <div className="hidden print:table w-full">
+          <div className="print:table-row">
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white">Task</div>
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white">Date</div>
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-20">Hours</div>
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-24">Rate</div>
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider bg-primary text-white w-20 sm:w-24">Total</div>
+          </div>
+        </div>
+        
+        {/* Header Row for display */}
+        <div className="flex items-center bg-primary text-white print:hidden">
+          <div className="flex-1 px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Task</div>
+          <div className="w-16 sm:w-20 px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Hours</div>
+          <div className="w-16 sm:w-24 px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Rate</div>
+          <div className="w-20 sm:w-24 px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">Total</div>
+        </div>
+
+        <div className="divide-y divide-border bg-card">
+          {tasksByProject.map((group) => (
+            <div key={group.projectId.toString()}>
+              {/* Project Header Row */}
+              <div 
+                className="bg-muted/90 font-semibold cursor-pointer print:cursor-default hover:bg-muted/100 print:table-row"
+                onClick={() => toggleProject(group.projectId)}
+              >
+                <div className="px-4 sm:px-6 py-3 flex items-center justify-between print:table-cell print:colspan-5">
+                  <div className="flex items-center">
+                    <span className="print:hidden mr-2">
+                      {expandedProjects[group.projectId] ? 
+                        <ChevronUp className="h-4 w-4" /> : 
+                        <ChevronDown className="h-4 w-4" />
+                      }
                     </span>
-                  </td>
-                </tr>
-                
-                {/* Project Tasks - Always visible when printing */}
+                    <span className="text-sm font-bold">
+                      {group.projectName}
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold">
+                    {formatCurrency(group.subtotal, group.tasks[0]?.currency || 'PHP')}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Project Tasks - Always visible when printing */}
+              <div className={cn(
+                !expandedProjects[group.projectId] && "hidden print:block"
+              )}>
                 {group.tasks.map((task, index) => (
-                  <tr 
+                  <div 
                     key={task.id} 
                     className={cn(
-                      "task-row hover:bg-muted",
-                      !expandedProjects[group.projectId] && "hidden print:table-row",
+                      "hover:bg-muted print:table-row",
                       index % 2 === 1 ? 'bg-muted/30' : ''
                     )}
                   >
-                    <td className="px-4 sm:px-6 py-3">
+                    {/* Task info for mobile/desktop view */}
+                    <div className="flex items-center px-4 sm:px-6 py-3 print:hidden">
+                      <div className="flex-1">
+                        <div className="text-xs font-medium">{task.title}</div>
+                      </div>
+                      <div className="w-16 sm:w-20 text-xs text-center">
+                        {typeof task.hours === 'number' ? task.hours.toFixed(2) : task.hours}
+                      </div>
+                      <div className="w-16 sm:w-24 text-xs text-center">
+                        {task.pricingType === 'hourly' 
+                          ? `${formatCurrency((task.hourlyRate || 0) / 100, task.currency || 'PHP')}/hr` 
+                          : 'Fixed'}
+                      </div>
+                      <div className="w-20 sm:w-24 text-xs text-right font-medium">
+                        {formatCurrency(task.totalAmount || 0, task.currency || 'PHP')}
+                      </div>
+                    </div>
+
+                    {/* Print view cells */}
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3">
                       <div className="text-xs font-medium">{task.title}</div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 hidden print:table-cell">
+                    </div>
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3">
                       <div className="text-xs">
                         {task.startDate ? formatDateTime(task.startDate, task.startTime).replace(/,.+$/, '') : ''}
                         {task.endDate && task.startDate !== task.endDate ? ` - ${formatDateTime(task.endDate, task.endTime).replace(/,.+$/, '')}` : ''}
                       </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-xs text-center">
+                    </div>
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-xs text-center">
                       {typeof task.hours === 'number' ? task.hours.toFixed(2) : task.hours}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-xs text-center">
+                    </div>
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-xs text-center">
                       {task.pricingType === 'hourly' 
                         ? `${formatCurrency((task.hourlyRate || 0) / 100, task.currency || 'PHP')}/hr` 
                         : 'Fixed'}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-right text-xs font-medium">
+                    </div>
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-right text-xs font-medium">
                       {formatCurrency(task.totalAmount || 0, task.currency || 'PHP')}
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </React.Fragment>
-            ))}
-            
-            {/* Grand Total Row */}
-            <tr className="bg-primary/10 font-bold">
-              <td colSpan={4} className="px-4 sm:px-6 py-3 text-right text-sm font-semibold">
-                Grand Total
-              </td>
-              <td className="px-4 sm:px-6 py-3 text-right text-sm font-bold">
-                {formatCurrency(grandTotal, tasks[0]?.currency || 'PHP')}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+          ))}
+          
+          {/* Grand Total Row */}
+          <div className="bg-primary/10 font-bold flex items-center print:table-row">
+            <div className="flex-1 text-right px-4 sm:px-6 py-3 text-sm font-semibold print:table-cell print:colspan-4">
+              Grand Total
+            </div>
+            <div className="w-20 sm:w-24 px-4 sm:px-6 py-3 text-right text-sm font-bold print:table-cell">
+              {formatCurrency(grandTotal, tasks[0]?.currency || 'PHP')}
+            </div>
+          </div>
+        </div>
       </div>
       
       {/* Invoice Footer - only visible when printing */}

@@ -56,10 +56,10 @@ export default function TaskPayablePage() {
     queryKey: ["/api/projects"],
   });
 
-  // Print handler
+  // Print handler setup with fixed configuration
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
     documentTitle: "Invoice",
+    content: () => componentRef.current,
     pageStyle: `
       @page {
         size: A4;
@@ -68,40 +68,66 @@ export default function TaskPayablePage() {
       @media print {
         body {
           font-family: 'Inter', sans-serif;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         .print-header {
-          color: #00800 !important;
+          color: #008000 !important;
         }
-        .bg-dark-surface, .bg-dark-bg {
+        .bg-background, .bg-card, .bg-muted, .bg-dark-bg, .bg-dark-surface {
           background-color: white !important;
         }
-        .border-dark-border {
+        .border-border, .border-dark-border {
           border-color: #ddd !important;
         }
         .text-gray-400 {
           color: #666 !important;
         }
-        th {
-          background-color: #008000 !important;
-          color: white !important;
+        
+        /* Table styling for printing */
+        .print\\:table {
+          display: table !important;
+          width: 100% !important;
         }
-        tr:nth-child(even) {
-          background-color: #f2f2f2 !important;
-        }
-        tr {
+        .print\\:table-row {
           display: table-row !important;
-        }
-        .hidden {
-          display: block !important;
         }
         .print\\:table-cell {
           display: table-cell !important;
         }
+        .print\\:colspan-4, .print\\:colspan-5 {
+          column-span: all !important;
+        }
+        
+        /* Hide elements that should not print */
+        .print\\:hidden {
+          display: none !important;
+        }
+        
+        /* Show elements that should print */
+        .print\\:block {
+          display: block !important;
+        }
+        
+        /* Font size adjustments */
         .text-xs {
           font-size: 9px !important;
         }
         .text-sm {
           font-size: 10px !important;
+        }
+        
+        .bg-primary {
+          background-color: #008000 !important;
+          color: white !important;
+        }
+        
+        /* Make sure all print elements are visible */
+        .hidden.print\\:block, 
+        .hidden.print\\:table, 
+        .hidden.print\\:table-row, 
+        .hidden.print\\:table-cell {
+          display: block !important;
         }
       }
     `,
@@ -383,7 +409,7 @@ export default function TaskPayablePage() {
           {/* Invoice Title - Only visible when printing */}
           <div className="hidden print:block mb-6">
             <h1 className="text-xl font-bold text-center text-primary print-header">
-              Invoice
+              Task Invoice
             </h1>
             <div className="flex justify-between mt-4">
               <div className="text-right">
@@ -470,7 +496,7 @@ export default function TaskPayablePage() {
         <Button
           variant="secondary"
           className="flex items-center"
-          onClick={handlePrint}
+          onClick={() => handlePrint()}
           disabled={!data || data.tasks.length === 0}
         >
           <Printer className="w-4 h-4 mr-2" />
