@@ -50,69 +50,158 @@ export default function TaskPayablePage() {
   // Print handler
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: 'MyByd_Invoice',
+    documentTitle: 'BayadMin_Invoice',
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      @media print {
+        body {
+          font-family: 'Inter', sans-serif;
+        }
+        .print-header {
+          color: #00800 !important;
+        }
+        .bg-dark-surface, .bg-dark-bg {
+          background-color: white !important;
+        }
+        .border-dark-border {
+          border-color: #ddd !important;
+        }
+        .text-gray-400 {
+          color: #666 !important;
+        }
+        th {
+          background-color: #008000 !important;
+          color: white !important;
+        }
+        tr:nth-child(even) {
+          background-color: #f2f2f2 !important;
+        }
+      }
+    `,
   });
   
   // Download PDF handler
   const handleDownloadPDF = () => {
     if (!data) return;
     
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
     
     // Add title
     doc.setFontSize(20);
-    doc.text('MyByd Invoice', 105, 20, { align: 'center' });
+    doc.setTextColor(0, 128, 0); // Green color for the header
+    doc.text('BayadMin Invoice', 105, 20, { align: 'center' });
+    
+    // Add company logo space
+    doc.setDrawColor(0, 128, 0); // Green border
+    doc.setLineWidth(0.5);
+    doc.rect(14, 30, 50, 15);
+    doc.setFontSize(14);
+    doc.setTextColor(0, 128, 0);
+    doc.text('BayadMin', 39, 40, { align: 'center' });
+    
+    // Add invoice number and date
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Invoice #: INV-${new Date().getTime().toString().slice(-6)}`, 195, 30, { align: 'right' });
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 35, { align: 'right' });
     
     // Add billing info
     doc.setFontSize(12);
-    doc.text('Bill From:', 14, 40);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Bill From:', 14, 55);
     const billFromLines = invoiceDetails.billFrom.split('\n');
+    doc.setFontSize(10);
     billFromLines.forEach((line, index) => {
-      doc.text(line, 14, 50 + (index * 7));
+      doc.text(line, 14, 60 + (index * 5));
     });
     
-    doc.text('Bill To:', 120, 40);
+    doc.setFontSize(12);
+    doc.text('Bill To:', 120, 55);
     const billToLines = invoiceDetails.billTo.split('\n');
+    doc.setFontSize(10);
     billToLines.forEach((line, index) => {
-      doc.text(line, 120, 50 + (index * 7));
+      doc.text(line, 120, 60 + (index * 5));
     });
     
     // Add filter info
-    doc.text(`Date Range: ${startDate || 'All'} to ${endDate || 'All'}`, 14, 90);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Date Range: ${startDate || 'All'} to ${endDate || 'All'}`, 14, 85);
     
     // Add tasks table
     const tableColumn = ["Task", "Project", "Hours", "Rate", "Total"];
     const tableRows = data.tasks.map(task => [
       task.title,
       task.project?.name || 'N/A',
-      typeof task.hours === 'string' ? task.hours : task.hours?.toFixed(2) || 0,
+      typeof task.hours === 'string' ? task.hours : task.hours?.toFixed(2) || '0.00',
       task.pricingType === 'hourly' 
-        ? `$${(task.hourlyRate || 0) / 100}/hr` 
+        ? `$${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
         : 'Fixed',
-      `$${task.totalAmount?.toFixed(2) || 0}`
+      `$${(task.totalAmount || 0).toFixed(2)}`
     ]);
     
     (doc as any).autoTable({
       head: [tableColumn],
       body: tableRows,
-      startY: 100,
+      startY: 90,
       theme: 'grid',
-      styles: { cellPadding: 2, fontSize: 10 },
-      headStyles: { fillColor: [99, 102, 241] }
+      styles: { 
+        cellPadding: 3,
+        fontSize: 10,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.1
+      },
+      headStyles: { 
+        fillColor: [0, 128, 0],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240]
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 'auto' },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 30, halign: 'center' },
+        4: { cellWidth: 25, halign: 'right' }
+      }
     });
     
     // Add grand total
     const finalY = (doc as any).lastAutoTable.finalY;
-    doc.text(`Grand Total: $${data.grandTotal.toFixed(2)}`, 150, finalY + 15, { align: 'right' });
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Grand Total: $${data.grandTotal.toFixed(2)}`, 195, finalY + 10, { align: 'right' });
     
     // Add payment terms
-    doc.text('Payment Terms:', 14, finalY + 30);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(12);
+    doc.text('Payment Terms:', 14, finalY + 20);
     const paymentTermsLines = invoiceDetails.paymentTerms.split('\n');
+    doc.setFontSize(10);
     paymentTermsLines.forEach((line, index) => {
-      doc.text(line, 14, finalY + 40 + (index * 7));
+      doc.text(line, 14, finalY + 25 + (index * 5));
     });
     
-    doc.save('MyByd_Invoice.pdf');
+    // Add footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.text(`Page ${i} of ${pageCount} | Generated by BayadMin on ${new Date().toLocaleDateString()}`, 105, 287, { align: 'center' });
+    }
+    
+    doc.save('BayadMin_Invoice.pdf');
   };
   
   // Handle invoice details change
@@ -183,13 +272,27 @@ export default function TaskPayablePage() {
       {/* Printable Area */}
       <div ref={componentRef}>
         {/* Invoice Details */}
-        <div className="bg-dark-surface border border-dark-border rounded-lg p-6 mb-6">
+        <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
+          {/* Invoice Title - Only visible when printing */}
+          <div className="hidden print:block mb-6">
+            <h1 className="text-2xl font-bold text-center text-primary print-header">BayadMin Invoice</h1>
+            <div className="flex justify-between mt-4">
+              <div className="border-2 border-primary p-2 text-center w-40">
+                <p className="font-semibold text-primary">BayadMin</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Invoice #: INV-{new Date().getTime().toString().slice(-6)}</p>
+                <p className="text-sm text-muted-foreground">Date: {new Date().toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-lg font-medium mb-3">Bill From</h3>
               <Textarea 
                 rows={4} 
-                className="w-full p-3 rounded-md bg-dark-bg border border-dark-border text-sm" 
+                className="w-full p-3 rounded-md bg-card border border-input text-sm" 
                 placeholder="Your company details..."
                 value={invoiceDetails.billFrom}
                 onChange={(e) => handleDetailsChange('billFrom', e.target.value)}
@@ -199,7 +302,7 @@ export default function TaskPayablePage() {
               <h3 className="text-lg font-medium mb-3">Bill To</h3>
               <Textarea 
                 rows={4} 
-                className="w-full p-3 rounded-md bg-dark-bg border border-dark-border text-sm" 
+                className="w-full p-3 rounded-md bg-card border border-input text-sm" 
                 placeholder="Client details..."
                 value={invoiceDetails.billTo}
                 onChange={(e) => handleDetailsChange('billTo', e.target.value)}
@@ -211,11 +314,15 @@ export default function TaskPayablePage() {
             <h3 className="text-lg font-medium mb-3">Payment Terms</h3>
             <Textarea 
               rows={2} 
-              className="w-full p-3 rounded-md bg-dark-bg border border-dark-border text-sm" 
+              className="w-full p-3 rounded-md bg-card border border-input text-sm" 
               placeholder="Payment terms and conditions..."
               value={invoiceDetails.paymentTerms}
               onChange={(e) => handleDetailsChange('paymentTerms', e.target.value)}
             />
+          </div>
+          
+          <div className="print:block hidden mt-4 text-sm text-muted-foreground">
+            <p>Date Range: {startDate || 'All'} to {endDate || 'All'}</p>
           </div>
         </div>
         
