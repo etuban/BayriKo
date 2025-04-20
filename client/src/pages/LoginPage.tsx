@@ -69,7 +69,9 @@ export default function LoginPage() {
     try {
       setAuthError(null);
       await login(data.email, data.password);
-      setLocation('/dashboard'); // Redirect to dashboard after successful login
+      
+      // Use direct navigation instead of setLocation to avoid page refresh
+      window.location.href = '/dashboard';
     } catch (error: any) {
       setAuthError(error.message || 'Failed to login. Please check your credentials.');
     }
@@ -102,7 +104,9 @@ export default function LoginPage() {
       
       // Auto-login after registration
       await login(data.email, data.password);
-      setLocation('/dashboard');
+      
+      // Use direct navigation instead of setLocation to avoid page refresh
+      window.location.href = '/dashboard';
     } catch (error: any) {
       setRegisterError(error.message || 'Failed to register. Please try again.');
     } finally {
@@ -112,17 +116,15 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md bg-background border-border">
+      <Card className="w-full max-w-xl bg-background border-border">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4 overflow-hidden">
-            <iframe 
-              src="https://tenor.com/view/make-it-rain-money-money-make-it-rain-flick-money-gif-8890135915732568830" 
-              width="100%" 
-              height="100%" 
-              frameBorder="0"
-              className="scale-[1.7]"
-              allowFullScreen
-            ></iframe>
+          <div className="w-[498px] h-[280px] flex items-center justify-center mb-4 overflow-hidden">
+            <img 
+              src="/attached_assets/money.gif" 
+              alt="Money GIF" 
+              width="498" 
+              height="280"
+            />
           </div>
           <CardTitle className="text-2xl font-bold text-center">BayadMin</CardTitle>
           <CardDescription className="text-center">

@@ -149,7 +149,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
       
       {/* Invoice Footer - only visible when printing */}
       <div className="hidden print:block mt-8 text-xs text-gray-500 text-center border-t border-gray-200 pt-4">
-        <p>Task Invoice generated via BayadMin</p>
+        <p>Task Invoice</p>
       </div>
     </div>
   );
