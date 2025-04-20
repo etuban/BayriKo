@@ -79,6 +79,21 @@ export default function TaskPayablePage() {
         tr:nth-child(even) {
           background-color: #f2f2f2 !important;
         }
+        tr {
+          display: table-row !important;
+        }
+        .hidden {
+          display: block !important;
+        }
+        .print\\:table-cell {
+          display: table-cell !important;
+        }
+        .text-xs {
+          font-size: 9px !important;
+        }
+        .text-sm {
+          font-size: 10px !important;
+        }
       }
     `,
   });
@@ -94,7 +109,7 @@ export default function TaskPayablePage() {
     });
     
     // Add title
-    doc.setFontSize(20);
+    doc.setFontSize(18);
     doc.setTextColor(0, 128, 0); // Green color for the header
     doc.text('BayadMin Invoice', 105, 20, { align: 'center' });
     
@@ -102,96 +117,150 @@ export default function TaskPayablePage() {
     doc.setDrawColor(0, 128, 0); // Green border
     doc.setLineWidth(0.5);
     doc.rect(14, 30, 50, 15);
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setTextColor(0, 128, 0);
     doc.text('BayadMin', 39, 40, { align: 'center' });
     
     // Add invoice number and date
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.text(`Invoice #: INV-${new Date().getTime().toString().slice(-6)}`, 195, 30, { align: 'right' });
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 35, { align: 'right' });
     
     // Add billing info
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text('Bill From:', 14, 55);
     const billFromLines = invoiceDetails.billFrom.split('\n');
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     billFromLines.forEach((line, index) => {
-      doc.text(line, 14, 60 + (index * 5));
+      doc.text(line, 14, 60 + (index * 4));
     });
     
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.text('Bill To:', 120, 55);
     const billToLines = invoiceDetails.billTo.split('\n');
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     billToLines.forEach((line, index) => {
-      doc.text(line, 120, 60 + (index * 5));
+      doc.text(line, 120, 60 + (index * 4));
     });
     
     // Add filter info
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
     doc.text(`Date Range: ${startDate || 'All'} to ${endDate || 'All'}`, 14, 85);
     
-    // Add tasks table
-    const tableColumn = ["Task", "Project", "Hours", "Rate", "Total"];
-    const tableRows = data.tasks.map(task => [
-      task.title,
-      task.project?.name || 'N/A',
-      typeof task.hours === 'string' ? task.hours : task.hours?.toFixed(2) || '0.00',
-      task.pricingType === 'hourly' 
-        ? `₱${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
-        : 'Fixed',
-      `₱${(task.totalAmount || 0).toFixed(2)}`
-    ]);
+    // Group tasks by project
+    const tasksByProject: Record<number, {
+      projectName: string;
+      tasks: Task[];
+      subtotal: number;
+    }> = {};
     
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 90,
-      theme: 'grid',
-      styles: { 
-        cellPadding: 3,
-        fontSize: 10,
-        lineColor: [220, 220, 220],
-        lineWidth: 0.1
-      },
-      headStyles: { 
-        fillColor: [0, 128, 0],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: {
-        fillColor: [240, 240, 240]
-      },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { cellWidth: 'auto' },
-        2: { cellWidth: 20, halign: 'center' },
-        3: { cellWidth: 30, halign: 'center' },
-        4: { cellWidth: 25, halign: 'right' }
+    data.tasks.forEach(task => {
+      const projectId = task.projectId;
+      if (!tasksByProject[projectId]) {
+        tasksByProject[projectId] = {
+          projectName: task.project?.name || 'Unknown Project',
+          tasks: [],
+          subtotal: 0
+        };
       }
+      
+      tasksByProject[projectId].tasks.push(task);
+      tasksByProject[projectId].subtotal += (task.totalAmount || 0);
     });
     
-    // Get the last table ended position
+    // Create table content
+    let startY = 90;
+    
+    // For each project
+    Object.entries(tasksByProject).forEach(([projectId, project], index) => {
+      // Project header row
+      doc.setFillColor(240, 240, 240);
+      doc.setDrawColor(220, 220, 220);
+      doc.rect(14, startY, 182, 8, 'F');
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      doc.text(project.projectName, 16, startY + 5);
+      doc.text(`${formatCurrency(project.subtotal, 'PHP')}`, 194, startY + 5, { align: 'right' });
+      startY += 10;
+      
+      // Tasks table headers
+      const tableColumn = ["Task", "Date", "Hours", "Rate", "Total"];
+      
+      // Tasks rows
+      const tableRows = project.tasks.map(task => [
+        task.title,
+        task.startDate ? 
+          `${formatDateTime(task.startDate, task.startTime).replace(/,.+$/, '')}${
+            task.endDate && task.startDate !== task.endDate ? 
+            ` - ${formatDateTime(task.endDate, task.endTime).replace(/,.+$/, '')}` : 
+            ''
+          }` : 
+          '',
+        typeof task.hours === 'number' ? task.hours.toFixed(2) : task.hours,
+        task.pricingType === 'hourly' 
+          ? `₱${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
+          : 'Fixed',
+        `₱${(task.totalAmount || 0).toFixed(2)}`
+      ]);
+      
+      // Add the table for this project
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: startY,
+        theme: 'grid',
+        styles: { 
+          cellPadding: 2,
+          fontSize: 8,
+          lineColor: [220, 220, 220],
+          lineWidth: 0.1
+        },
+        headStyles: { 
+          fillColor: [0, 128, 0],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        columnStyles: {
+          0: { cellWidth: 50 },
+          1: { cellWidth: 45 },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 27, halign: 'center' },
+          4: { cellWidth: 25, halign: 'right' }
+        }
+      });
+      
+      // Update startY for next project
+      startY = (doc as any).lastAutoTable.finalY + 10;
+    });
+    
+    // Get the final position
     const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY : 120;
     
     // Add grand total
-    doc.setFontSize(12);
+    doc.setFillColor(230, 250, 230);
+    doc.rect(110, finalY + 2, 86, 8, 'F');
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, 'bold');
-    doc.text(`Grand Total: ₱${data.grandTotal.toFixed(2)}`, 195, finalY + 10, { align: 'right' });
+    doc.text('Grand Total:', 112, finalY + 7.5);
+    doc.text(`${formatCurrency(data.grandTotal, 'PHP')}`, 194, finalY + 7.5, { align: 'right' });
     
     // Add payment terms
     doc.setFont(undefined, 'normal');
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.text('Payment Terms:', 14, finalY + 20);
     const paymentTermsLines = invoiceDetails.paymentTerms.split('\n');
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     paymentTermsLines.forEach((line, index) => {
-      doc.text(line, 14, finalY + 25 + (index * 5));
+      doc.text(line, 14, finalY + 25 + (index * 4));
     });
     
     // Add footer
@@ -200,7 +269,7 @@ export default function TaskPayablePage() {
     doc.setTextColor(150, 150, 150);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.text(`Page ${i} of ${pageCount} | Generated by BayadMin on ${new Date().toLocaleDateString()}`, 105, 287, { align: 'center' });
+      doc.text(`Task Invoice generated via BayadMin | Page ${i} of ${pageCount} | ${new Date().toLocaleDateString()}`, 105, 287, { align: 'center' });
     }
     
     doc.save('BayadMin_Invoice.pdf');
