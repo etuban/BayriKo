@@ -75,7 +75,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
           </thead>
           <tbody className="divide-y divide-border bg-card">
             {tasksByProject.map((group) => (
-              <React.Fragment key={group.projectId}>
+              <React.Fragment key={group.projectId.toString()}>
                 {/* Project Header Row */}
                 <tr 
                   className="bg-muted/90 font-semibold cursor-pointer print:cursor-default hover:bg-muted/100"
@@ -99,12 +99,13 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                   </td>
                 </tr>
                 
-                {/* Project Tasks */}
-                {expandedProjects[group.projectId] && group.tasks.map((task, index) => (
+                {/* Project Tasks - Always visible when printing */}
+                {group.tasks.map((task, index) => (
                   <tr 
                     key={task.id} 
                     className={cn(
                       "task-row hover:bg-muted",
+                      !expandedProjects[group.projectId] && "hidden print:table-row",
                       index % 2 === 1 ? 'bg-muted/30' : ''
                     )}
                   >
@@ -148,7 +149,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
       
       {/* Invoice Footer - only visible when printing */}
       <div className="hidden print:block mt-8 text-xs text-gray-500 text-center border-t border-gray-200 pt-4">
-        <p>Task Invoice generated via BayadMin | {new Date().toLocaleDateString()}</p>
+        <p>Task Invoice generated via BayadMin</p>
       </div>
     </div>
   );

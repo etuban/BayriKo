@@ -269,7 +269,7 @@ export default function TaskPayablePage() {
     doc.setTextColor(150, 150, 150);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.text(`Task Invoice generated via BayadMin | Page ${i} of ${pageCount} | ${new Date().toLocaleDateString()}`, 105, 287, { align: 'center' });
+      doc.text(`Task Invoice generated via BayadMin`, 105, 287, { align: 'center' });
     }
     
     doc.save('BayadMin_Invoice.pdf');
@@ -346,14 +346,14 @@ export default function TaskPayablePage() {
         <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
           {/* Invoice Title - Only visible when printing */}
           <div className="hidden print:block mb-6">
-            <h1 className="text-2xl font-bold text-center text-primary print-header">BayadMin Invoice</h1>
+            <h1 className="text-xl font-bold text-center text-primary print-header">Task Invoice</h1>
             <div className="flex justify-between mt-4">
               <div className="border-2 border-primary p-2 text-center w-40">
                 <p className="font-semibold text-primary">BayadMin</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Invoice #: INV-{new Date().getTime().toString().slice(-6)}</p>
-                <p className="text-sm text-muted-foreground">Date: {new Date().toLocaleDateString()}</p>
+                <p className="text-xs text-muted-foreground">Invoice #: INV-{new Date().getTime().toString().slice(-6)}</p>
+                <p className="text-xs text-muted-foreground">Date: {new Date().toLocaleDateString()}</p>
               </div>
             </div>
           </div>
