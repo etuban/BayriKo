@@ -94,7 +94,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                       </span>
                     </div>
                     <span className="text-sm font-bold">
-                      {formatCurrency(group.subtotal, 'PHP')}
+                      {formatCurrency(group.subtotal, group.tasks[0]?.currency || 'PHP')}
                     </span>
                   </td>
                 </tr>
@@ -123,11 +123,11 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                     </td>
                     <td className="px-6 py-3 whitespace-nowrap text-xs text-center">
                       {task.pricingType === 'hourly' 
-                        ? `${formatCurrency((task.hourlyRate || 0) / 100, 'PHP')}/hr` 
+                        ? `${formatCurrency((task.hourlyRate || 0) / 100, task.currency || 'PHP')}/hr` 
                         : 'Fixed'}
                     </td>
                     <td className="px-6 py-3 whitespace-nowrap text-right text-xs font-medium">
-                      {formatCurrency(task.totalAmount || 0, 'PHP')}
+                      {formatCurrency(task.totalAmount || 0, task.currency || 'PHP')}
                     </td>
                   </tr>
                 ))}
@@ -140,7 +140,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                 Grand Total
               </td>
               <td className="px-6 py-3 whitespace-nowrap text-right text-sm font-bold">
-                {formatCurrency(grandTotal, 'PHP')}
+                {formatCurrency(grandTotal, tasks[0]?.currency || 'PHP')}
               </td>
             </tr>
           </tbody>

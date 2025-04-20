@@ -26,6 +26,7 @@ export interface Project {
 // Task related types
 export type TaskStatus = 'todo' | 'in_progress' | 'completed';
 export type PricingType = 'hourly' | 'fixed';
+export type CurrencyType = 'PHP' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'SGD' | 'AUD' | 'CAD';
 
 export interface Task {
   id: number;
@@ -44,6 +45,7 @@ export interface Task {
   endTime?: string;
   dueDate?: string;
   pricingType: PricingType;
+  currency?: CurrencyType;
   hourlyRate?: number;
   fixedPrice?: number;
   status: TaskStatus;
@@ -102,6 +104,7 @@ export interface TaskFormValues {
   endTime?: string;
   dueDate?: string;
   pricingType: PricingType;
+  currency?: CurrencyType;
   hourlyRate?: number;
   fixedPrice?: number;
   status: TaskStatus;
