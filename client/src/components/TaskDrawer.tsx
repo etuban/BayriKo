@@ -154,13 +154,13 @@ export function TaskDrawer() {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 right-0 w-full sm:w-96 bg-dark-surface border-l border-dark-border shadow-xl z-20 transition-transform duration-300 ease-in-out",
+        "fixed inset-y-0 right-0 w-full sm:w-96 bg-background border-l border-border shadow-xl z-20 transition-transform duration-300 ease-in-out",
         drawer.isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
       <div className="h-full flex flex-col">
         {/* Drawer Header */}
-        <div className="px-6 py-4 border-b border-dark-border flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {drawer.mode === 'new' ? 'New Task' : drawer.mode === 'edit' ? 'Edit Task' : 'Task Details'}
           </h2>
@@ -431,7 +431,7 @@ export function TaskDrawer() {
         </div>
         
         {/* Drawer Footer */}
-        <div className="px-6 py-4 border-t border-dark-border flex items-center justify-end space-x-3">
+        <div className="px-6 py-4 border-t border-border flex items-center justify-end space-x-3">
           <Button variant="secondary" onClick={closeDrawer}>
             {drawer.mode === 'view' ? 'Close' : 'Cancel'}
           </Button>
