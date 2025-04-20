@@ -42,7 +42,7 @@ function Router() {
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/">
-        {() => <ProtectedRoute component={TasksPage} />}
+        {() => <ProtectedRoute component={DashboardPage} />}
       </Route>
       <Route path="/dashboard">
         {() => <ProtectedRoute component={DashboardPage} />}

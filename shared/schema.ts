@@ -101,7 +101,16 @@ export const tasksRelations = {
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true });
-export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Create a custom schema for tasks with proper date handling
+export const baseTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTaskSchema = baseTaskSchema.extend({
+  // Make dates optional and properly handle date conversions
+  startDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
+  endDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
+  dueDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
+});
+
 export const insertTaskCommentSchema = createInsertSchema(taskComments).omit({ id: true, createdAt: true });
 export const insertTaskHistorySchema = createInsertSchema(taskHistory).omit({ id: true, createdAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });

@@ -105,12 +105,9 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
+        <CardFooter className="flex justify-center">
           <p className="text-sm text-center text-gray-400">
-            Demo credentials:
-          </p>
-          <p className="text-xs text-center text-gray-400">
-            Email: pawnmedia.ph@gmail.com | Password: password123
+            Please enter your credentials to log in
           </p>
         </CardFooter>
       </Card>
