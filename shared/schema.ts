@@ -39,6 +39,7 @@ export const tasks = pgTable("tasks", {
   endTime: text("end_time"),
   dueDate: timestamp("due_date"),
   pricingType: text("pricing_type", { enum: ["hourly", "fixed"] }).notNull(),
+  currency: text("currency", { enum: ["PHP", "USD"] }).notNull().default("PHP"),
   hourlyRate: integer("hourly_rate"),
   fixedPrice: integer("fixed_price"),
   status: text("status", { enum: ["todo", "in_progress", "completed"] }).notNull().default("todo"),

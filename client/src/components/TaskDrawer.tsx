@@ -342,29 +342,47 @@ export function TaskDrawer() {
             </div>
             
             {/* Pricing */}
-            <div>
-              <Label className="text-sm font-medium mb-1">Pricing Type</Label>
-              <RadioGroup
-                value={pricingType}
-                onValueChange={(value) => form.setValue('pricingType', value as 'hourly' | 'fixed')}
-                className="flex space-x-4"
-                disabled={drawer.mode === 'view'}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="hourly" id="hourly" />
-                  <Label htmlFor="hourly">Hourly Rate</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="fixed" id="fixed" />
-                  <Label htmlFor="fixed">Fixed Price</Label>
-                </div>
-              </RadioGroup>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium mb-1">Pricing Type</Label>
+                <RadioGroup
+                  value={pricingType}
+                  onValueChange={(value) => form.setValue('pricingType', value as 'hourly' | 'fixed')}
+                  className="flex space-x-4"
+                  disabled={drawer.mode === 'view'}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="hourly" id="hourly" />
+                    <Label htmlFor="hourly">Hourly Rate</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fixed" id="fixed" />
+                    <Label htmlFor="fixed">Fixed Price</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              <div>
+                <Label htmlFor="currency" className="text-sm font-medium mb-1">Currency</Label>
+                <Select
+                  value={form.watch('currency')}
+                  onValueChange={(value) => form.setValue('currency', value as 'PHP' | 'USD')}
+                  disabled={drawer.mode === 'view'}
+                >
+                  <SelectTrigger className="w-full bg-dark-bg border border-dark-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PHP">PHP (₱)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             {pricingType === 'hourly' && (
               <div>
                 <Label htmlFor="hourlyRate" className="text-sm font-medium mb-1">
-                  Hourly Rate ($)
+                  Hourly Rate {form.watch('currency') === 'PHP' ? '(₱)' : '($)'}
                 </Label>
                 <Input
                   type="number"
@@ -382,7 +400,7 @@ export function TaskDrawer() {
             {pricingType === 'fixed' && (
               <div>
                 <Label htmlFor="fixedPrice" className="text-sm font-medium mb-1">
-                  Fixed Price ($)
+                  Fixed Price {form.watch('currency') === 'PHP' ? '(₱)' : '($)'}
                 </Label>
                 <Input
                   type="number"

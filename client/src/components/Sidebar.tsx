@@ -82,7 +82,7 @@ export function Sidebar() {
   return (
     <aside 
       className={cn(
-        "bg-background border-r border-border flex-shrink-0 transition-all duration-300 overflow-y-auto relative",
+        "bg-background border-r border-border flex-shrink-0 transition-all duration-300 overflow-hidden relative h-full",
         collapsed ? "w-20" : "w-64",
         "hidden sm:block" // Hide on mobile, use toggle in header
       )}
@@ -133,7 +133,7 @@ export function Sidebar() {
       {/* Toggle Button */}
       <button 
         onClick={toggleSidebar}
-        className="absolute top-1/2 -right-3 bg-primary text-white rounded-full p-1 shadow-md hover:bg-primary/90 transition-colors"
+        className="absolute top-1/2 -right-3 bg-primary text-white rounded-full p-1.5 shadow-md hover:bg-primary/90 transition-colors z-10"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (
