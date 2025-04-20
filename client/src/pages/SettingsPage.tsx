@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
@@ -11,9 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/lib/utils';
-import { User, Moon, Sun, Key, UserSquare, Shield } from 'lucide-react';
+import { getInitials, currencyOptions, getUserCurrency, setUserCurrency } from '@/lib/utils';
+import { User, Moon, Sun, Key, UserSquare, Shield, DollarSign } from 'lucide-react';
 
 // Form validation schema
 const profileFormSchema = z.object({
@@ -32,6 +33,48 @@ const passwordFormSchema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
+
+// CurrencySelector component
+function CurrencySelector() {
+  const [selectedCurrency, setSelectedCurrency] = useState(getUserCurrency());
+  const { toast } = useToast();
+  
+  // Handle currency change
+  const handleCurrencyChange = (value: string) => {
+    setSelectedCurrency(value);
+    setUserCurrency(value);
+    toast({
+      title: "Currency changed",
+      description: `Your currency has been changed to ${value}`,
+    });
+  };
+  
+  return (
+    <div className="flex items-center justify-between">
+      <div className="space-y-0.5">
+        <Label htmlFor="currency-selector">Currency</Label>
+        <p className="text-sm text-gray-400">
+          Select your preferred currency for the application
+        </p>
+      </div>
+      <Select value={selectedCurrency} onValueChange={handleCurrencyChange}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select Currency" />
+        </SelectTrigger>
+        <SelectContent>
+          {currencyOptions.map((currency) => (
+            <SelectItem key={currency.value} value={currency.value}>
+              <span className="flex items-center">
+                <span className="mr-2">{currency.symbol}</span>
+                {currency.label}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const { user, updateProfile } = useAuth();
@@ -304,6 +347,10 @@ export default function SettingsPage() {
                   checked={theme === 'dark'}
                   onCheckedChange={toggleTheme}
                 />
+              </div>
+              
+              <div className="border-t border-dark-border pt-6">
+                <CurrencySelector />
               </div>
             </CardContent>
           </Card>

@@ -66,17 +66,47 @@ export function calculateHours(
   return Math.round(hours * 100) / 100; // Round to 2 decimal places
 }
 
+// Currency options
+export const currencyOptions = [
+  { value: 'PHP', label: 'PHP (₱)', symbol: '₱' },
+  { value: 'USD', label: 'USD ($)', symbol: '$' },
+  { value: 'EUR', label: 'EUR (€)', symbol: '€' },
+  { value: 'GBP', label: 'GBP (£)', symbol: '£' },
+  { value: 'JPY', label: 'JPY (¥)', symbol: '¥' },
+  { value: 'SGD', label: 'SGD (S$)', symbol: 'S$' },
+  { value: 'AUD', label: 'AUD (A$)', symbol: 'A$' },
+  { value: 'CAD', label: 'CAD (C$)', symbol: 'C$' },
+];
+
+// Get or set the user's preferred currency
+export function getUserCurrency(): string {
+  const savedCurrency = localStorage.getItem('preferredCurrency');
+  return savedCurrency || 'PHP'; // Default to PHP
+}
+
+export function setUserCurrency(currency: string): void {
+  localStorage.setItem('preferredCurrency', currency);
+}
+
+// Get currency symbol
+export function getCurrencySymbol(currencyCode: string): string {
+  const currency = currencyOptions.find(c => c.value === currencyCode);
+  return currency?.symbol || '₱'; // Default to PHP symbol
+}
+
 // Format currency
-export function formatCurrency(amount: number | undefined, currency: string = 'PHP'): string {
-  if (amount === undefined) return '₱0.00';
+export function formatCurrency(amount: number | undefined, currency?: string): string {
+  if (amount === undefined) return `${getCurrencySymbol(getUserCurrency())}0.00`;
   
-  if (currency === 'PHP') {
+  const currencyCode = currency || getUserCurrency();
+  
+  if (currencyCode === 'PHP') {
     return `₱${amount.toFixed(2)}`;
   }
   
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency
+    currency: currencyCode
   }).format(amount);
 }
 
