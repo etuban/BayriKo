@@ -50,7 +50,7 @@ export default function TaskPayablePage() {
   // Print handler
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
-    documentTitle: 'BayadMin_Invoice',
+    documentTitle: 'Invoice',
     pageStyle: `
       @page {
         size: A4;
@@ -111,7 +111,7 @@ export default function TaskPayablePage() {
     // Add title
     doc.setFontSize(18);
     doc.setTextColor(0, 128, 0); // Green color for the header
-    doc.text('BayadMin Invoice', 105, 20, { align: 'center' });
+    doc.text('Invoice', 105, 20, { align: 'center' });
     
     // Add company logo space
     doc.setDrawColor(0, 128, 0); // Green border
@@ -119,7 +119,7 @@ export default function TaskPayablePage() {
     doc.rect(14, 30, 50, 15);
     doc.setFontSize(12);
     doc.setTextColor(0, 128, 0);
-    doc.text('BayadMin', 39, 40, { align: 'center' });
+    doc.text('Invoice', 39, 40, { align: 'center' });
     
     // Add invoice number and date
     doc.setFontSize(9);
@@ -277,10 +277,10 @@ export default function TaskPayablePage() {
     doc.setTextColor(150, 150, 150);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.text(`Task Invoice generated via BayadMin`, 105, 287, { align: 'center' });
+      doc.text(`Task Invoice`, 105, 287, { align: 'center' });
     }
     
-    doc.save('BayadMin_Invoice.pdf');
+    doc.save('Invoice.pdf');
   };
   
   // Handle invoice details change
@@ -354,10 +354,10 @@ export default function TaskPayablePage() {
         <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
           {/* Invoice Title - Only visible when printing */}
           <div className="hidden print:block mb-6">
-            <h1 className="text-xl font-bold text-center text-primary print-header">Task Invoice</h1>
+            <h1 className="text-xl font-bold text-center text-primary print-header">Invoice</h1>
             <div className="flex justify-between mt-4">
               <div className="border-2 border-primary p-2 text-center w-40">
-                <p className="font-semibold text-primary">BayadMin</p>
+                <p className="font-semibold text-primary">Invoice</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">Invoice #: INV-{new Date().getTime().toString().slice(-6)}</p>
