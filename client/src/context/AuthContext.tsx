@@ -68,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
       
-      // Force reload to refresh the page and navigate to dashboard
-      window.location.href = '/dashboard';
+      // Use navigate instead of window.location to avoid page refresh
+      navigate('/dashboard');
     },
     onError: (error: any) => {
       toast({
