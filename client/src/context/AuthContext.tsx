@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '../types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,7 +21,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  const [, navigate] = useLocation();
+  
   // Check if user is authenticated
   const { isLoading } = useQuery({
     queryKey: ['/api/auth/session'],
@@ -33,6 +34,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (data.authenticated) {
           setUser(data.user);
           setIsAuthenticated(true);
+          
+          // If at login page, redirect to dashboard
+          if (window.location.pathname === '/login') {
+            navigate('/dashboard');
+          }
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -46,8 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   });
-
-  const [, navigate] = useLocation();
   
   // Login mutation
   const loginMutation = useMutation({
@@ -64,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
       
-      // Redirect to dashboard after successful login
-      navigate('/dashboard');
+      // Force reload to refresh the page and navigate to dashboard
+      window.location.href = '/dashboard';
     },
     onError: (error: any) => {
       toast({
@@ -90,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "You've been logged out successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
+      navigate('/login');
     },
     onError: (error: any) => {
       toast({
