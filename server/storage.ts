@@ -1,0 +1,314 @@
+import { 
+  users, 
+  projects, 
+  tasks, 
+  taskComments, 
+  taskHistory, 
+  notifications,
+  type User, 
+  type InsertUser,
+  type Project,
+  type InsertProject,
+  type Task,
+  type InsertTask,
+  type TaskComment,
+  type InsertTaskComment,
+  type TaskHistory,
+  type InsertTaskHistory,
+  type Notification,
+  type InsertNotification
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, and, inArray, gte, lte, desc, asc, like, isNull, not } from "drizzle-orm";
+import { hash, compare } from "bcrypt";
+
+export interface IStorage {
+  // User methods
+  getUserById(id: number): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
+  getAllUsers(): Promise<User[]>;
+  validateUserPassword(email: string, password: string): Promise<User | null>;
+
+  // Project methods
+  createProject(project: InsertProject): Promise<Project>;
+  getProjectById(id: number): Promise<Project | undefined>;
+  updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
+  deleteProject(id: number): Promise<boolean>;
+  getAllProjects(): Promise<Project[]>;
+
+  // Task methods
+  createTask(task: InsertTask): Promise<Task>;
+  getTaskById(id: number): Promise<Task | undefined>;
+  updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined>;
+  deleteTask(id: number): Promise<boolean>;
+  getAllTasks(filters?: { projectId?: number, assignedToId?: number, status?: string, search?: string }): Promise<Task[]>;
+  getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number): Promise<Task[]>;
+
+  // Task comments methods
+  createTaskComment(comment: InsertTaskComment): Promise<TaskComment>;
+  getTaskComments(taskId: number): Promise<TaskComment[]>;
+
+  // Task history methods
+  createTaskHistory(history: InsertTaskHistory): Promise<TaskHistory>;
+  getTaskHistory(taskId: number): Promise<TaskHistory[]>;
+
+  // Notification methods
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getUserNotifications(userId: number): Promise<Notification[]>;
+  markNotificationAsRead(id: number): Promise<boolean>;
+  markAllUserNotificationsAsRead(userId: number): Promise<boolean>;
+}
+
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const hashedPassword = await hash(user.password, 10);
+    const [newUser] = await db
+      .insert(users)
+      .values({ ...user, password: hashedPassword })
+      .returning();
+    return newUser;
+  }
+
+  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+    if (user.password) {
+      user.password = await hash(user.password, 10);
+    }
+    
+    const [updatedUser] = await db
+      .update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning();
+    
+    return updatedUser;
+  }
+
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id));
+    return true; // If no error is thrown, deletion was successful
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async validateUserPassword(email: string, password: string): Promise<User | null> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return null;
+    
+    const passwordMatch = await compare(password, user.password);
+    if (!passwordMatch) return null;
+    
+    return user;
+  }
+
+  // Project methods
+  async createProject(project: InsertProject): Promise<Project> {
+    const [newProject] = await db
+      .insert(projects)
+      .values(project)
+      .returning();
+    return newProject;
+  }
+
+  async getProjectById(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
+  }
+
+  async updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined> {
+    const [updatedProject] = await db
+      .update(projects)
+      .set(project)
+      .where(eq(projects.id, id))
+      .returning();
+    
+    return updatedProject;
+  }
+
+  async deleteProject(id: number): Promise<boolean> {
+    await db.delete(projects).where(eq(projects.id, id));
+    return true; // If no error is thrown, deletion was successful
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return await db.select().from(projects);
+  }
+
+  // Task methods
+  async createTask(task: InsertTask): Promise<Task> {
+    const [newTask] = await db
+      .insert(tasks)
+      .values(task)
+      .returning();
+    return newTask;
+  }
+
+  async getTaskById(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task;
+  }
+
+  async updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined> {
+    const [updatedTask] = await db
+      .update(tasks)
+      .set({ ...task, updatedAt: new Date() })
+      .where(eq(tasks.id, id))
+      .returning();
+    
+    return updatedTask;
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+    await db.delete(tasks).where(eq(tasks.id, id));
+    return true; // If no error is thrown, deletion was successful
+  }
+
+  async getAllTasks(filters?: { projectId?: number, assignedToId?: number, status?: string, search?: string }): Promise<Task[]> {
+    let query = db.select().from(tasks);
+    
+    if (filters) {
+      if (filters.projectId) {
+        query = query.where(eq(tasks.projectId, filters.projectId));
+      }
+      
+      if (filters.assignedToId) {
+        query = query.where(eq(tasks.assignedToId, filters.assignedToId));
+      }
+      
+      if (filters.status) {
+        query = query.where(eq(tasks.status, filters.status));
+      }
+      
+      if (filters.search) {
+        query = query.where(like(tasks.title, `%${filters.search}%`));
+      }
+    }
+    
+    return await query.orderBy(desc(tasks.createdAt));
+  }
+
+  async getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number): Promise<Task[]> {
+    let query = db.select().from(tasks);
+    
+    const conditions = [];
+    
+    if (startDate) {
+      conditions.push(gte(tasks.startDate, startDate));
+    }
+    
+    if (endDate) {
+      conditions.push(lte(tasks.endDate, endDate));
+    }
+    
+    if (projectId) {
+      conditions.push(eq(tasks.projectId, projectId));
+    }
+    
+    // Only include tasks with pricing information
+    conditions.push(
+      not(
+        and(
+          isNull(tasks.hourlyRate),
+          isNull(tasks.fixedPrice)
+        )
+      )
+    );
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    // Order by project ID for grouping by project
+    return await query.orderBy(asc(tasks.projectId));
+  }
+
+  // Task comments methods
+  async createTaskComment(comment: InsertTaskComment): Promise<TaskComment> {
+    const [newComment] = await db
+      .insert(taskComments)
+      .values(comment)
+      .returning();
+    return newComment;
+  }
+
+  async getTaskComments(taskId: number): Promise<TaskComment[]> {
+    return await db
+      .select()
+      .from(taskComments)
+      .where(eq(taskComments.taskId, taskId))
+      .orderBy(asc(taskComments.createdAt));
+  }
+
+  // Task history methods
+  async createTaskHistory(history: InsertTaskHistory): Promise<TaskHistory> {
+    const [newHistory] = await db
+      .insert(taskHistory)
+      .values(history)
+      .returning();
+    return newHistory;
+  }
+
+  async getTaskHistory(taskId: number): Promise<TaskHistory[]> {
+    return await db
+      .select()
+      .from(taskHistory)
+      .where(eq(taskHistory.taskId, taskId))
+      .orderBy(desc(taskHistory.createdAt));
+  }
+
+  // Notification methods
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values(notification)
+      .returning();
+    return newNotification;
+  }
+
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async markNotificationAsRead(id: number): Promise<boolean> {
+    await db
+      .update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.id, id));
+    return true;
+  }
+
+  async markAllUserNotificationsAsRead(userId: number): Promise<boolean> {
+    await db
+      .update(notifications)
+      .set({ read: true })
+      .where(eq(notifications.userId, userId));
+    return true;
+  }
+}
+
+export const storage = new DatabaseStorage();
