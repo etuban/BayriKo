@@ -44,11 +44,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md bg-dark-surface border-dark-border">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md bg-background border-border">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-dark-bg flex items-center justify-center mb-4">
-            <GiReceiveMoney className="w-10 h-10 text-primary" />
+          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-4 overflow-hidden">
+            <iframe 
+              src="https://tenor.com/view/make-it-rain-money-money-make-it-rain-flick-money-gif-8890135915732568830" 
+              width="100%" 
+              height="100%" 
+              frameBorder="0"
+              className="scale-[1.7]"
+              allowFullScreen
+            ></iframe>
           </div>
           <CardTitle className="text-2xl font-bold text-center">BayadMin</CardTitle>
           <CardDescription className="text-center">

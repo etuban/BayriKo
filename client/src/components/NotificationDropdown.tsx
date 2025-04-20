@@ -51,10 +51,10 @@ export function NotificationDropdown() {
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 bg-dark-surface border border-dark-border"
+        className="w-80 p-0 bg-background border border-border"
         align="end"
       >
-        <div className="p-3 border-b border-dark-border">
+        <div className="p-3 border-b border-border">
           <h3 className="font-medium">Notifications</h3>
         </div>
         
