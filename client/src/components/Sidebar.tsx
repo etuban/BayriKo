@@ -64,17 +64,17 @@ export function Sidebar() {
   return (
     <aside 
       className={cn(
-        "bg-dark-surface border-r border-dark-border flex-shrink-0 transition-all duration-300 overflow-y-auto",
+        "bg-background border-r border-border flex-shrink-0 transition-all duration-300 overflow-y-auto",
         collapsed ? "w-20" : "w-64",
         "hidden sm:block" // Hide on mobile, use toggle in header
       )}
     >
       {/* Logo and App Name */}
-      <div className="flex items-center p-4 border-b border-dark-border">
+      <div className="flex items-center p-4 border-b border-border">
         <div className="bg-primary p-2 rounded-md">
           <GiReceiveMoney className="w-6 h-6 text-white" />
         </div>
-        {!collapsed && <h1 className="ml-3 text-xl font-semibold">MyByd</h1>}
+        {!collapsed && <h1 className="ml-3 text-xl font-semibold">BayadMin</h1>}
       </div>
       
       {/* Navigation Items */}
@@ -95,7 +95,7 @@ export function Sidebar() {
                       "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors",
                       location === item.path
                         ? "bg-primary text-white"
-                        : "hover:bg-dark-border"
+                        : "hover:bg-muted"
                     )}
                   >
                     {item.icon}

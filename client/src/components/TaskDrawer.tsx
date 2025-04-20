@@ -180,7 +180,7 @@ export function TaskDrawer() {
               <Input
                 id="title"
                 {...form.register('title')}
-                className="w-full p-2 rounded-md bg-dark-bg border border-dark-border"
+                className="w-full"
                 placeholder="Enter task title"
                 disabled={drawer.mode === 'view'}
               />
@@ -197,7 +197,7 @@ export function TaskDrawer() {
               <Textarea
                 id="description"
                 {...form.register('description')}
-                className="w-full p-2 rounded-md bg-dark-bg border border-dark-border"
+                className="w-full"
                 placeholder="Enter task description"
                 rows={3}
                 disabled={drawer.mode === 'view'}

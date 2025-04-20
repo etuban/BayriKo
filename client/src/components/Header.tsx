@@ -34,7 +34,7 @@ export function Header() {
       case '/settings':
         return 'Settings';
       default:
-        return 'MyByd';
+        return 'BayadMin';
     }
   };
   
@@ -59,7 +59,7 @@ export function Header() {
   };
 
   return (
-    <header className="bg-dark-surface border-b border-dark-border py-4 px-6 flex items-center justify-between">
+    <header className="bg-background border-b border-border py-4 px-6 flex items-center justify-between">
       {/* Left: Toggle Sidebar Button + Breadcrumb */}
       <div className="flex items-center">
         <Button 
