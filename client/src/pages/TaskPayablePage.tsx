@@ -184,28 +184,36 @@ export default function TaskPayablePage() {
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
       doc.text(project.projectName, 16, startY + 5);
-      doc.text(`${formatCurrency(project.subtotal, 'PHP')}`, 194, startY + 5, { align: 'right' });
+      doc.text(`₱${project.subtotal.toFixed(2)}`, 194, startY + 5, { align: 'right' });
       startY += 10;
       
       // Tasks table headers
       const tableColumn = ["Task", "Date", "Hours", "Rate", "Total"];
       
       // Tasks rows
-      const tableRows = project.tasks.map(task => [
-        task.title,
-        task.startDate ? 
-          `${formatDateTime(task.startDate, task.startTime).replace(/,.+$/, '')}${
-            task.endDate && task.startDate !== task.endDate ? 
-            ` - ${formatDateTime(task.endDate, task.endTime).replace(/,.+$/, '')}` : 
-            ''
-          }` : 
-          '',
-        typeof task.hours === 'number' ? task.hours.toFixed(2) : task.hours,
-        task.pricingType === 'hourly' 
-          ? `₱${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
-          : 'Fixed',
-        `₱${(task.totalAmount || 0).toFixed(2)}`
-      ]);
+      const tableRows = project.tasks.map(task => {
+        // Format dates safely
+        let dateStr = '';
+        if (task.startDate) {
+          const startDate = new Date(task.startDate);
+          dateStr = startDate.toLocaleDateString();
+          
+          if (task.endDate && task.startDate !== task.endDate) {
+            const endDate = new Date(task.endDate);
+            dateStr += ` - ${endDate.toLocaleDateString()}`;
+          }
+        }
+        
+        return [
+          task.title || '',
+          dateStr,
+          typeof task.hours === 'number' ? task.hours.toFixed(2) : (task.hours || ''),
+          task.pricingType === 'hourly' 
+            ? `₱${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
+            : 'Fixed',
+          `₱${(task.totalAmount || 0).toFixed(2)}`
+        ];
+      });
       
       // Add the table for this project
       autoTable(doc, {
@@ -251,7 +259,7 @@ export default function TaskPayablePage() {
     doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, 'bold');
     doc.text('Grand Total:', 112, finalY + 7.5);
-    doc.text(`${formatCurrency(data.grandTotal, 'PHP')}`, 194, finalY + 7.5, { align: 'right' });
+    doc.text(`₱${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, { align: 'right' });
     
     // Add payment terms
     doc.setFont(undefined, 'normal');

@@ -170,13 +170,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined> {
-    const [updatedTask] = await db
-      .update(tasks)
-      .set({ ...task, updatedAt: new Date() })
-      .where(eq(tasks.id, id))
-      .returning();
+    // Process dates properly before updating
+    const updatedData: any = { ...task, updatedAt: new Date() };
     
-    return updatedTask;
+    // Convert string dates to Date objects where needed
+    if (typeof updatedData.startDate === 'string') {
+      updatedData.startDate = new Date(updatedData.startDate);
+    }
+    
+    if (typeof updatedData.endDate === 'string') {
+      updatedData.endDate = new Date(updatedData.endDate);
+    }
+    
+    if (typeof updatedData.dueDate === 'string') {
+      updatedData.dueDate = new Date(updatedData.dueDate);
+    }
+    
+    // Remove undefined values to prevent errors
+    Object.keys(updatedData).forEach(key => {
+      if (updatedData[key] === undefined) {
+        delete updatedData[key];
+      }
+    });
+    
+    try {
+      const [updatedTask] = await db
+        .update(tasks)
+        .set(updatedData)
+        .where(eq(tasks.id, id))
+        .returning();
+      
+      return updatedTask;
+    } catch (error) {
+      console.error('Error updating task:', error);
+      throw error;
+    }
   }
 
   async deleteTask(id: number): Promise<boolean> {
