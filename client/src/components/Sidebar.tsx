@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,11 @@ import {
   BanknoteIcon, 
   FolderKanban, 
   Users, 
-  Settings 
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -18,8 +22,22 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
   
+  // Check localStorage for saved sidebar state
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState !== null) {
+      setCollapsed(savedState === 'true');
+    }
+  }, []);
+  
+  // Toggle sidebar and save state
   const toggleSidebar = () => {
-    setCollapsed(!collapsed);
+    const newState = !collapsed;
+    setCollapsed(newState);
+    localStorage.setItem('sidebarCollapsed', String(newState));
+    
+    // Dispatch custom event for Layout to listen
+    document.dispatchEvent(new CustomEvent('sidebarToggle'));
   };
 
   const navItems = [
@@ -64,7 +82,7 @@ export function Sidebar() {
   return (
     <aside 
       className={cn(
-        "bg-background border-r border-border flex-shrink-0 transition-all duration-300 overflow-y-auto",
+        "bg-background border-r border-border flex-shrink-0 transition-all duration-300 overflow-y-auto relative",
         collapsed ? "w-20" : "w-64",
         "hidden sm:block" // Hide on mobile, use toggle in header
       )}
@@ -98,7 +116,9 @@ export function Sidebar() {
                         : "hover:bg-muted"
                     )}
                   >
-                    {item.icon}
+                    {React.cloneElement(item.icon, { 
+                      className: collapsed ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3" 
+                    })}
                     {!collapsed && <span>{item.title}</span>}
                   </a>
                 </Link>
@@ -109,6 +129,19 @@ export function Sidebar() {
       
       {/* User Profile Section */}
       {!collapsed && <UserProfileCard user={user} />}
+      
+      {/* Toggle Button */}
+      <button 
+        onClick={toggleSidebar}
+        className="absolute top-1/2 -right-3 bg-primary text-white rounded-full p-1 shadow-md hover:bg-primary/90 transition-colors"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {collapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
+      </button>
     </aside>
   );
 }
