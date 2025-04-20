@@ -25,22 +25,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if user is authenticated
   const { isLoading } = useQuery({
     queryKey: ['/api/auth/session'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnWindowFocus: true,
-    select: (data: any) => data,
-    onSuccess: (data: any) => {
-      if (data.authenticated) {
-        setUser(data.user);
-        setIsAuthenticated(true);
-      } else {
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          setUser(data.user);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+        
+        return data;
+      } catch (error) {
         setUser(null);
         setIsAuthenticated(false);
+        throw error;
       }
-    },
-    onError: () => {
-      setUser(null);
-      setIsAuthenticated(false);
     }
   });
 
