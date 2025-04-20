@@ -59,6 +59,9 @@ function Router() {
       <Route path="/settings">
         {() => <ProtectedRoute component={SettingsPage} />}
       </Route>
+      <Route path="/tasks">
+        {() => <ProtectedRoute component={TasksPage} />}
+      </Route>
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

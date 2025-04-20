@@ -25,7 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if user is authenticated
   const { isLoading } = useQuery({
     queryKey: ['/api/auth/session'],
-    onSuccess: (data) => {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: true,
+    select: (data: any) => data,
+    onSuccess: (data: any) => {
       if (data.authenticated) {
         setUser(data.user);
         setIsAuthenticated(true);
@@ -40,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  const [, navigate] = useLocation();
+  
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
@@ -56,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
       
       // Redirect to dashboard after successful login
-      const [, navigate] = useLocation();
       navigate('/dashboard');
     },
     onError: (error: any) => {

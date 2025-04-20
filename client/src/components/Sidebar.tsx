@@ -32,7 +32,7 @@ export function Sidebar() {
     {
       title: 'Tasks',
       icon: <ListTodo className="w-5 h-5 mr-3" />,
-      path: '/',
+      path: '/tasks',
       display: true,
     },
     {
