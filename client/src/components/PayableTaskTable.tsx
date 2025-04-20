@@ -47,11 +47,11 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                   {task.pricingType === 'hourly' 
-                    ? `${formatCurrency((task.hourlyRate || 0) / 100)}/hr` 
+                    ? `${formatCurrency((task.hourlyRate || 0) / 100, 'PHP')}/hr` 
                     : 'Fixed'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {formatCurrency(task.totalAmount || 0)}
+                  {formatCurrency(task.totalAmount || 0, 'PHP')}
                 </td>
               </tr>
             ))}
@@ -61,7 +61,7 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
                 Total Amount
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold">
-                {formatCurrency(grandTotal)}
+                {formatCurrency(grandTotal, 'PHP')}
               </td>
             </tr>
           </tbody>

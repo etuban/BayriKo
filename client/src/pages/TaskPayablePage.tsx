@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PayableTaskTable } from '@/components/PayableTaskTable';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Task, InvoiceDetails } from '@/types';
 import { useReactToPrint } from 'react-to-print';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export default function TaskPayablePage() {
   // State for filters
@@ -142,12 +142,12 @@ export default function TaskPayablePage() {
       task.project?.name || 'N/A',
       typeof task.hours === 'string' ? task.hours : task.hours?.toFixed(2) || '0.00',
       task.pricingType === 'hourly' 
-        ? `$${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
+        ? `₱${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` 
         : 'Fixed',
-      `$${(task.totalAmount || 0).toFixed(2)}`
+      `₱${(task.totalAmount || 0).toFixed(2)}`
     ]);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 90,
@@ -175,12 +175,14 @@ export default function TaskPayablePage() {
       }
     });
     
+    // Get the last table ended position
+    const finalY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY : 120;
+    
     // Add grand total
-    const finalY = (doc as any).lastAutoTable.finalY;
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, 'bold');
-    doc.text(`Grand Total: $${data.grandTotal.toFixed(2)}`, 195, finalY + 10, { align: 'right' });
+    doc.text(`Grand Total: ₱${data.grandTotal.toFixed(2)}`, 195, finalY + 10, { align: 'right' });
     
     // Add payment terms
     doc.setFont(undefined, 'normal');

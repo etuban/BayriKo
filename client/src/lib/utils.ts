@@ -67,12 +67,16 @@ export function calculateHours(
 }
 
 // Format currency
-export function formatCurrency(amount: number | undefined): string {
-  if (amount === undefined) return '$0.00';
+export function formatCurrency(amount: number | undefined, currency: string = 'PHP'): string {
+  if (amount === undefined) return '₱0.00';
+  
+  if (currency === 'PHP') {
+    return `₱${amount.toFixed(2)}`;
+  }
   
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: currency
   }).format(amount);
 }
 
