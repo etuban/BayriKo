@@ -33,6 +33,7 @@ const taskSchema = z.object({
   endTime: z.string().optional(),
   dueDate: z.string().min(1, 'Due date is required'),
   pricingType: z.enum(['hourly', 'fixed']),
+  currency: z.enum(['PHP', 'USD']).default('PHP'),
   hourlyRate: z.coerce.number().optional(),
   fixedPrice: z.coerce.number().optional(),
   status: z.enum(['todo', 'in_progress', 'completed']),
@@ -57,6 +58,7 @@ export function TaskDrawer() {
       endTime: '',
       dueDate: '',
       pricingType: 'hourly',
+      currency: 'PHP',
       hourlyRate: undefined,
       fixedPrice: undefined,
       status: 'todo',
@@ -113,6 +115,7 @@ export function TaskDrawer() {
         endTime: task.endTime || '',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
         pricingType: task.pricingType,
+        currency: task.currency || 'PHP',
         hourlyRate: task.hourlyRate ? task.hourlyRate / 100 : undefined, // Convert from cents to dollars
         fixedPrice: task.fixedPrice ? task.fixedPrice / 100 : undefined, // Convert from cents to dollars
         status: task.status,
