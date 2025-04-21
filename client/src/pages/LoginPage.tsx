@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { GiReceiveMoney } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,7 @@ export default function LoginPage() {
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
+  const { toast } = useToast();
 
   // Initialize login form
   const loginForm = useForm<LoginFormValues>({
@@ -108,8 +110,8 @@ export default function LoginPage() {
           email: data.email,
           password: data.password,
           fullName: data.username, // Initially use username as fullName
-          role: "staff", // Default role
-          isApproved: false // Set approval status to false
+          role: "staff" as const, // Default role is always staff for new registrations
+          isApproved: false // All new accounts require supervisor approval
         }),
       });
 
@@ -119,11 +121,15 @@ export default function LoginPage() {
         throw new Error(result.message || "Registration failed");
       }
 
-      // Auto-login after registration
-      await login(data.email, data.password);
-
-      // Use setLocation for client-side navigation without page refresh
-      setLocation("/dashboard");
+      // Show success message instead of auto-login
+      toast({
+        title: "Registration Successful",
+        description: "Your account is pending approval. A supervisor will be notified to review your application.",
+        duration: 6000,
+      });
+      
+      // Change to login tab
+      setActiveTab("login");
     } catch (error: any) {
       setRegisterError(
         error.message || "Failed to register. Please try again.",
