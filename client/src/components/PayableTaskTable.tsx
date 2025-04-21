@@ -180,11 +180,14 @@ export function PayableTaskTable({ data, invoiceDetails }: PayableTaskTableProps
       
       {/* Invoice Footer - only visible when printing */}
       <div className="hidden print:block mt-8 text-xs text-gray-500 text-center border-t border-gray-200 pt-4">
-        {invoiceDetails?.footerHtml ? (
-          <div dangerouslySetInnerHTML={{ __html: invoiceDetails.footerHtml }} />
-        ) : (
-          <p>Task Invoice</p>
-        )}
+        <p>This PDF Invoice is generated through <a href="https://bayadmn.pawn.media" style="color: blue; text-decoration: underline;">BayadMn</a></p>
+        <div style="margin-top: 5px;">
+          <a href="https://bayadmn.pawn.media">
+            <div style="background-color: #008000; color: white; width: 100px; height: 30px; margin: 0 auto; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-weight: bold;">
+              BayadMn
+            </div>
+          </a>
+        </div>
       </div>
     </div>
   );

@@ -142,11 +142,16 @@ export default function TaskPayablePage() {
       <body>
         <div class="container">
           ${contentToPrint.innerHTML}
-          ${invoiceDetails.footerHtml ? `
-            <div class="footer">
-              ${invoiceDetails.footerHtml}
+          <div class="footer">
+            <p>This PDF Invoice is generated through <a href="https://bayadmn.pawn.media" style="color: blue; text-decoration: underline;">BayadMn</a></p>
+            <div style="margin-top: 5px;">
+              <a href="https://bayadmn.pawn.media">
+                <div style="background-color: #008000; color: white; width: 100px; height: 30px; margin: 0 auto; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-weight: bold;">
+                  BayadMn
+                </div>
+              </a>
             </div>
-          ` : ''}
+          </div>
         </div>
       </body>
       </html>
@@ -364,22 +369,47 @@ export default function TaskPayablePage() {
       doc.text(line, 14, finalY + 25 + index * 4);
     });
 
-    // Add static footer
-    const footerText = "PDF generated through BayadMn";
-    const footerY = doc.internal.pageSize.getHeight() - 15;
+    // Add static footer with link text
+    const footerY = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(10);
     const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Add footer text with URL
+    const footerText = "This PDF Invoice is generated through BayadMn";
     const textWidth = doc.getTextWidth(footerText);
     const textX = (pageWidth - textWidth) / 2;
     doc.text(footerText, textX, footerY);
     
-    // Add website logo/URL on the next line
+    // Add website URL 
     const websiteText = "https://bayadmn.pawn.media";
     const websiteY = footerY + 5;
     doc.setFontSize(8);
+    doc.setTextColor(0, 0, 255); // Blue color for URL
     const websiteWidth = doc.getTextWidth(websiteText);
     const websiteX = (pageWidth - websiteWidth) / 2;
     doc.text(websiteText, websiteX, websiteY);
+    
+    // Create a small logo
+    const logoWidth = 20;
+    const logoHeight = 7;
+    const logoX = (pageWidth - logoWidth) / 2;
+    const logoY = websiteY + 5;
+    
+    // Simple "BayadMn" logo with green background
+    doc.setFillColor(0, 128, 0); // Green background
+    doc.roundedRect(logoX, logoY, logoWidth, logoHeight, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    const logoText = "BayadMn";
+    const logoTextWidth = doc.getTextWidth(logoText);
+    const logoTextX = logoX + (logoWidth - logoTextWidth) / 2;
+    const logoTextY = logoY + 5;
+    doc.text(logoText, logoTextX, logoTextY);
+    
+    // Add a link annotation for both the URL text and logo
+    doc.link(websiteX, websiteY - 3, websiteWidth, 4, { url: 'https://bayadmn.pawn.media' });
+    doc.link(logoX, logoY, logoWidth, logoHeight, { url: 'https://bayadmn.pawn.media' });
 
 
     // Create a dynamic filename based on the project name and timestamp
@@ -529,18 +559,7 @@ export default function TaskPayablePage() {
             />
           </div>
 
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-3">Footer HTML</h3>
-            <Textarea
-              rows={3}
-              className="w-full p-3 rounded-md bg-card border border-input text-sm font-mono"
-              placeholder="Enter HTML for the invoice footer (e.g. <p>Thank you for your business</p>)"
-              value={invoiceDetails.footerHtml}
-              onChange={(e) =>
-                handleDetailsChange("footerHtml", e.target.value)
-              }
-            />
-          </div>
+
           
 
           <div className="print:block hidden mt-4 text-sm text-muted-foreground">
