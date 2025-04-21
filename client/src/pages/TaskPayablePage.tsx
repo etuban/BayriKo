@@ -29,6 +29,7 @@ export default function TaskPayablePage() {
     billFrom: "",
     billTo: "",
     paymentTerms: "",
+    footerHtml: "",
   });
 
   // Component ref for printing
@@ -381,18 +382,27 @@ export default function TaskPayablePage() {
     doc.text(websiteText, websiteX, websiteY);
 
 
-    // Create a dynamic filename based on the project ID and timestamp
+    // Create a dynamic filename based on the project name and timestamp
     const timestamp = new Date().getTime().toString().slice(-6);
     let filename = "Invoice_" + timestamp + ".pdf";
     
-    // If there's a specific project selected in the filter, add it to the filename
+    // If there's a specific project selected in the filter, find the project name
     if (projectId && projectId !== "all") {
-      filename = projectId + "-" + filename;
+      // Find the project name in the projects list
+      const selectedProject = (projects as any[]).find(p => p.id.toString() === projectId);
+      if (selectedProject) {
+        const projectName = selectedProject.name
+          .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
+          .substring(0, 20); // Limit to 20 characters
+        filename = projectName + "-" + filename;
+      }
     } 
-    // Or if we have tasks from a project, use the first project's ID
-    else if (data.tasks.length > 0) {
-      const firstProjectId = data.tasks[0].projectId;
-      filename = firstProjectId + "-" + filename;
+    // Or if we have tasks from a project, use the first project's name
+    else if (data.tasks.length > 0 && data.tasks[0].project) {
+      const projectName = data.tasks[0].project.name
+        .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
+        .substring(0, 20); // Limit to 20 characters
+      filename = projectName + "-" + filename;
     }
     
     doc.save(filename);
@@ -519,6 +529,18 @@ export default function TaskPayablePage() {
             />
           </div>
 
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-3">Footer HTML</h3>
+            <Textarea
+              rows={3}
+              className="w-full p-3 rounded-md bg-card border border-input text-sm font-mono"
+              placeholder="Enter HTML for the invoice footer (e.g. <p>Thank you for your business</p>)"
+              value={invoiceDetails.footerHtml}
+              onChange={(e) =>
+                handleDetailsChange("footerHtml", e.target.value)
+              }
+            />
+          </div>
           
 
           <div className="print:block hidden mt-4 text-sm text-muted-foreground">

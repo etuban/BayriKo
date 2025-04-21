@@ -135,4 +135,5 @@ export interface InvoiceDetails {
   billFrom: string;
   billTo: string;
   paymentTerms: string;
+  footerHtml?: string;
 }
