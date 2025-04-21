@@ -157,7 +157,9 @@ export function PayableTaskTable({
                     {/* Task info for mobile/desktop view */}
                     <div className="flex items-center px-4 sm:px-6 py-3 print:hidden">
                       <div className="flex-1">
-                        <div className="text-xs font-medium">{task.title}</div>
+                        <div className="text-xs font-medium font-bold">
+                          {task.title}
+                        </div>
                         {task.description && (
                           <div className="text-xs text-muted-foreground mt-1">
                             {task.description}
@@ -184,7 +186,9 @@ export function PayableTaskTable({
 
                     {/* Print view cells */}
                     <div className="hidden print:table-cell px-4 sm:px-6 py-3">
-                      <div className="text-xs font-medium">{task.title}</div>
+                      <div className="text-xs font-medium font-bold">
+                        {task.title}
+                      </div>
                       {task.description && (
                         <div className="text-xs text-muted-foreground mt-1">
                           {task.description}
@@ -240,9 +244,24 @@ export function PayableTaskTable({
 
       {/* Invoice Footer - only visible when printing */}
       <div className="hidden print:block mt-8 text-xs text-gray-500 text-center border-t border-gray-200 pt-4">
-        <div style={{ marginTop: "5px", display: "flex", justifyContent: "center" }}>
+        <div
+          style={{
+            marginTop: "5px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           <a href="https://bayadmn.pawn.media">
-            <div className="bg-primary p-2 rounded-full" style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div
+              className="bg-primary p-2 rounded-full"
+              style={{
+                width: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <GiReceiveMoney className="w-6 h-6 text-white" />
             </div>
           </a>

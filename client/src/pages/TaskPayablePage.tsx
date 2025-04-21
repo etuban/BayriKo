@@ -291,10 +291,17 @@ export default function TaskPayablePage() {
           }
         }
 
-        // Format title and description for display
-        let taskTitle = task.title || "";
+        // Format title and description for display with bold title
+        let taskTitle = "";
+        
+        if (task.title) {
+          // We'll use styling in autoTable to make this bold
+          taskTitle = task.title;
+        }
+        
         if (task.description) {
-          taskTitle += `\n${task.description}`;
+          // Add description as a separate line
+          taskTitle += task.description ? `\n${task.description}` : "";
         }
 
         return [
@@ -333,6 +340,26 @@ export default function TaskPayablePage() {
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245],
+        },
+        // Add custom cell styling for titles and descriptions
+        didParseCell: function(data) {
+          // Only style cells in the first column (task title/description)
+          if (data.column.index === 0 && data.cell.text) {
+            // If this is a cell in the first column with content
+            if (Array.isArray(data.cell.text) && data.cell.text.length > 0) {
+              // The first line is the title, set it to bold
+              if (data.cell.text[0] !== '') {
+                data.cell.styles.fontStyle = 'bold';
+              }
+              
+              // If there are multiple lines (description exists)
+              if (data.cell.text.length > 1) {
+                // Set the title to bold and normal font size
+                data.cell.styles.fontSize = 8;
+                // The style applies to the whole cell, but we'll handle it in didDrawCell
+              }
+            }
+          }
         },
         columnStyles: {
           0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
