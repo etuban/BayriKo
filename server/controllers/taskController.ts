@@ -382,23 +382,42 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
       
       // Calculate hours if we have start and end dates/times
       if (task.startDate && task.endDate) {
-        const startDateTime = new Date(task.startDate);
-        const endDateTime = new Date(task.endDate);
-        
-        // Apply times if available
-        if (task.startTime) {
-          const [startHours, startMinutes] = task.startTime.split(':').map(Number);
-          startDateTime.setHours(startHours, startMinutes);
+        try {
+          const startDateTime = new Date(task.startDate);
+          const endDateTime = new Date(task.endDate);
+          
+          // Make sure both dates are valid before proceeding
+          if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime())) {
+            // Apply times if available
+            if (task.startTime) {
+              try {
+                const [startHours, startMinutes] = task.startTime.split(':').map(Number);
+                startDateTime.setHours(startHours, startMinutes);
+              } catch (e) {
+                console.error('Invalid start time format:', task.startTime);
+              }
+            }
+            
+            if (task.endTime) {
+              try {
+                const [endHours, endMinutes] = task.endTime.split(':').map(Number);
+                endDateTime.setHours(endHours, endMinutes);
+              } catch (e) {
+                console.error('Invalid end time format:', task.endTime);
+              }
+            }
+            
+            // Calculate hours difference only if dates are valid
+            if (endDateTime >= startDateTime) {
+              hours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+              hours = Math.round(hours * 100) / 100; // Round to 2 decimal places
+            } else {
+              console.warn('End date is before start date for task:', task.id);
+            }
+          }
+        } catch (e) {
+          console.error('Error calculating hours for task:', task.id, e);
         }
-        
-        if (task.endTime) {
-          const [endHours, endMinutes] = task.endTime.split(':').map(Number);
-          endDateTime.setHours(endHours, endMinutes);
-        }
-        
-        // Calculate hours difference
-        hours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
-        hours = Math.round(hours * 100) / 100; // Round to 2 decimal places
       }
       
       // Calculate total amount

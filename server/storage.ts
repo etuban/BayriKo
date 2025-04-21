@@ -243,9 +243,25 @@ export class DatabaseStorage implements IStorage {
 
   // Task methods
   async createTask(task: InsertTask): Promise<Task> {
+    // Process the task data to validate dates
+    const processedTask: any = { ...task };
+    
+    // Ensure dates are valid or set to null
+    if (processedTask.startDate && (!(processedTask.startDate instanceof Date) || isNaN(processedTask.startDate.getTime()))) {
+      processedTask.startDate = null;
+    }
+    
+    if (processedTask.endDate && (!(processedTask.endDate instanceof Date) || isNaN(processedTask.endDate.getTime()))) {
+      processedTask.endDate = null;
+    }
+    
+    if (processedTask.dueDate && (!(processedTask.dueDate instanceof Date) || isNaN(processedTask.dueDate.getTime()))) {
+      processedTask.dueDate = null;
+    }
+    
     const [newTask] = await db
       .insert(tasks)
-      .values(task)
+      .values(processedTask)
       .returning();
     return newTask;
   }
@@ -259,17 +275,53 @@ export class DatabaseStorage implements IStorage {
     // Process dates properly before updating
     const updatedData: any = { ...task, updatedAt: new Date() };
     
-    // Convert string dates to Date objects where needed
+    // Convert string dates to Date objects where needed, handle null/empty values
     if (typeof updatedData.startDate === 'string') {
-      updatedData.startDate = new Date(updatedData.startDate);
+      if (updatedData.startDate.trim() === '') {
+        updatedData.startDate = null;
+      } else {
+        try {
+          updatedData.startDate = new Date(updatedData.startDate);
+          // Check if the date is valid
+          if (isNaN(updatedData.startDate.getTime())) {
+            updatedData.startDate = null;
+          }
+        } catch (e) {
+          updatedData.startDate = null;
+        }
+      }
     }
     
     if (typeof updatedData.endDate === 'string') {
-      updatedData.endDate = new Date(updatedData.endDate);
+      if (updatedData.endDate.trim() === '') {
+        updatedData.endDate = null;
+      } else {
+        try {
+          updatedData.endDate = new Date(updatedData.endDate);
+          // Check if the date is valid
+          if (isNaN(updatedData.endDate.getTime())) {
+            updatedData.endDate = null;
+          }
+        } catch (e) {
+          updatedData.endDate = null;
+        }
+      }
     }
     
     if (typeof updatedData.dueDate === 'string') {
-      updatedData.dueDate = new Date(updatedData.dueDate);
+      if (updatedData.dueDate.trim() === '') {
+        updatedData.dueDate = null;
+      } else {
+        try {
+          updatedData.dueDate = new Date(updatedData.dueDate);
+          // Check if the date is valid
+          if (isNaN(updatedData.dueDate.getTime())) {
+            updatedData.dueDate = null;
+          }
+        } catch (e) {
+          updatedData.dueDate = null;
+        }
+      }
     }
     
     // Remove undefined values to prevent errors
