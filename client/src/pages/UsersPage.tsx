@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, UserPlus, Pencil, Trash2, AlertCircle } from 'lucide-react';
@@ -669,40 +670,43 @@ export default function UsersPage() {
                     </p>
                     
                     {projectsLoading ? (
-                      <div className="space-y-2 p-2 border border-dark-border rounded-md">
-                        <div className="flex items-center space-x-2">
-                          <Skeleton className="h-5 w-5" />
-                          <Skeleton className="h-4 w-full" />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Skeleton className="h-5 w-5" />
-                          <Skeleton className="h-4 w-full" />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Skeleton className="h-5 w-5" />
-                          <Skeleton className="h-4 w-full" />
-                        </div>
+                      <div className="space-y-2">
+                        <Skeleton className="h-10 w-full" />
                       </div>
                     ) : projects.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-2 border border-dark-border rounded-md">
-                        {projects.map((project) => (
-                          <div key={project.id} className="flex items-center space-x-2 p-2 rounded hover:bg-dark-bg">
-                            <Checkbox 
-                              id={`project-${project.id}`}
-                              checked={selectedProjects.includes(project.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedProjects([...selectedProjects, project.id]);
-                                } else {
-                                  setSelectedProjects(selectedProjects.filter(id => id !== project.id));
-                                }
-                              }}
-                            />
-                            <Label htmlFor={`project-${project.id}`} className="cursor-pointer flex-1">
-                              {project.name}
-                            </Label>
+                      <div className="border border-dark-border rounded-md">
+                        <Command className="bg-dark-bg">
+                          <CommandInput placeholder="Search projects..." className="h-9" />
+                          <CommandList>
+                            <CommandEmpty>No projects found.</CommandEmpty>
+                            <CommandGroup>
+                              {projects.map((project) => (
+                                <CommandItem
+                                  key={project.id}
+                                  onSelect={() => {
+                                    if (selectedProjects.includes(project.id)) {
+                                      setSelectedProjects(selectedProjects.filter(id => id !== project.id));
+                                    } else {
+                                      setSelectedProjects([...selectedProjects, project.id]);
+                                    }
+                                  }}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <Checkbox 
+                                    checked={selectedProjects.includes(project.id)}
+                                    className="h-4 w-4 mr-2"
+                                  />
+                                  <span>{project.name}</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                        <div className="p-2 border-t border-dark-border">
+                          <div className="text-sm text-gray-400">
+                            {selectedProjects.length} project(s) selected
                           </div>
-                        ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="text-center p-4 border border-dark-border rounded-md">
@@ -773,40 +777,43 @@ export default function UsersPage() {
                 </p>
                 
                 {projectsLoading ? (
-                  <div className="space-y-2 p-2 border border-dark-border rounded-md">
-                    <div className="flex items-center space-x-2">
-                      <Skeleton className="h-5 w-5" />
-                      <Skeleton className="h-4 w-full" />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Skeleton className="h-5 w-5" />
-                      <Skeleton className="h-4 w-full" />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Skeleton className="h-5 w-5" />
-                      <Skeleton className="h-4 w-full" />
-                    </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-10 w-full" />
                   </div>
                 ) : projects.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-2 border border-dark-border rounded-md">
-                    {projects.map((project) => (
-                      <div key={project.id} className="flex items-center space-x-2 p-2 rounded hover:bg-dark-bg">
-                        <Checkbox 
-                          id={`approve-project-${project.id}`}
-                          checked={selectedProjects.includes(project.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedProjects([...selectedProjects, project.id]);
-                            } else {
-                              setSelectedProjects(selectedProjects.filter(id => id !== project.id));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`approve-project-${project.id}`} className="cursor-pointer flex-1">
-                          {project.name}
-                        </Label>
+                  <div className="border border-dark-border rounded-md">
+                    <Command className="bg-dark-bg">
+                      <CommandInput placeholder="Search projects..." className="h-9" />
+                      <CommandList>
+                        <CommandEmpty>No projects found.</CommandEmpty>
+                        <CommandGroup>
+                          {projects.map((project) => (
+                            <CommandItem
+                              key={project.id}
+                              onSelect={() => {
+                                if (selectedProjects.includes(project.id)) {
+                                  setSelectedProjects(selectedProjects.filter(id => id !== project.id));
+                                } else {
+                                  setSelectedProjects([...selectedProjects, project.id]);
+                                }
+                              }}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox 
+                                checked={selectedProjects.includes(project.id)}
+                                className="h-4 w-4 mr-2"
+                              />
+                              <span>{project.name}</span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                    <div className="p-2 border-t border-dark-border">
+                      <div className="text-sm text-gray-400">
+                        {selectedProjects.length} project(s) selected
                       </div>
-                    ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center p-4 border border-dark-border rounded-md">
