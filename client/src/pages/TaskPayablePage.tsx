@@ -142,6 +142,11 @@ export default function TaskPayablePage() {
       <body>
         <div class="container">
           ${contentToPrint.innerHTML}
+          ${invoiceDetails.footerHtml ? `
+            <div class="footer">
+              ${invoiceDetails.footerHtml}
+            </div>
+          ` : ''}
         </div>
       </body>
       </html>
@@ -360,7 +365,11 @@ export default function TaskPayablePage() {
     });
 
     // Add footer
-    const footerText = "PDF generated through <a href='https://bayadmn.pawn.media'>BayadMn</a>.";
+    const footerText = invoiceDetails.footerHtml ? 
+      // Strip HTML tags for PDF text rendering
+      invoiceDetails.footerHtml.replace(/<[^>]*>?/gm, '') : 
+      "PDF generated through BayadMn.";
+      
     const footerY = doc.internal.pageSize.getHeight() - 10;
     doc.setFontSize(10);
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -526,7 +535,7 @@ export default function TaskPayablePage() {
             </p>
           </div>
         ) : data && data.tasks.length > 0 ? (
-          <PayableTaskTable data={data} />
+          <PayableTaskTable data={data} invoiceDetails={invoiceDetails} />
         ) : (
           <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
             <p className="text-gray-400">

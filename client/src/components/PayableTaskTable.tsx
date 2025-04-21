@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task } from '@/types';
+import { Task, InvoiceDetails } from '@/types';
 import { formatDateTime, formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -9,9 +9,10 @@ interface PayableTaskTableProps {
     tasks: Task[];
     grandTotal: number;
   };
+  invoiceDetails?: InvoiceDetails;
 }
 
-export function PayableTaskTable({ data }: PayableTaskTableProps) {
+export function PayableTaskTable({ data, invoiceDetails }: PayableTaskTableProps) {
   const { tasks, grandTotal } = data;
   const [expandedProjects, setExpandedProjects] = React.useState<Record<number, boolean>>({});
   
@@ -179,7 +180,11 @@ export function PayableTaskTable({ data }: PayableTaskTableProps) {
       
       {/* Invoice Footer - only visible when printing */}
       <div className="hidden print:block mt-8 text-xs text-gray-500 text-center border-t border-gray-200 pt-4">
-        <p>Task Invoice</p>
+        {invoiceDetails?.footerHtml ? (
+          <div dangerouslySetInnerHTML={{ __html: invoiceDetails.footerHtml }} />
+        ) : (
+          <p>Task Invoice</p>
+        )}
       </div>
     </div>
   );
