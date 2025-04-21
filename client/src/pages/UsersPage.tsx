@@ -43,6 +43,7 @@ export default function UsersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(false);
   
   // Load projects for assignment
   const { data: projects = [] } = useQuery<Project[]>({
@@ -184,21 +185,49 @@ export default function UsersPage() {
     deleteMutation.mutate(selectedUser.id);
   };
   
+  // Approval dialog state
+  const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
+  
   // Handle user approval
   const handleApproveUser = (userId: number) => {
+    // First update user approval status
     updateMutation.mutate({ 
       id: userId, 
       userData: { isApproved: true } 
     });
+    
+    // Then assign selected projects if user is staff
+    if (selectedUser?.role === 'staff' && selectedProjects.length > 0) {
+      assignProjectsMutation.mutate({
+        userId,
+        projectIds: selectedProjects
+      });
+    }
+    
+    // Close approval dialog if open
+    setIsApproveDialogOpen(false);
+  };
+  
+  // Open approval dialog
+  const openApproveDialog = async (user: User) => {
+    setSelectedUser(user);
+    // Reset selected projects
+    setSelectedProjects([]);
+    // Fetch user's assigned projects to populate selection
+    if (user.role === 'staff') {
+      await fetchUserProjects(user.id);
+    }
+    setIsApproveDialogOpen(true);
   };
 
   // Fetch user projects
   const fetchUserProjects = async (userId: number) => {
     if (user?.role === 'supervisor') {
+      setProjectsLoading(true);
       try {
         const res = await apiRequest('GET', `/api/users/${userId}/projects`);
-        const projects = await res.json();
-        setSelectedProjects(projects.map((p: Project) => p.id));
+        const userProjects = await res.json();
+        setSelectedProjects(userProjects.map((p: Project) => p.id));
       } catch (error) {
         console.error('Error fetching user projects:', error);
         toast({
@@ -206,6 +235,9 @@ export default function UsersPage() {
           description: 'Failed to load user projects',
           variant: 'destructive',
         });
+        setSelectedProjects([]);
+      } finally {
+        setProjectsLoading(false);
       }
     }
   };
@@ -357,7 +389,7 @@ export default function UsersPage() {
                 {!user.isApproved && user?.role === 'supervisor' && (
                   <Button 
                     size="sm"
-                    onClick={() => handleApproveUser(user.id)}
+                    onClick={() => openApproveDialog(user)}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     Approve
@@ -636,7 +668,22 @@ export default function UsersPage() {
                       Staff users can only access projects they are assigned to.
                     </p>
                     
-                    {projects.length > 0 ? (
+                    {projectsLoading ? (
+                      <div className="space-y-2 p-2 border border-dark-border rounded-md">
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-5 w-5" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-5 w-5" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-5 w-5" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      </div>
+                    ) : projects.length > 0 ? (
                       <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-2 border border-dark-border rounded-md">
                         {projects.map((project) => (
                           <div key={project.id} className="flex items-center space-x-2 p-2 rounded hover:bg-dark-bg">
@@ -684,6 +731,111 @@ export default function UsersPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Approve User Dialog */}
+      <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+        <DialogContent className="bg-dark-surface border border-dark-border">
+          <DialogHeader>
+            <DialogTitle>Approve User</DialogTitle>
+            <DialogDescription>
+              {selectedUser?.role === 'staff'
+                ? "Assign projects to this staff user. They will only have access to assigned projects."
+                : "Approve this user account so they can log in to the system."}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {selectedUser && (
+              <div className="flex items-start border-b border-dark-border pb-4">
+                <Avatar className="h-12 w-12 mr-4">
+                  <AvatarImage src={selectedUser.avatarUrl || ""} alt={selectedUser.fullName} />
+                  <AvatarFallback>{getInitials(selectedUser.fullName)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold">{selectedUser.fullName}</h3>
+                  <p className="text-sm text-gray-400">@{selectedUser.username}</p>
+                  <p className="text-sm">{selectedUser.email}</p>
+                  <span className="inline-block mt-1 text-xs px-2 py-1 rounded-full bg-primary/20 text-primary capitalize">
+                    {selectedUser.role}
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {/* Project Assignment (only for Staff users) */}
+            {selectedUser?.role === 'staff' && (
+              <div className="space-y-2">
+                <Label className="text-base font-medium">Assign Projects</Label>
+                <p className="text-sm text-gray-400 mb-3">
+                  Staff users can only access projects they are assigned to.
+                </p>
+                
+                {projectsLoading ? (
+                  <div className="space-y-2 p-2 border border-dark-border rounded-md">
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-5 w-5" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-5 w-5" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Skeleton className="h-5 w-5" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  </div>
+                ) : projects.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-2 border border-dark-border rounded-md">
+                    {projects.map((project) => (
+                      <div key={project.id} className="flex items-center space-x-2 p-2 rounded hover:bg-dark-bg">
+                        <Checkbox 
+                          id={`approve-project-${project.id}`}
+                          checked={selectedProjects.includes(project.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedProjects([...selectedProjects, project.id]);
+                            } else {
+                              setSelectedProjects(selectedProjects.filter(id => id !== project.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`approve-project-${project.id}`} className="cursor-pointer flex-1">
+                          {project.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-4 border border-dark-border rounded-md">
+                    <p className="text-gray-400">No projects available to assign.</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={() => setIsApproveDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleApproveUser(selectedUser!.id)}
+                disabled={updateMutation.isPending || assignProjectsMutation.isPending}
+              >
+                {updateMutation.isPending || assignProjectsMutation.isPending 
+                  ? 'Approving...' 
+                  : 'Approve User'}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
       
