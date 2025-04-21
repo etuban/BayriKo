@@ -64,7 +64,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       display: true,
     },
     {
-      title: 'Task Payable',
+      title: 'PDF Invoice',
       icon: <BanknoteIcon className="w-5 h-5 mr-3" />,
       path: '/payable',
       display: true,

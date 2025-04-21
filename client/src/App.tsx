@@ -7,7 +7,7 @@ import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
 import TasksPage from "@/pages/TasksPage";
 import DashboardPage from "@/pages/DashboardPage";
-import TaskPayablePage from "@/pages/TaskPayablePage";
+import PDFInvoicePage from "@/pages/TaskPayablePage"; // Renamed for better clarity
 import ProjectsPage from "@/pages/ProjectsPage";
 import UsersPage from "@/pages/UsersPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -58,7 +58,7 @@ function Router() {
         {() => <ProtectedRoute component={DashboardPage} />}
       </Route>
       <Route path="/payable">
-        {() => <ProtectedRoute component={TaskPayablePage} />}
+        {() => <ProtectedRoute component={PDFInvoicePage} />}
       </Route>
       <Route path="/projects">
         {() => <ProtectedRoute component={ProjectsPage} />}
