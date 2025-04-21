@@ -188,6 +188,8 @@ export default function TaskPayablePage() {
       orientation: "portrait",
       unit: "mm",
       format: "a4",
+      putOnlyUsedFonts: true,
+      floatPrecision: 16
     });
 
     // Add title
@@ -337,12 +339,13 @@ export default function TaskPayablePage() {
           fillColor: [245, 245, 245],
         },
         columnStyles: {
-          0: { cellWidth: 50 },
-          1: { cellWidth: 45 },
+          0: { cellWidth: 70 },
+          1: { cellWidth: 35 },
           2: { cellWidth: 20, halign: "center" },
-          3: { cellWidth: 27, halign: "center" },
-          4: { cellWidth: 25, halign: "right" },
+          3: { cellWidth: 25, halign: "center" },
+          4: { cellWidth: 30, halign: "right" },
         },
+        margin: { left: 10, right: 10 },
       });
 
       // Update startY for next project
@@ -540,15 +543,6 @@ export default function TaskPayablePage() {
 
       {/* Invoice Actions */}
       <div className="flex justify-end space-x-3">
-        <Button
-          variant="secondary"
-          className="flex items-center"
-          onClick={print}
-          disabled={!data || data.tasks.length === 0}
-        >
-          <Printer className="w-4 h-4 mr-2" />
-          Print
-        </Button>
         <Button
           className="bg-primary hover:bg-primary/90 text-white flex items-center"
           onClick={handleDownloadPDF}
