@@ -545,7 +545,6 @@ export default function TaskPayablePage() {
           className="flex items-center"
           onClick={print}
           disabled={!data || data.tasks.length === 0}
-          disabled
         >
           <Printer className="w-4 h-4 mr-2" />
           Print
