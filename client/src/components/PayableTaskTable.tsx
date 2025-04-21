@@ -3,6 +3,7 @@ import { Task, InvoiceDetails } from "@/types";
 import { formatDateTime, formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { GiReceiveMoney } from "react-icons/gi";
 
 interface PayableTaskTableProps {
   data: {

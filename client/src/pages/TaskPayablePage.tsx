@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FolderKanban, Printer, Download } from "lucide-react";
+import { GiReceiveMoney } from "react-icons/gi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Task, InvoiceDetails } from "@/types";
 import { useReactToPrint } from "react-to-print";
