@@ -291,16 +291,22 @@ export default function TaskPayablePage() {
           }
         }
 
+        // Format title and description for display
+        let taskTitle = task.title || "";
+        if (task.description) {
+          taskTitle += `\n${task.description}`;
+        }
+
         return [
-          task.title || "",
+          taskTitle,
           dateStr,
           typeof task.hours === "number"
             ? task.hours.toFixed(2)
             : task.hours || "",
           task.pricingType === "hourly"
-            ? `PHP ${((task.hourlyRate || 0) / 100).toFixed(2)}/hr`
+            ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr`
             : "Fixed",
-          `PHP ${(task.totalAmount || 0).toFixed(2)}`,
+          `${(task.totalAmount || 0).toFixed(2)}`,
         ];
       });
 
@@ -329,11 +335,11 @@ export default function TaskPayablePage() {
           fillColor: [245, 245, 245],
         },
         columnStyles: {
-          0: { cellWidth: 65 }, // Task title
-          1: { cellWidth: 35 }, // Date
+          0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
+          1: { cellWidth: 18, halign: "right" }, // Date
           2: { cellWidth: 15, halign: "center" }, // Hours
-          3: { cellWidth: 35, halign: "center" }, // Rate
-          4: { cellWidth: 35, halign: "right" }, // Total
+          3: { cellWidth: 20, halign: "center" }, // Rate
+          4: { cellWidth: 17, halign: "right" }, // Total
         },
         margin: { left: 14, right: 14 },
         tableWidth: 175,
@@ -355,7 +361,7 @@ export default function TaskPayablePage() {
     doc.setTextColor(0, 0, 0);
     doc.setFont("Helvetica", "bold");
     doc.text("Grand Total:", 112, finalY + 7.5);
-    doc.text(`PHP${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
+    doc.text(`P${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
       align: "right",
     });
 

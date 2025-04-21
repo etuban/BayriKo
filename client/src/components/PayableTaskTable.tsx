@@ -158,6 +158,11 @@ export function PayableTaskTable({
                     <div className="flex items-center px-4 sm:px-6 py-3 print:hidden">
                       <div className="flex-1">
                         <div className="text-xs font-medium">{task.title}</div>
+                        {task.description && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {task.description}
+                          </div>
+                        )}
                       </div>
                       <div className="w-16 sm:w-20 text-xs text-center">
                         {typeof task.hours === "number"
@@ -180,6 +185,11 @@ export function PayableTaskTable({
                     {/* Print view cells */}
                     <div className="hidden print:table-cell px-4 sm:px-6 py-3">
                       <div className="text-xs font-medium">{task.title}</div>
+                      {task.description && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {task.description}
+                        </div>
+                      )}
                     </div>
                     <div className="hidden print:table-cell px-4 sm:px-6 py-3">
                       <div className="text-xs">
