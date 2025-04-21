@@ -3,7 +3,19 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // User model with role enum
-export const userRoles = ["supervisor", "team_lead", "staff"] as const;
+export const userRoles = ["super_admin", "supervisor", "team_lead", "staff"] as const;
+
+// Organization entity
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  website: text("website"),
+  createdById: integer("created_by_id"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -15,13 +27,24 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   position: text("position"),
   isApproved: boolean("is_approved").notNull().default(false),
+  isSuperAdmin: boolean("is_super_admin").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Organization User relationship
+export const organizationUsers = pgTable("organization_users", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text("role", { enum: userRoles }).notNull().default("staff"),
+  joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
 
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   createdById: integer("created_by_id").notNull().references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -85,6 +108,18 @@ export const userProjects = pgTable("user_projects", {
 });
 
 // Define relations
+export const organizationsRelations = {
+  projects: projects,
+  users: {
+    relation: organizationUsers,
+  },
+  createdBy: {
+    relationName: "createdBy",
+    columns: [organizations.createdById],
+    references: [users.id],
+  }
+};
+
 export const usersRelations = {
   tasks: {
     assignedTasks: tasks,
@@ -96,6 +131,19 @@ export const usersRelations = {
   projects: {
     relation: userProjects,
   },
+  organizations: {
+    relation: organizationUsers,
+  },
+  createdOrganizations: {
+    relationName: "createdOrganizations",
+    columns: [users.id],
+    references: [organizations.createdById]
+  }
+};
+
+export const organizationUsersRelations = {
+  organization: organizations,
+  user: users,
 };
 
 export const projectsRelations = {
@@ -103,6 +151,8 @@ export const projectsRelations = {
   users: {
     relation: userProjects,
   },
+  organization: organizations,
+  createdBy: users,
 };
 
 export const tasksRelations = {
@@ -115,6 +165,8 @@ export const tasksRelations = {
 };
 
 // Zod schemas for validation
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertOrganizationUserSchema = createInsertSchema(organizationUsers).omit({ id: true, joinedAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true });
 
@@ -133,6 +185,12 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, createdAt: true });
 
 // Types
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
+export type OrganizationUser = typeof organizationUsers.$inferSelect;
+export type InsertOrganizationUser = z.infer<typeof insertOrganizationUserSchema>;
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 

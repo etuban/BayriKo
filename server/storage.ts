@@ -6,6 +6,8 @@ import {
   taskHistory, 
   notifications,
   userProjects,
+  organizations,
+  organizationUsers,
   type User, 
   type InsertUser,
   type Project,
@@ -19,13 +21,33 @@ import {
   type Notification,
   type InsertNotification,
   type UserProject,
-  type InsertUserProject
+  type InsertUserProject,
+  type Organization,
+  type InsertOrganization,
+  type OrganizationUser,
+  type InsertOrganizationUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, inArray, gte, lte, desc, asc, like, isNull, not } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 
 export interface IStorage {
+  // Organization methods
+  createOrganization(organization: InsertOrganization): Promise<Organization>;
+  getOrganizationById(id: number): Promise<Organization | undefined>;
+  updateOrganization(id: number, organization: Partial<InsertOrganization>): Promise<Organization | undefined>;
+  deleteOrganization(id: number): Promise<boolean>;
+  getAllOrganizations(): Promise<Organization[]>;
+  getOrganizationsForUser(userId: number): Promise<Organization[]>;
+  getSuperAdminEmail(): Promise<string>;
+  
+  // Organization-User methods
+  addUserToOrganization(userId: number, organizationId: number, role: string): Promise<OrganizationUser>;
+  removeUserFromOrganization(userId: number, organizationId: number): Promise<boolean>;
+  getOrganizationUsers(organizationId: number): Promise<User[]>;
+  getUserOrganizations(userId: number): Promise<OrganizationUser[]>;
+  getUserRoleInOrganization(userId: number, organizationId: number): Promise<string | undefined>;
+  
   // User methods
   getUserById(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -35,6 +57,7 @@ export interface IStorage {
   deleteUser(id: number): Promise<boolean>;
   getAllUsers(): Promise<User[]>;
   validateUserPassword(email: string, password: string): Promise<User | null>;
+  setSuperAdmin(userId: number): Promise<User | undefined>;
 
   // Project methods
   createProject(project: InsertProject): Promise<Project>;
@@ -43,6 +66,7 @@ export interface IStorage {
   deleteProject(id: number): Promise<boolean>;
   getAllProjects(): Promise<Project[]>;
   getProjectsForUser(userId: number): Promise<Project[]>;
+  getProjectsForOrganization(organizationId: number): Promise<Project[]>;
 
   // User-Project methods
   assignUserToProject(userId: number, projectId: number): Promise<UserProject>;
@@ -74,6 +98,185 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Organization methods
+  async createOrganization(organization: InsertOrganization): Promise<Organization> {
+    const [newOrganization] = await db
+      .insert(organizations)
+      .values({
+        ...organization,
+        updatedAt: new Date()
+      })
+      .returning();
+    return newOrganization;
+  }
+  
+  async getOrganizationById(id: number): Promise<Organization | undefined> {
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id));
+    return organization;
+  }
+  
+  async updateOrganization(id: number, organization: Partial<InsertOrganization>): Promise<Organization | undefined> {
+    const [updatedOrganization] = await db
+      .update(organizations)
+      .set({
+        ...organization,
+        updatedAt: new Date()
+      })
+      .where(eq(organizations.id, id))
+      .returning();
+    return updatedOrganization;
+  }
+  
+  async deleteOrganization(id: number): Promise<boolean> {
+    await db.delete(organizations).where(eq(organizations.id, id));
+    return true;
+  }
+  
+  async getAllOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations);
+  }
+  
+  async getOrganizationsForUser(userId: number): Promise<Organization[]> {
+    // Check if user is super admin
+    const user = await this.getUserById(userId);
+    if (user?.isSuperAdmin) {
+      return this.getAllOrganizations();
+    }
+    
+    // Get organizations where the user is a member
+    const userOrgs = await db
+      .select()
+      .from(organizationUsers)
+      .where(eq(organizationUsers.userId, userId));
+    
+    if (userOrgs.length === 0) {
+      return [];
+    }
+    
+    const orgIds = userOrgs.map(uo => uo.organizationId);
+    return await db
+      .select()
+      .from(organizations)
+      .where(inArray(organizations.id, orgIds));
+  }
+  
+  async getSuperAdminEmail(): Promise<string> {
+    // This is hardcoded based on the requirement
+    return "pawnmedia.ph@gmail.com";
+  }
+  
+  // Organization-User methods
+  async addUserToOrganization(userId: number, organizationId: number, role: string): Promise<OrganizationUser> {
+    // Check if the user is already in the organization
+    const [existingOrgUser] = await db
+      .select()
+      .from(organizationUsers)
+      .where(and(
+        eq(organizationUsers.userId, userId),
+        eq(organizationUsers.organizationId, organizationId)
+      ));
+    
+    if (existingOrgUser) {
+      // Update role if it's different
+      if (existingOrgUser.role !== role) {
+        // Validate role is one of the allowed values
+        const typedRole = role as "super_admin" | "supervisor" | "team_lead" | "staff";
+        
+        const [updatedOrgUser] = await db
+          .update(organizationUsers)
+          .set({ role: typedRole })
+          .where(eq(organizationUsers.id, existingOrgUser.id))
+          .returning();
+        return updatedOrgUser;
+      }
+      return existingOrgUser;
+    }
+    
+    // Add user to organization
+    // Validate role is one of the allowed values
+    const typedRole = role as "super_admin" | "supervisor" | "team_lead" | "staff";
+    
+    const [newOrgUser] = await db
+      .insert(organizationUsers)
+      .values({
+        userId,
+        organizationId,
+        role: typedRole
+      })
+      .returning();
+    
+    return newOrgUser;
+  }
+  
+  async removeUserFromOrganization(userId: number, organizationId: number): Promise<boolean> {
+    await db
+      .delete(organizationUsers)
+      .where(and(
+        eq(organizationUsers.userId, userId),
+        eq(organizationUsers.organizationId, organizationId)
+      ));
+    return true;
+  }
+  
+  async getOrganizationUsers(organizationId: number): Promise<User[]> {
+    const orgUsers = await db
+      .select()
+      .from(organizationUsers)
+      .where(eq(organizationUsers.organizationId, organizationId));
+    
+    if (orgUsers.length === 0) {
+      return [];
+    }
+    
+    const userIds = orgUsers.map(ou => ou.userId);
+    return await db
+      .select()
+      .from(users)
+      .where(inArray(users.id, userIds));
+  }
+  
+  async getUserOrganizations(userId: number): Promise<OrganizationUser[]> {
+    return await db
+      .select()
+      .from(organizationUsers)
+      .where(eq(organizationUsers.userId, userId));
+  }
+  
+  async getUserRoleInOrganization(userId: number, organizationId: number): Promise<string | undefined> {
+    const [orgUser] = await db
+      .select()
+      .from(organizationUsers)
+      .where(and(
+        eq(organizationUsers.userId, userId),
+        eq(organizationUsers.organizationId, organizationId)
+      ));
+    
+    return orgUser?.role;
+  }
+  
+  async getProjectsForOrganization(organizationId: number): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.organizationId, organizationId));
+  }
+  
+  async setSuperAdmin(userId: number): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        isSuperAdmin: true,
+        role: "super_admin" 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser;
+  }
+
   // User methods
   async getUserById(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -166,27 +369,54 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getProjectsForUser(userId: number): Promise<Project[]> {
-    // If the user is supervisor or team_lead, return all projects
+    // Check if user is super admin
     const user = await this.getUserById(userId);
-    if (user && (user.role === 'supervisor' || user.role === 'team_lead')) {
+    if (user?.isSuperAdmin) {
       return this.getAllProjects();
     }
     
-    // For staff users, get only assigned projects
-    const userProjectAssignments = await db
-      .select()
-      .from(userProjects)
-      .where(eq(userProjects.userId, userId));
-    
-    if (userProjectAssignments.length === 0) {
+    // Get organizations the user belongs to
+    const userOrgs = await this.getUserOrganizations(userId);
+    if (userOrgs.length === 0) {
       return [];
     }
     
-    const projectIds = userProjectAssignments.map(up => up.projectId);
-    return await db
-      .select()
-      .from(projects)
-      .where(inArray(projects.id, projectIds));
+    const allProjects: Project[] = [];
+    
+    // For each organization
+    for (const org of userOrgs) {
+      // Check the user's role in the organization
+      if (org.role === 'supervisor' || org.role === 'team_lead') {
+        // Supervisors and team leads see all projects in their organizations
+        const orgProjects = await this.getProjectsForOrganization(org.organizationId);
+        allProjects.push(...orgProjects);
+      } else {
+        // Staff users only see assigned projects
+        const userProjectAssignments = await db
+          .select()
+          .from(userProjects)
+          .innerJoin(projects, eq(userProjects.projectId, projects.id))
+          .where(
+            and(
+              eq(userProjects.userId, userId),
+              eq(projects.organizationId, org.organizationId)
+            )
+          );
+        
+        if (userProjectAssignments.length > 0) {
+          const projectIds = userProjectAssignments.map(up => up.projects.id);
+          const staffProjects = await db
+            .select()
+            .from(projects)
+            .where(inArray(projects.id, projectIds));
+          
+          allProjects.push(...staffProjects);
+        }
+      }
+    }
+    
+    // Remove duplicates
+    return [...new Map(allProjects.map(p => [p.id, p])).values()];
   }
   
   // User-Project methods
