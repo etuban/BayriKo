@@ -6,7 +6,15 @@ import { formatZodError } from '../utils';
 
 export const getAllProjects = async (req: Request, res: Response) => {
   try {
-    const projects = await storage.getAllProjects();
+    let projects;
+    
+    if (req.user) {
+      // Get projects based on user role (staff can only see assigned projects)
+      projects = await storage.getProjectsForUser(req.user.id);
+    } else {
+      // Fallback to all projects (should not happen as endpoint is protected)
+      projects = await storage.getAllProjects();
+    }
     
     // Get creator information for each project
     const projectsWithCreator = await Promise.all(projects.map(async (project) => {

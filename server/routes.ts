@@ -61,6 +61,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/users', authenticateUser, authorizeRole(['supervisor']), userController.createUser);
   app.put('/api/users/:id', authenticateUser, userController.updateUser);
   app.delete('/api/users/:id', authenticateUser, authorizeRole(['supervisor']), userController.deleteUser);
+  
+  // User-Project routes
+  app.get('/api/users/:id/projects', authenticateUser, userController.getUserProjects);
+  app.post('/api/users/:id/projects', authenticateUser, authorizeRole(['supervisor']), userController.assignProjectsToUser);
 
   // Task routes
   app.get('/api/tasks', authenticateUser, taskController.getAllTasks);

@@ -181,6 +181,38 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
+    // Handle project assignments if provided (supervisors only)
+    if (req.user?.role === 'supervisor' && req.body.projectIds && Array.isArray(req.body.projectIds)) {
+      // Get current project assignments
+      const currentAssignments = await storage.getUserProjects(userId);
+      const currentProjectIds = currentAssignments.map(a => a.projectId);
+      const newProjectIds = req.body.projectIds as number[];
+      
+      // Remove assignments that are not in the new list
+      for (const assignment of currentAssignments) {
+        if (!newProjectIds.includes(assignment.projectId)) {
+          await storage.removeUserFromProject(userId, assignment.projectId);
+        }
+      }
+      
+      // Add new assignments
+      for (const projectId of newProjectIds) {
+        if (!currentProjectIds.includes(projectId)) {
+          await storage.assignUserToProject(userId, projectId);
+        }
+      }
+      
+      // If the user was just approved and assigned projects, create a notification
+      if (updateData.isApproved && updatedUser.isApproved && newProjectIds.length > 0) {
+        await storage.createNotification({
+          userId: userId,
+          type: 'account_approved',
+          message: 'Your account has been approved and you have been assigned to projects.',
+          read: false
+        });
+      }
+    }
+    
     // Remove password before sending response
     const { password, ...userWithoutPassword } = updatedUser;
     
@@ -246,6 +278,98 @@ export const getAllUsers = async (req: Request, res: Response) => {
     res.status(200).json(usersWithoutPasswords);
   } catch (error) {
     console.error('Error getting users:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Get projects assigned to a specific user
+export const getUserProjects = async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    // Check if user exists
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Get project assignments
+    const userProjects = await storage.getUserProjects(userId);
+    
+    // Get full project details for each assignment
+    const projects = await Promise.all(
+      userProjects.map(async (assignment) => {
+        return await storage.getProjectById(assignment.projectId);
+      })
+    );
+    
+    // Filter out any undefined projects (shouldn't happen, but to be safe)
+    const validProjects = projects.filter(project => project !== undefined);
+    
+    res.status(200).json(validProjects);
+  } catch (error) {
+    console.error('Error getting user projects:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Assign projects to a user (supervisor only)
+export const assignProjectsToUser = async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { projectIds } = req.body;
+    
+    // Only supervisors can assign projects
+    if (req.user?.role !== 'supervisor') {
+      return res.status(403).json({ message: 'Forbidden: Only supervisors can assign projects' });
+    }
+    
+    // Check if user exists
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Validate projectIds
+    if (!Array.isArray(projectIds)) {
+      return res.status(400).json({ message: 'projectIds must be an array of project IDs' });
+    }
+    
+    // Get current project assignments
+    const currentAssignments = await storage.getUserProjects(userId);
+    const currentProjectIds = currentAssignments.map(a => a.projectId);
+    
+    // Remove assignments that are not in the new list
+    for (const assignment of currentAssignments) {
+      if (!projectIds.includes(assignment.projectId)) {
+        await storage.removeUserFromProject(userId, assignment.projectId);
+      }
+    }
+    
+    // Add new assignments
+    for (const projectId of projectIds) {
+      if (!currentProjectIds.includes(projectId)) {
+        await storage.assignUserToProject(userId, projectId);
+      }
+    }
+    
+    // Get updated assignments with project details
+    const updatedUserProjects = await storage.getUserProjects(userId);
+    const projects = await Promise.all(
+      updatedUserProjects.map(async (assignment) => {
+        return await storage.getProjectById(assignment.projectId);
+      })
+    );
+    
+    // Filter out any undefined projects
+    const validProjects = projects.filter(project => project !== undefined);
+    
+    res.status(200).json({
+      message: 'Projects assigned successfully',
+      projects: validProjects
+    });
+  } catch (error) {
+    console.error('Error assigning projects to user:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
