@@ -76,7 +76,7 @@ export const register = async (req: Request, res: Response) => {
       await storage.createNotification({
         userId: supervisorId,
         type: 'new_user',
-        message: `New user ${username} has registered and requires approval`,
+        message: `New user ${username} (${email}) has registered and requires approval. Please assign projects and approve the user.`,
         read: false
       });
     }

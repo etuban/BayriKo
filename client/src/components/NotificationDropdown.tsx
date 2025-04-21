@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'wouter';
 import { useNotification } from '@/context/NotificationContext';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -18,6 +19,7 @@ export function NotificationDropdown() {
     markAllAsRead,
     isLoading
   } = useNotification();
+  const [, setLocation] = useLocation();
 
   // Get notification color based on type
   const getNotificationColor = (type: string) => {
@@ -30,6 +32,8 @@ export function NotificationDropdown() {
         return 'bg-yellow-500';
       case 'task_due_soon':
         return 'bg-red-500';
+      case 'new_user':
+        return 'bg-blue-500';
       default:
         return 'bg-gray-500';
     }
