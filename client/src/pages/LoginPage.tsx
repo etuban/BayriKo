@@ -308,9 +308,14 @@ export default function LoginPage() {
                   )}
                 </div>
 
-                <div className="text-sm text-muted-foreground p-2 border border-muted rounded">
-                  <p className="mb-1 font-medium">Note:</p>
-                  <p>Your account will need to be approved by a supervisor before you can access the system.</p>
+                <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20">
+                  <p className="mb-1 font-medium">Registration Process:</p>
+                  <ol className="list-decimal pl-5 space-y-1">
+                    <li>After registration, a supervisor will be notified.</li>
+                    <li>The supervisor must approve your account and assign you to projects.</li>
+                    <li>You'll receive a notification when your account is approved.</li>
+                    <li>You cannot access the system until your account is approved.</li>
+                  </ol>
                 </div>
 
                 {registerError && (

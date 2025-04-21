@@ -72,7 +72,15 @@ export function NotificationDropdown() {
               <div 
                 key={notification.id} 
                 className="p-3 border-b border-dark-border hover:bg-dark-border cursor-pointer"
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => {
+                  markAsRead(notification.id);
+                  
+                  // If this is a new user notification, navigate to users page
+                  if (notification.type === 'new_user') {
+                    closeNotification();
+                    setLocation('/users');
+                  }
+                }}
               >
                 <div className="flex">
                   <div className="flex-shrink-0 mr-3">

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '../types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -62,6 +62,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (data) => {
       setUser(data.user);
       setIsAuthenticated(true);
+      
+      // Check if user is approved
+      if (!data.user.isApproved) {
+        toast({
+          title: "Account Pending Approval",
+          description: "Your account is waiting for supervisor approval. You'll be notified when approved.",
+          duration: 6000,
+        });
+        
+        // First set auth state to false
+        setUser(null);
+        setIsAuthenticated(false);
+        
+        // Then redirect to login
+        navigate('/login');
+        
+        // Show toast with logout message
+        toast({
+          title: "Logged Out",
+          description: "You've been logged out. Please try again after your account is approved.",
+        });
+        
+        return;
+      }
+      
       toast({
         title: "Success",
         description: "You've been logged in successfully",
