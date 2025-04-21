@@ -40,9 +40,6 @@ const registerSchema = z
     confirmPassword: z
       .string()
       .min(6, "Password must be at least 6 characters"),
-    role: z.enum(["supervisor", "team_lead", "staff"], {
-      errorMap: () => ({ message: "Please select a valid role" }),
-    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -77,7 +74,6 @@ export default function LoginPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "staff",
     },
   });
 
@@ -111,7 +107,9 @@ export default function LoginPage() {
           username: data.username,
           email: data.email,
           password: data.password,
-          role: data.role,
+          fullName: data.username, // Initially use username as fullName
+          role: "staff", // Default role
+          isApproved: false // Set approval status to false
         }),
       });
 
@@ -310,22 +308,9 @@ export default function LoginPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-role">Role</Label>
-                  <select
-                    id="register-role"
-                    {...registerForm.register("role")}
-                    className="w-full px-3 py-2 border rounded-md text-sm"
-                  >
-                    <option value="staff">Staff</option>
-                    <option value="team_lead">Team Lead</option>
-                    <option value="supervisor">Supervisor</option>
-                  </select>
-                  {registerForm.formState.errors.role && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.role.message}
-                    </p>
-                  )}
+                <div className="text-sm text-muted-foreground p-2 border border-muted rounded">
+                  <p className="mb-1 font-medium">Note:</p>
+                  <p>Your account will need to be approved by a supervisor before you can access the system.</p>
                 </div>
 
                 {registerError && (

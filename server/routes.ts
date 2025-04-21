@@ -51,6 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes
   app.post('/api/auth/login', passport.authenticate('local'), userController.login);
+  app.post('/api/auth/register', userController.register);
   app.post('/api/auth/logout', userController.logout);
   app.get('/api/auth/session', userController.getSession);
 

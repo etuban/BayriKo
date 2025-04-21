@@ -1,9 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '@shared/schema';
 
+// Extend Express.User interface to include our user properties
 declare global {
   namespace Express {
-    interface User extends Omit<User, 'password'> {}
+    interface User {
+      id: number;
+      username: string;
+      email: string;
+      fullName: string;
+      role: "supervisor" | "team_lead" | "staff";
+      avatarUrl?: string | null;
+      position?: string | null;
+      isApproved: boolean;
+      createdAt: Date;
+    }
   }
 }
 
@@ -11,6 +21,12 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
+  
+  // Check if user is approved (supervisors are auto-approved)
+  if (req.user && !req.user.isApproved && req.user.role !== 'supervisor') {
+    return res.status(403).json({ message: 'Account pending approval. Please contact an administrator.' });
+  }
+  
   next();
 };
 

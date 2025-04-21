@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   role: text("role", { enum: userRoles }).notNull().default("staff"),
   avatarUrl: text("avatar_url"),
   position: text("position"),
+  isApproved: boolean("is_approved").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

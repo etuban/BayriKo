@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
-import { insertUserSchema, User } from '@shared/schema';
+import { insertUserSchema, insertNotificationSchema, User } from '@shared/schema';
 import { ZodError } from 'zod';
 import { formatZodError } from '../utils';
 
@@ -35,6 +35,63 @@ export const login = (req: Request, res: Response) => {
     message: 'Login successful',
     user: userWithoutPassword
   });
+};
+
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { username, email, password, fullName } = req.body;
+    
+    // Check if email already exists
+    const existingUserByEmail = await storage.getUserByEmail(email);
+    if (existingUserByEmail) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+    
+    // Check if username already exists
+    const existingUserByUsername = await storage.getUserByUsername(username);
+    if (existingUserByUsername) {
+      return res.status(400).json({ message: 'Username already in use' });
+    }
+    
+    // Create new user with default role 'staff' and isApproved false
+    const userData = {
+      username,
+      email,
+      password,
+      fullName: fullName || username,
+      role: 'staff' as const,
+      isApproved: false
+    };
+    
+    const newUser = await storage.createUser(userData);
+    
+    // Send notification to all supervisors about new user registration
+    const supervisors = await storage.getAllUsers();
+    const supervisorIds = supervisors
+      .filter(user => user.role === 'supervisor')
+      .map(user => user.id);
+    
+    // Create notifications for each supervisor
+    for (const supervisorId of supervisorIds) {
+      await storage.createNotification({
+        userId: supervisorId,
+        type: 'new_user',
+        message: `New user ${username} has registered and requires approval`,
+        read: false
+      });
+    }
+    
+    // Remove password before sending response
+    const { password: _, ...userWithoutPassword } = newUser;
+    
+    res.status(201).json({
+      message: 'Registration successful. Your account is pending approval from a supervisor.',
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error('Error during registration:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 export const logout = (req: Request, res: Response) => {
@@ -108,6 +165,7 @@ export const updateUser = async (req: Request, res: Response) => {
     const allowedFields = ['fullName', 'email', 'password', 'position', 'avatarUrl'];
     if (req.user?.role === 'supervisor') {
       allowedFields.push('role'); // Only supervisors can change roles
+      allowedFields.push('isApproved'); // Only supervisors can approve users
     }
     
     const updateData: Record<string, any> = {};
@@ -204,8 +262,9 @@ export const seedAdminUser = async () => {
         password: 'password123', // This will be hashed by the storage method
         email: adminEmail,
         fullName: 'Admin User',
-        role: 'supervisor',
-        position: 'Administrator'
+        role: 'supervisor' as const,
+        position: 'Administrator',
+        isApproved: true
       });
       console.log('Admin user created successfully');
     }
