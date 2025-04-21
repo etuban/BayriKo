@@ -57,15 +57,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/session', userController.getSession);
 
   // User routes
-  app.get('/api/users', authenticateUser, authorizeRole(['supervisor', 'team_lead']), userController.getAllUsers);
+  app.get('/api/users', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), userController.getAllUsers);
   app.get('/api/users/:id', authenticateUser, userController.getUserById);
-  app.post('/api/users', authenticateUser, authorizeRole(['supervisor']), userController.createUser);
+  app.post('/api/users', authenticateUser, authorizeRole(['super_admin', 'supervisor']), userController.createUser);
   app.put('/api/users/:id', authenticateUser, userController.updateUser);
-  app.delete('/api/users/:id', authenticateUser, authorizeRole(['supervisor']), userController.deleteUser);
+  app.delete('/api/users/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), userController.deleteUser);
   
   // User-Project routes
   app.get('/api/users/:id/projects', authenticateUser, userController.getUserProjects);
-  app.post('/api/users/:id/projects', authenticateUser, authorizeRole(['supervisor']), userController.assignProjectsToUser);
+  app.post('/api/users/:id/projects', authenticateUser, authorizeRole(['super_admin', 'supervisor']), userController.assignProjectsToUser);
 
   // Task routes
   app.get('/api/tasks', authenticateUser, taskController.getAllTasks);
@@ -84,9 +84,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get('/api/projects', authenticateUser, projectController.getAllProjects);
   app.get('/api/projects/:id', authenticateUser, projectController.getProjectById);
-  app.post('/api/projects', authenticateUser, authorizeRole(['supervisor', 'team_lead']), projectController.createProject);
-  app.put('/api/projects/:id', authenticateUser, authorizeRole(['supervisor', 'team_lead']), projectController.updateProject);
-  app.delete('/api/projects/:id', authenticateUser, authorizeRole(['supervisor']), projectController.deleteProject);
+  app.post('/api/projects', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), projectController.createProject);
+  app.put('/api/projects/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), projectController.updateProject);
+  app.delete('/api/projects/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), projectController.deleteProject);
 
   // Notification routes
   app.get('/api/notifications', authenticateUser, notificationController.getUserNotifications);
