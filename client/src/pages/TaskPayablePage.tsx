@@ -110,23 +110,6 @@ export default function TaskPayablePage() {
             font-size: 14px;
             margin: 0;
           }
-        /*  table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-          }
-          th {
-            background-color: #008000;
-            color: white;
-            font-size: 12px;
-            text-align: left;
-            padding: 8px;
-          }
-          td {
-            padding: 8px;
-            font-size: 12px;
-            border-bottom: 1px solid #ddd;
-          } */
           .project-header {
             background-color: #f2f2f2;
             font-weight: bold;
@@ -197,13 +180,6 @@ export default function TaskPayablePage() {
     doc.setTextColor(0, 128, 0); // Green color for the header
     doc.text("Invoice", 105, 20, { align: "center" });
 
-    // Add company logo space
-    doc.setDrawColor(0, 128, 0); // Green border
-    doc.setLineWidth(0.5);
-    doc.rect(14, 30, 50, 15);
-    doc.setFontSize(12);
-    doc.setTextColor(0, 128, 0);
-    doc.text("Invoice", 39, 40, { align: "center" });
 
     // Add invoice number and date
     doc.setFontSize(9);
@@ -378,14 +354,6 @@ export default function TaskPayablePage() {
       doc.text(line, 14, finalY + 25 + index * 4);
     });
 
-    // Add footer
-    const pageCount = (doc as any).internal.getNumberOfPages();
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.text(`Task Invoice`, 105, 287, { align: "center" });
-    }
 
     doc.save("Invoice.pdf");
   };
