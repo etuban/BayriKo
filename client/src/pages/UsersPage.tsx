@@ -162,7 +162,21 @@ export default function UsersPage() {
       delete userData.password;
     }
     
-    updateMutation.mutate({ id: selectedUser.id, userData });
+    // Update user details first
+    updateMutation.mutate({ 
+      id: selectedUser.id, 
+      userData: {
+        ...userData,
+      }
+    });
+    
+    // If user is staff and supervisor is making changes, also update project assignments
+    if (user?.role === 'supervisor' && userData.role === 'staff') {
+      assignProjectsMutation.mutate({
+        userId: selectedUser.id,
+        projectIds: selectedProjects
+      });
+    }
   };
   
   const handleDeleteUser = () => {
@@ -178,8 +192,48 @@ export default function UsersPage() {
     });
   };
 
+  // Fetch user projects
+  const fetchUserProjects = async (userId: number) => {
+    if (user?.role === 'supervisor') {
+      try {
+        const res = await apiRequest('GET', `/api/users/${userId}/projects`);
+        const projects = await res.json();
+        setSelectedProjects(projects.map((p: Project) => p.id));
+      } catch (error) {
+        console.error('Error fetching user projects:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load user projects',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  // Project assignment mutation
+  const assignProjectsMutation = useMutation({
+    mutationFn: async ({ userId, projectIds }: { userId: number, projectIds: number[] }) => {
+      const res = await apiRequest('POST', `/api/users/${userId}/projects`, { projectIds });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      toast({
+        title: 'Success',
+        description: 'Projects assigned successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to assign projects',
+        variant: 'destructive',
+      });
+    }
+  });
+
   // Open edit dialog and populate form
-  const openEditDialog = (user: User) => {
+  const openEditDialog = async (user: User) => {
     setSelectedUser(user);
     form.reset({
       username: user.username,
@@ -191,6 +245,10 @@ export default function UsersPage() {
       avatarUrl: user.avatarUrl || '',
       isApproved: user.isApproved
     });
+    
+    // Fetch user's assigned projects
+    await fetchUserProjects(user.id);
+    
     setIsEditDialogOpen(true);
   };
   
@@ -560,14 +618,53 @@ export default function UsersPage() {
             </div>
             
             {user?.role === 'supervisor' && (
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="isApproved" 
-                  checked={form.watch('isApproved')}
-                  onCheckedChange={(checked) => form.setValue('isApproved', checked as boolean)}
-                />
-                <Label htmlFor="isApproved">Approve User</Label>
-              </div>
+              <>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="isApproved" 
+                    checked={form.watch('isApproved')}
+                    onCheckedChange={(checked) => form.setValue('isApproved', checked as boolean)}
+                  />
+                  <Label htmlFor="isApproved">Approve User</Label>
+                </div>
+                
+                {/* Project Assignment (only for Staff users) */}
+                {selectedUser && form.watch('role') === 'staff' && (
+                  <div className="space-y-2 mt-4">
+                    <Label className="text-base font-medium">Assign Projects</Label>
+                    <p className="text-sm text-gray-400 mb-3">
+                      Staff users can only access projects they are assigned to.
+                    </p>
+                    
+                    {projects.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto p-2 border border-dark-border rounded-md">
+                        {projects.map((project) => (
+                          <div key={project.id} className="flex items-center space-x-2 p-2 rounded hover:bg-dark-bg">
+                            <Checkbox 
+                              id={`project-${project.id}`}
+                              checked={selectedProjects.includes(project.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedProjects([...selectedProjects, project.id]);
+                                } else {
+                                  setSelectedProjects(selectedProjects.filter(id => id !== project.id));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`project-${project.id}`} className="cursor-pointer flex-1">
+                              {project.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center p-4 border border-dark-border rounded-md">
+                        <p className="text-gray-400">No projects available to assign.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
             
             <DialogFooter>
