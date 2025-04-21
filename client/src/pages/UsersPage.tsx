@@ -684,17 +684,20 @@ export default function UsersPage() {
                                 <CommandItem
                                   key={project.id}
                                   onSelect={() => {
-                                    if (selectedProjects.includes(project.id)) {
-                                      setSelectedProjects(selectedProjects.filter(id => id !== project.id));
-                                    } else {
-                                      setSelectedProjects([...selectedProjects, project.id]);
-                                    }
+                                    setSelectedProjects(prevSelected => {
+                                      if (prevSelected.includes(project.id)) {
+                                        return prevSelected.filter(id => id !== project.id);
+                                      } else {
+                                        return [...prevSelected, project.id];
+                                      }
+                                    });
                                   }}
                                   className="flex items-center space-x-2"
                                 >
                                   <Checkbox 
                                     checked={selectedProjects.includes(project.id)}
                                     className="h-4 w-4 mr-2"
+                                    onCheckedChange={() => {}}
                                   />
                                   <span>{project.name}</span>
                                 </CommandItem>
@@ -791,17 +794,20 @@ export default function UsersPage() {
                             <CommandItem
                               key={project.id}
                               onSelect={() => {
-                                if (selectedProjects.includes(project.id)) {
-                                  setSelectedProjects(selectedProjects.filter(id => id !== project.id));
-                                } else {
-                                  setSelectedProjects([...selectedProjects, project.id]);
-                                }
+                                setSelectedProjects(prevSelected => {
+                                  if (prevSelected.includes(project.id)) {
+                                    return prevSelected.filter(id => id !== project.id);
+                                  } else {
+                                    return [...prevSelected, project.id];
+                                  }
+                                });
                               }}
                               className="flex items-center space-x-2"
                             >
                               <Checkbox 
                                 checked={selectedProjects.includes(project.id)}
                                 className="h-4 w-4 mr-2"
+                                onCheckedChange={() => {}}
                               />
                               <span>{project.name}</span>
                             </CommandItem>

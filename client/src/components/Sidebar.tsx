@@ -138,9 +138,9 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             .map((item, index) => (
               <li key={index} className="mb-1">
                 <Link href={item.path}>
-                  <a
+                  <div
                     className={cn(
-                      "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors",
+                      "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors cursor-pointer",
                       location === item.path
                         ? "bg-primary text-white"
                         : "hover:bg-muted"
@@ -151,7 +151,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                       className: collapsed && !mobile ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3" 
                     })}
                     {(!collapsed || mobile) && <span>{item.title}</span>}
-                  </a>
+                  </div>
                 </Link>
               </li>
             ))}
