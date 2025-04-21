@@ -5,6 +5,7 @@ import {
   taskComments, 
   taskHistory, 
   notifications,
+  userProjects,
   type User, 
   type InsertUser,
   type Project,
@@ -16,10 +17,12 @@ import {
   type TaskHistory,
   type InsertTaskHistory,
   type Notification,
-  type InsertNotification
+  type InsertNotification,
+  type UserProject,
+  type InsertUserProject
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, inArray, gte, lte, desc, asc, like, isNull, not } from "drizzle-orm";
+import { eq, and, or, inArray, gte, lte, desc, asc, like, isNull, not } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 
 export interface IStorage {
@@ -53,7 +56,7 @@ export interface IStorage {
   updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
   getAllTasks(filters?: { projectId?: number, assignedToId?: number, status?: string, search?: string }): Promise<Task[]>;
-  getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number): Promise<Task[]>;
+  getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number, userId?: number, userRole?: string): Promise<Task[]>;
 
   // Task comments methods
   createTaskComment(comment: InsertTaskComment): Promise<TaskComment>;
@@ -161,6 +164,82 @@ export class DatabaseStorage implements IStorage {
   async getAllProjects(): Promise<Project[]> {
     return await db.select().from(projects);
   }
+  
+  async getProjectsForUser(userId: number): Promise<Project[]> {
+    // If the user is supervisor or team_lead, return all projects
+    const user = await this.getUserById(userId);
+    if (user && (user.role === 'supervisor' || user.role === 'team_lead')) {
+      return this.getAllProjects();
+    }
+    
+    // For staff users, get only assigned projects
+    const userProjectAssignments = await db
+      .select()
+      .from(userProjects)
+      .where(eq(userProjects.userId, userId));
+    
+    if (userProjectAssignments.length === 0) {
+      return [];
+    }
+    
+    const projectIds = userProjectAssignments.map(up => up.projectId);
+    return await db
+      .select()
+      .from(projects)
+      .where(inArray(projects.id, projectIds));
+  }
+  
+  // User-Project methods
+  async assignUserToProject(userId: number, projectId: number): Promise<UserProject> {
+    // Check if assignment already exists
+    const [existingAssignment] = await db
+      .select()
+      .from(userProjects)
+      .where(and(
+        eq(userProjects.userId, userId),
+        eq(userProjects.projectId, projectId)
+      ));
+    
+    if (existingAssignment) {
+      return existingAssignment;
+    }
+    
+    // Create new assignment
+    const [assignment] = await db
+      .insert(userProjects)
+      .values({
+        userId,
+        projectId
+      })
+      .returning();
+    
+    return assignment;
+  }
+  
+  async removeUserFromProject(userId: number, projectId: number): Promise<boolean> {
+    await db
+      .delete(userProjects)
+      .where(and(
+        eq(userProjects.userId, userId),
+        eq(userProjects.projectId, projectId)
+      ));
+    
+    return true;
+  }
+  
+  async getUserProjects(userId: number): Promise<UserProject[]> {
+    return await db
+      .select()
+      .from(userProjects)
+      .where(eq(userProjects.userId, userId));
+  }
+  
+  async getProjectUsers(projectId: number): Promise<UserProject[]> {
+    return await db
+      .select()
+      .from(userProjects)
+      .where(eq(userProjects.projectId, projectId));
+  }
 
   // Task methods
   async createTask(task: InsertTask): Promise<Task> {
@@ -243,7 +322,7 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(tasks.createdAt));
   }
 
-  async getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number): Promise<Task[]> {
+  async getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number, userId?: number, userRole?: string): Promise<Task[]> {
     let query = db.select().from(tasks);
     
     const conditions = [];
@@ -258,6 +337,17 @@ export class DatabaseStorage implements IStorage {
     
     if (projectId) {
       conditions.push(eq(tasks.projectId, projectId));
+    }
+    
+    // Add user restrictions for staff role
+    if (userId && userRole === 'staff') {
+      // Staff can only see tasks they created or are assigned to
+      conditions.push(
+        or(
+          eq(tasks.createdById, userId),
+          eq(tasks.assignedToId, userId)
+        )
+      );
     }
     
     // Only include tasks with pricing information

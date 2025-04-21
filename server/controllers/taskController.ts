@@ -363,7 +363,11 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
     const end = endDate ? new Date(endDate as string) : undefined;
     const project = projectId ? parseInt(projectId as string) : undefined;
     
-    const tasks = await storage.getTasksForPayable(start, end, project);
+    // Pass user role and id for staff permissions
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    
+    const tasks = await storage.getTasksForPayable(start, end, project, userId, userRole);
     
     // Calculate totals and hours
     const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
