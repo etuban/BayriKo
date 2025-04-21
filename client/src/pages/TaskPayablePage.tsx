@@ -146,9 +146,9 @@ export default function TaskPayablePage() {
             <p>This PDF Invoice is generated through <a href="https://bayadmn.pawn.media" style="color: blue; text-decoration: underline;">BayadMn</a></p>
             <div style="margin-top: 5px;">
               <a href="https://bayadmn.pawn.media">
-                <div style="background-color: #008000; color: white; width: 100px; height: 30px; margin: 0 auto; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-weight: bold;">
-                  BayadMn
-                </div>
+                <div className="bg-primary p-2 rounded-md">
+                 <GiReceiveMoney className="w-6 h-6 text-white" />
+               </div>
               </a>
             </div>
           </div>
@@ -183,14 +183,13 @@ export default function TaskPayablePage() {
       unit: "mm",
       format: "a4",
       putOnlyUsedFonts: true,
-      floatPrecision: 16
+      floatPrecision: 16,
     });
 
     // Add title
     doc.setFontSize(18);
     doc.setTextColor(0, 128, 0); // Green color for the header
     doc.text("Invoice", 105, 20, { align: "center" });
-
 
     // Add invoice number and date
     doc.setFontSize(9);
@@ -262,16 +261,16 @@ export default function TaskPayablePage() {
     // For each project
     Object.entries(tasksByProject).forEach(([projectId, project], index) => {
       // Project header row
-      doc.setFillColor(240, 240, 240);
+      doc.setFillColor(255, 255, 255);
       doc.setDrawColor(220, 220, 220);
-      doc.rect(20, startY, 176, 8, "F");
+      doc.rect(10, startY, 176, 8, "F");
       doc.setFont(undefined, "bold");
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
-      doc.text(project.projectName, 22, startY + 5);
-      doc.text(`₱${project.subtotal.toFixed(2)}`, 194, startY + 5, {
+      doc.text(project.projectName, 14, startY + 5);
+      /* doc.text(`Php ${project.subtotal.toFixed(2)}`, 194, startY + 5, {
         align: "right",
-      });
+      }); */
       startY += 10;
 
       // Tasks table headers
@@ -323,17 +322,17 @@ export default function TaskPayablePage() {
           fontSize: 8,
           minCellHeight: 10,
           valign: "middle",
-          halign: "center"
+          halign: "center",
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
         columnStyles: {
-          0: { cellWidth: 65 },  // Task title
-          1: { cellWidth: 35 },  // Date
-          2: { cellWidth: 15, halign: "center" },  // Hours
-          3: { cellWidth: 35, halign: "center" },  // Rate
-          4: { cellWidth: 35, halign: "right" },   // Total
+          0: { cellWidth: 65 }, // Task title
+          1: { cellWidth: 35 }, // Date
+          2: { cellWidth: 15, halign: "center" }, // Hours
+          3: { cellWidth: 35, halign: "center" }, // Rate
+          4: { cellWidth: 35, halign: "right" }, // Total
         },
         margin: { left: 14, right: 14 },
         tableWidth: 175,
@@ -371,62 +370,67 @@ export default function TaskPayablePage() {
 
     // Add static footer with link text
     const footerY = doc.internal.pageSize.getHeight() - 20;
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     const pageWidth = doc.internal.pageSize.getWidth();
-    
+
     // Add footer text with URL
     const footerText = "This PDF Invoice is generated through BayadMn";
     const textWidth = doc.getTextWidth(footerText);
     const textX = (pageWidth - textWidth) / 2;
     doc.text(footerText, textX, footerY);
-    
-    // Add website URL 
-    const websiteText = "https://bayadmn.pawn.media";
+
+    // Add website URL
+    const websiteText = 'https://bayadmn.pawn.media';
     const websiteY = footerY + 5;
     doc.setFontSize(8);
     doc.setTextColor(0, 0, 255); // Blue color for URL
     const websiteWidth = doc.getTextWidth(websiteText);
     const websiteX = (pageWidth - websiteWidth) / 2;
     doc.text(websiteText, websiteX, websiteY);
-    
+
     // Create a small logo
     const logoWidth = 20;
     const logoHeight = 7;
     const logoX = (pageWidth - logoWidth) / 2;
     const logoY = websiteY + 5;
-    
+
     // Simple "BayadMn" logo with green background
     doc.setFillColor(0, 128, 0); // Green background
-    doc.roundedRect(logoX, logoY, logoWidth, logoHeight, 1, 1, 'F');
+    doc.roundedRect(logoX, logoY, logoWidth, logoHeight, 1, 1, "F");
     doc.setTextColor(255, 255, 255); // White text
     doc.setFontSize(9);
-    doc.setFont(undefined, 'bold');
+    doc.setFont(undefined, "bold");
     const logoText = "BayadMn";
     const logoTextWidth = doc.getTextWidth(logoText);
     const logoTextX = logoX + (logoWidth - logoTextWidth) / 2;
     const logoTextY = logoY + 5;
     doc.text(logoText, logoTextX, logoTextY);
-    
-    // Add a link annotation for both the URL text and logo
-    doc.link(websiteX, websiteY - 3, websiteWidth, 4, { url: 'https://bayadmn.pawn.media' });
-    doc.link(logoX, logoY, logoWidth, logoHeight, { url: 'https://bayadmn.pawn.media' });
 
+    // Add a link annotation for both the URL text and logo
+    doc.link(websiteX, websiteY - 3, websiteWidth, 4, {
+      url: "https://bayadmn.pawn.media",
+    });
+    doc.link(logoX, logoY, logoWidth, logoHeight, {
+      url: "https://bayadmn.pawn.media",
+    });
 
     // Create a dynamic filename based on the project name and timestamp
     const timestamp = new Date().getTime().toString().slice(-6);
     let filename = "Invoice_" + timestamp + ".pdf";
-    
+
     // If there's a specific project selected in the filter, find the project name
     if (projectId && projectId !== "all") {
       // Find the project name in the projects list
-      const selectedProject = (projects as any[]).find(p => p.id.toString() === projectId);
+      const selectedProject = (projects as any[]).find(
+        (p) => p.id.toString() === projectId,
+      );
       if (selectedProject) {
         const projectName = selectedProject.name
           .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
           .substring(0, 20); // Limit to 20 characters
         filename = projectName + "-" + filename;
       }
-    } 
+    }
     // Or if we have tasks from a project, use the first project's name
     else if (data.tasks.length > 0 && data.tasks[0].project) {
       const projectName = data.tasks[0].project.name
@@ -434,7 +438,7 @@ export default function TaskPayablePage() {
         .substring(0, 20); // Limit to 20 characters
       filename = projectName + "-" + filename;
     }
-    
+
     doc.save(filename);
   };
 
@@ -558,9 +562,6 @@ export default function TaskPayablePage() {
               }
             />
           </div>
-
-
-          
 
           <div className="print:block hidden mt-4 text-sm text-muted-foreground">
             <p>
