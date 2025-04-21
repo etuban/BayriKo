@@ -674,42 +674,67 @@ export default function UsersPage() {
                         <Skeleton className="h-10 w-full" />
                       </div>
                     ) : projects.length > 0 ? (
-                      <div className="border border-dark-border rounded-md">
-                        <Command className="bg-dark-bg">
-                          <CommandInput placeholder="Search projects..." className="h-9" />
-                          <CommandList>
-                            <CommandEmpty>No projects found.</CommandEmpty>
-                            <CommandGroup>
-                              {projects.map((project) => (
-                                <CommandItem
-                                  key={project.id}
-                                  onSelect={() => {
-                                    setSelectedProjects(prevSelected => {
-                                      if (prevSelected.includes(project.id)) {
-                                        return prevSelected.filter(id => id !== project.id);
-                                      } else {
-                                        return [...prevSelected, project.id];
-                                      }
-                                    });
-                                  }}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <Checkbox 
-                                    checked={selectedProjects.includes(project.id)}
-                                    className="h-4 w-4 mr-2"
-                                    onCheckedChange={() => {}}
-                                  />
+                      <div className="space-y-2">
+                        <Select
+                          onValueChange={(value) => {
+                            // Handle single selection - if already selected, remove it
+                            const projectId = parseInt(value, 10);
+                            
+                            setSelectedProjects(prevSelected => {
+                              if (prevSelected.includes(projectId)) {
+                                return prevSelected.filter(id => id !== projectId);
+                              } else {
+                                return [...prevSelected, projectId];
+                              }
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="w-full bg-dark-bg">
+                            <SelectValue 
+                              placeholder={
+                                selectedProjects.length 
+                                  ? `${selectedProjects.length} project(s) selected` 
+                                  : "Select projects"
+                              } 
+                            />
+                          </SelectTrigger>
+                          <SelectContent className="bg-dark-surface border-dark-border">
+                            {projects.map((project) => (
+                              <SelectItem 
+                                key={project.id} 
+                                value={project.id.toString()}
+                                className={`cursor-pointer ${selectedProjects.includes(project.id) ? 'bg-primary/20' : ''}`}
+                              >
+                                <div className="flex items-center justify-between w-full">
                                   <span>{project.name}</span>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                        <div className="p-2 border-t border-dark-border">
-                          <div className="text-sm text-gray-400">
-                            {selectedProjects.length} project(s) selected
+                                  {selectedProjects.includes(project.id) && (
+                                    <span className="text-primary">✓</span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {selectedProjects.length > 0 && (
+                          <div className="flex flex-wrap gap-1 p-2 mt-1 bg-dark-bg border border-dark-border rounded-md">
+                            {selectedProjects.map(id => {
+                              const project = projects.find(p => p.id === id);
+                              return project ? (
+                                <div 
+                                  key={id} 
+                                  className="bg-primary/20 text-primary px-2 py-1 rounded-md text-xs flex items-center gap-1"
+                                >
+                                  {project.name}
+                                  <X 
+                                    className="h-3 w-3 cursor-pointer hover:text-white" 
+                                    onClick={() => setSelectedProjects(prev => prev.filter(p => p !== id))}
+                                  />
+                                </div>
+                              ) : null;
+                            })}
                           </div>
-                        </div>
+                        )}
                       </div>
                     ) : (
                       <div className="text-center p-4 border border-dark-border rounded-md">
@@ -784,42 +809,67 @@ export default function UsersPage() {
                     <Skeleton className="h-10 w-full" />
                   </div>
                 ) : projects.length > 0 ? (
-                  <div className="border border-dark-border rounded-md">
-                    <Command className="bg-dark-bg">
-                      <CommandInput placeholder="Search projects..." className="h-9" />
-                      <CommandList>
-                        <CommandEmpty>No projects found.</CommandEmpty>
-                        <CommandGroup>
-                          {projects.map((project) => (
-                            <CommandItem
-                              key={project.id}
-                              onSelect={() => {
-                                setSelectedProjects(prevSelected => {
-                                  if (prevSelected.includes(project.id)) {
-                                    return prevSelected.filter(id => id !== project.id);
-                                  } else {
-                                    return [...prevSelected, project.id];
-                                  }
-                                });
-                              }}
-                              className="flex items-center space-x-2"
-                            >
-                              <Checkbox 
-                                checked={selectedProjects.includes(project.id)}
-                                className="h-4 w-4 mr-2"
-                                onCheckedChange={() => {}}
-                              />
+                  <div className="space-y-2">
+                    <Select
+                      onValueChange={(value) => {
+                        // Handle single selection - if already selected, remove it
+                        const projectId = parseInt(value, 10);
+                        
+                        setSelectedProjects(prevSelected => {
+                          if (prevSelected.includes(projectId)) {
+                            return prevSelected.filter(id => id !== projectId);
+                          } else {
+                            return [...prevSelected, projectId];
+                          }
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="w-full bg-dark-bg">
+                        <SelectValue 
+                          placeholder={
+                            selectedProjects.length 
+                              ? `${selectedProjects.length} project(s) selected` 
+                              : "Select projects"
+                          } 
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="bg-dark-surface border-dark-border">
+                        {projects.map((project) => (
+                          <SelectItem 
+                            key={project.id} 
+                            value={project.id.toString()}
+                            className={`cursor-pointer ${selectedProjects.includes(project.id) ? 'bg-primary/20' : ''}`}
+                          >
+                            <div className="flex items-center justify-between w-full">
                               <span>{project.name}</span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                    <div className="p-2 border-t border-dark-border">
-                      <div className="text-sm text-gray-400">
-                        {selectedProjects.length} project(s) selected
+                              {selectedProjects.includes(project.id) && (
+                                <span className="text-primary">✓</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {selectedProjects.length > 0 && (
+                      <div className="flex flex-wrap gap-1 p-2 mt-1 bg-dark-bg border border-dark-border rounded-md">
+                        {selectedProjects.map(id => {
+                          const project = projects.find(p => p.id === id);
+                          return project ? (
+                            <div 
+                              key={id} 
+                              className="bg-primary/20 text-primary px-2 py-1 rounded-md text-xs flex items-center gap-1"
+                            >
+                              {project.name}
+                              <X 
+                                className="h-3 w-3 cursor-pointer hover:text-white" 
+                                onClick={() => setSelectedProjects(prev => prev.filter(p => p !== id))}
+                              />
+                            </div>
+                          ) : null;
+                        })}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center p-4 border border-dark-border rounded-md">
