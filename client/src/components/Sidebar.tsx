@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronRight,
   ChevronLeft,
+  LogOut,
   X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ interface SidebarProps {
 export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const [location] = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   // Check localStorage for saved sidebar state (desktop mode only)
   useEffect(() => {

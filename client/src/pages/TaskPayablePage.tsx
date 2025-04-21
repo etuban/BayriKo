@@ -184,13 +184,13 @@ export default function TaskPayablePage() {
     });
 
     // Set default font to Helvetica for the whole document
-    doc.setFont('helvetica', 'normal');
-    
+    doc.setFont("helvetica", "normal");
+
     // Add title
-    doc.setFontSize(18);
+    doc.setFontSize(24);
     doc.setTextColor(0, 128, 0); // Green color for the header
-    doc.setFont('helvetica', 'bold');
-    doc.text("Invoice", 105, 20, { align: "center" });
+    doc.setFont("helvetica", "bold");
+    doc.text("Task Invoice", 105, 20, { align: "center" });
 
     // Add invoice number and date
     doc.setFontSize(9);
@@ -265,8 +265,8 @@ export default function TaskPayablePage() {
       doc.setFillColor(255, 255, 255);
       doc.setDrawColor(220, 220, 220);
       doc.rect(10, startY, 176, 8, "F");
-      doc.setFont('helvetica', "bold");
-      doc.setFontSize(9);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text(project.projectName, 14, startY + 5);
       /* doc.text(`Php ${project.subtotal.toFixed(2)}`, 194, startY + 5, {
@@ -353,14 +353,14 @@ export default function TaskPayablePage() {
     doc.rect(110, finalY + 2, 86, 8, "F");
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', "bold");
+    doc.setFont("Helvetica", "bold");
     doc.text("Grand Total:", 112, finalY + 7.5);
     doc.text(`PHP${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
       align: "right",
     });
 
     // Add payment terms
-    doc.setFont('helvetica', "normal");
+    doc.setFont("Helvetica", "normal");
     doc.setFontSize(10);
     doc.text("Payment Terms:", 14, finalY + 20);
     const paymentTermsLines = invoiceDetails.paymentTerms.split("\n");
@@ -370,48 +370,50 @@ export default function TaskPayablePage() {
     });
 
     // Add static footer with link text
-    const footerY = doc.internal.pageSize.getHeight() - 20;
+    const footerY = doc.internal.pageSize.getHeight() - 15;
     doc.setFontSize(9);
     const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Add footer text with URL below the icon
+    const footerText = "This PDF Invoice is generated through BayadMn";
+    const textWidth = doc.getTextWidth(footerText);
+    const textX = (pageWidth - textWidth) / 2.05;
+    doc.setTextColor(0, 0, 0); // Black text
+    doc.setFontSize(9);
+    doc.setFont("Helvetica", "normal"); // Helvetica is closest to Inter among standard fonts
+    doc.text(footerText, textX, footerY);
 
     // Create a green circular logo with GiReceiveMoney icon (simplified icon representation)
     const logoSize = 12;
     const logoX = (pageWidth - logoSize) / 2;
-    const logoY = footerY - 15; // Position icon above footer text
-    
+    const logoY = footerY - 18; // Position icon above footer text
+
     // Draw green circular background
     doc.setFillColor(0, 128, 0); // Green background
-    doc.circle(logoX + (logoSize/2), logoY + (logoSize/2), logoSize/2, 'F');
-    
+    doc.circle(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, "F");
+
     // Draw simplified money icon ($ symbol in white)
     doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text('$', logoX + (logoSize/2) - 1.5, logoY + (logoSize/2) + 2, { align: 'center' });
-    
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("$", logoX + logoSize / 2 - 1.5, logoY + logoSize / 2 + 2, {
+      align: "center",
+    });
+
     // Add link annotation for the icon
     doc.link(logoX, logoY, logoSize, logoSize, {
       url: "https://bayadmn.pawn.media",
     });
-    
-    // Add footer text with URL below the icon
-    const footerText = "This PDF Invoice is generated through BayadMn";
-    const textWidth = doc.getTextWidth(footerText);
-    const textX = (pageWidth - textWidth) / 2;
-    doc.setTextColor(0, 0, 0); // Black text
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal'); // Helvetica is closest to Inter among standard fonts
-    doc.text(footerText, textX, footerY);
 
     // Add website URL
-    const websiteText = 'https://bayadmn.pawn.media';
+    const websiteText = "https://bayadmn.pawn.media";
     const websiteY = footerY + 5;
     doc.setFontSize(8);
-    doc.setTextColor(0, 0, 255); // Blue color for URL
+    doc.setTextColor(0, 128, 0); // Green color for URL
     const websiteWidth = doc.getTextWidth(websiteText);
     const websiteX = (pageWidth - websiteWidth) / 2;
     doc.text(websiteText, websiteX, websiteY);
-    
+
     // Add a link annotation for the URL text
     doc.link(websiteX, websiteY - 3, websiteWidth, 4, {
       url: "https://bayadmn.pawn.media",

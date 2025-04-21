@@ -1,15 +1,17 @@
 import React from 'react';
 import { useLocation } from 'wouter';
-import { Menu, SunMoon, X } from 'lucide-react';
+import { Menu, SunMoon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useTask } from '@/context/TaskContext';
+import { useAuth } from '@/context/AuthContext';
 import { NotificationDropdown } from './NotificationDropdown';
 
 export function Header() {
   const [location] = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { openDrawer } = useTask();
+  const { logout } = useAuth();
   
   // Toggle sidebar on mobile
   const toggleSidebar = () => {
@@ -118,6 +120,17 @@ export function Header() {
         >
           <span className="hidden sm:inline">New Task</span>
           <span className="sm:hidden">+</span>
+        </Button>
+        
+        {/* Signout Button */}
+        <Button 
+          variant="ghost" 
+          onClick={() => logout()}
+          className="text-gray-400 hover:text-red-500 flex items-center gap-1"
+          title="Sign Out"
+        >
+          <LogOut className="h-5 w-5" />
+          <span className="hidden md:inline-block text-sm font-medium">Sign Out</span>
         </Button>
       </div>
     </header>
