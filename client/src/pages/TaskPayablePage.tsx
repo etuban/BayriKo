@@ -60,14 +60,14 @@ export default function TaskPayablePage() {
   const print = () => {
     const contentToPrint = componentRef.current;
     if (!contentToPrint) return;
-    
+
     // Create a new window for printing
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      alert('Please allow pop-ups for printing');
+      alert("Please allow pop-ups for printing");
       return;
     }
-    
+
     // Setup the print window
     printWindow.document.open();
     printWindow.document.write(`
@@ -110,7 +110,7 @@ export default function TaskPayablePage() {
             font-size: 14px;
             margin: 0;
           }
-          table {
+        /*  table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
@@ -126,7 +126,7 @@ export default function TaskPayablePage() {
             padding: 8px;
             font-size: 12px;
             border-bottom: 1px solid #ddd;
-          }
+          } */
           .project-header {
             background-color: #f2f2f2;
             font-weight: bold;
@@ -163,17 +163,17 @@ export default function TaskPayablePage() {
       </html>
     `);
     printWindow.document.close();
-    
+
     // Wait for everything to load then print
-    printWindow.onload = function() {
+    printWindow.onload = function () {
       printWindow.focus();
       printWindow.print();
-      printWindow.onafterprint = function() {
+      printWindow.onafterprint = function () {
         printWindow.close();
       };
     };
   };
-  
+
   // React-to-print setup (no longer used, but we'll keep as backup)
   const reactToPrintRef = useReactToPrint({
     documentTitle: "Invoice",
@@ -472,7 +472,7 @@ export default function TaskPayablePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-lg font-medium mb-3">Bill From</h3>
+              <h3 className="text-lg font-medium mb-3">Bill From:</h3>
               <Textarea
                 rows={4}
                 className="w-full p-3 rounded-md bg-card border border-input text-sm"
@@ -484,7 +484,7 @@ export default function TaskPayablePage() {
               />
             </div>
             <div>
-              <h3 className="text-lg font-medium mb-3">Bill To</h3>
+              <h3 className="text-lg font-medium mb-3">Bill To:</h3>
               <Textarea
                 rows={4}
                 className="w-full p-3 rounded-md bg-card border border-input text-sm"
@@ -545,6 +545,7 @@ export default function TaskPayablePage() {
           className="flex items-center"
           onClick={print}
           disabled={!data || data.tasks.length === 0}
+          disabled
         >
           <Printer className="w-4 h-4 mr-2" />
           Print
