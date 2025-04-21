@@ -267,7 +267,22 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await storage.getAllUsers();
+    const loggedInUser = req.user as User;
+    let users = [];
+    
+    if (loggedInUser.role === 'super_admin') {
+      // Super admin can see all users
+      users = await storage.getAllUsers();
+    } else {
+      // Other roles can only see users in their organization
+      const userOrgs = await storage.getUserOrganizations(loggedInUser.id);
+      if (userOrgs.length > 0) {
+        // Get all organization users (use first org if user belongs to multiple)
+        const orgId = userOrgs[0].organizationId;
+        const orgUsers = await storage.getOrganizationUsers(orgId);
+        users = orgUsers;
+      }
+    }
     
     // Remove passwords from all users
     const usersWithoutPasswords = users.map(user => {
