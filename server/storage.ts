@@ -39,6 +39,13 @@ export interface IStorage {
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<boolean>;
   getAllProjects(): Promise<Project[]>;
+  getProjectsForUser(userId: number): Promise<Project[]>;
+
+  // User-Project methods
+  assignUserToProject(userId: number, projectId: number): Promise<UserProject>;
+  removeUserFromProject(userId: number, projectId: number): Promise<boolean>;
+  getUserProjects(userId: number): Promise<UserProject[]>;
+  getProjectUsers(projectId: number): Promise<UserProject[]>;
 
   // Task methods
   createTask(task: InsertTask): Promise<Task>;

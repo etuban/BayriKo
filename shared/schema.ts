@@ -76,6 +76,14 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// User-Project Assignment Table
+export const userProjects = pgTable("user_projects", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Define relations
 export const usersRelations = {
   tasks: {
@@ -85,10 +93,16 @@ export const usersRelations = {
   taskComments: taskComments,
   taskHistory: taskHistory,
   notifications: notifications,
+  projects: {
+    relation: userProjects,
+  },
 };
 
 export const projectsRelations = {
   tasks: tasks,
+  users: {
+    relation: userProjects,
+  },
 };
 
 export const tasksRelations = {
@@ -116,6 +130,7 @@ export const insertTaskSchema = baseTaskSchema.extend({
 export const insertTaskCommentSchema = createInsertSchema(taskComments).omit({ id: true, createdAt: true });
 export const insertTaskHistorySchema = createInsertSchema(taskHistory).omit({ id: true, createdAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, createdAt: true });
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -135,3 +150,6 @@ export type InsertTaskHistory = z.infer<typeof insertTaskHistorySchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type UserProject = typeof userProjects.$inferSelect;
+export type InsertUserProject = z.infer<typeof insertUserProjectSchema>;
