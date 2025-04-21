@@ -268,7 +268,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const loggedInUser = req.user as User;
-    let users = [];
+    let users: User[] = [];
     
     if (loggedInUser.role === 'super_admin') {
       // Super admin can see all users

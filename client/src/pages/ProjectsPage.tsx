@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Project, ProjectFormValues } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -11,7 +12,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Folder, Plus, Pencil, Trash2, AlertCircle } from 'lucide-react';
+import { Search, Folder, Plus, Pencil, Trash2, AlertCircle, ListTodo } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -230,27 +231,40 @@ export default function ProjectsPage() {
                   <div>{project.taskCount || 0} Tasks</div>
                 </div>
               </CardContent>
-              <CardFooter className="pt-0 flex justify-end gap-2">
-                {canEdit && (
+              <CardFooter className="pt-0 flex justify-between gap-2">
+                <Link href={`/tasks?projectId=${project.id}`}>
                   <Button 
-                    variant="outline" 
+                    variant="default" 
                     size="sm"
-                    onClick={() => openEditDialog(project)}
+                    className="bg-primary hover:bg-primary/90"
                   >
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit
+                    <ListTodo className="w-4 h-4 mr-1" />
+                    View Tasks
                   </Button>
-                )}
-                {canDelete && (
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => openDeleteDialog(project)}
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </Button>
-                )}
+                </Link>
+                
+                <div className="flex gap-2">
+                  {canEdit && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => openEditDialog(project)}
+                    >
+                      <Pencil className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm"
+                      onClick={() => openDeleteDialog(project)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
+                    </Button>
+                  )}
+                </div>
               </CardFooter>
             </Card>
           ))}

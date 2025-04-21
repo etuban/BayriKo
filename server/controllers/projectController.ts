@@ -16,16 +16,20 @@ export const getAllProjects = async (req: Request, res: Response) => {
       projects = await storage.getAllProjects();
     }
     
-    // Get creator information for each project
-    const projectsWithCreator = await Promise.all(projects.map(async (project) => {
+    // Get creator information and task count for each project
+    const projectsWithDetails = await Promise.all(projects.map(async (project) => {
       const creator = await storage.getUserById(project.createdById);
+      // Get task count for this project
+      const tasks = await storage.getAllTasks({ projectId: project.id });
+      
       return {
         ...project,
-        creator: creator ? { ...creator, password: undefined } : null
+        creator: creator ? { ...creator, password: undefined } : null,
+        taskCount: tasks.length
       };
     }));
     
-    res.status(200).json(projectsWithCreator);
+    res.status(200).json(projectsWithDetails);
   } catch (error) {
     console.error('Error getting projects:', error);
     res.status(500).json({ message: 'Internal server error' });
