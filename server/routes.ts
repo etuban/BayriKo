@@ -9,6 +9,7 @@ import * as taskController from './controllers/taskController';
 import * as projectController from './controllers/projectController';
 import * as notificationController from './controllers/notificationController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
+import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
 
 // Create memory store for sessions
@@ -94,6 +95,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Task payable route
   app.get('/api/tasks/payable/report', authenticateUser, taskController.getTaskPayableReport);
+
+  // Run database migrations
+  try {
+    await runDatabaseMigration();
+  } catch (error) {
+    console.error('Database migration error:', error);
+  }
 
   // Seed admin user
   await userController.seedAdminUser();

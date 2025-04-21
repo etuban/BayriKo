@@ -381,16 +381,24 @@ export const seedAdminUser = async () => {
     const existingAdmin = await storage.getUserByEmail(adminEmail);
     
     if (!existingAdmin) {
-      await storage.createUser({
+      const newAdmin = await storage.createUser({
         username: 'admin',
         password: 'password123', // This will be hashed by the storage method
         email: adminEmail,
         fullName: 'Admin User',
-        role: 'supervisor' as const,
+        role: 'super_admin' as const,
         position: 'Administrator',
         isApproved: true
       });
+      
+      // Set as super admin
+      await storage.setSuperAdmin(newAdmin.id);
+      
       console.log('Admin user created successfully');
+    } else if (existingAdmin.role !== 'super_admin') {
+      // Update existing admin to super_admin
+      await storage.setSuperAdmin(existingAdmin.id);
+      console.log('Updated existing admin to super_admin role');
     }
   } catch (error) {
     console.error('Error seeding admin user:', error);

@@ -416,7 +416,9 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Remove duplicates
-    return [...new Map(allProjects.map(p => [p.id, p])).values()];
+    const projectMap = new Map();
+    allProjects.forEach(p => projectMap.set(p.id, p));
+    return Array.from(projectMap.values());
   }
   
   // User-Project methods

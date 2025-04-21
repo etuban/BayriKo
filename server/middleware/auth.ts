@@ -8,10 +8,11 @@ declare global {
       username: string;
       email: string;
       fullName: string;
-      role: "supervisor" | "team_lead" | "staff";
+      role: "super_admin" | "supervisor" | "team_lead" | "staff";
       avatarUrl?: string | null;
       position?: string | null;
       isApproved: boolean;
+      isSuperAdmin?: boolean;
       createdAt: Date;
     }
   }
@@ -22,8 +23,11 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
     return res.status(401).json({ message: 'Unauthorized' });
   }
   
-  // Check if user is approved (supervisors are auto-approved)
-  if (req.user && !req.user.isApproved && req.user.role !== 'supervisor') {
+  // Check if user is approved (supervisors and super_admins are auto-approved)
+  if (req.user && !req.user.isApproved && 
+      req.user.role !== 'supervisor' && 
+      req.user.role !== 'super_admin' && 
+      !req.user.isSuperAdmin) {
     return res.status(403).json({ message: 'Account pending approval. Please contact an administrator.' });
   }
   
@@ -34,6 +38,11 @@ export const authorizeRole = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Super admin can access all routes regardless of role requirements
+    if (req.user.role === 'super_admin' || req.user.isSuperAdmin) {
+      return next();
     }
 
     if (!roles.includes(req.user.role)) {
@@ -50,6 +59,11 @@ export const canManageTask = (req: Request, res: Response, next: NextFunction) =
   
   if (!user) {
     return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  // Super admin can manage all tasks
+  if (user.role === 'super_admin' || user.isSuperAdmin) {
+    return next();
   }
 
   // Supervisors and Team Leads can manage any task
