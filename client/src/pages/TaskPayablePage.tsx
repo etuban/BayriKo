@@ -259,11 +259,11 @@ export default function TaskPayablePage() {
       // Project header row
       doc.setFillColor(240, 240, 240);
       doc.setDrawColor(220, 220, 220);
-      doc.rect(14, startY, 182, 8, "F");
+      doc.rect(20, startY, 176, 8, "F");
       doc.setFont(undefined, "bold");
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
-      doc.text(project.projectName, 16, startY + 5);
+      doc.text(project.projectName, 22, startY + 5);
       doc.text(`₱${project.subtotal.toFixed(2)}`, 194, startY + 5, {
         align: "right",
       });
@@ -330,8 +330,8 @@ export default function TaskPayablePage() {
           3: { cellWidth: 35, halign: "center" },  // Rate
           4: { cellWidth: 35, halign: "right" },   // Total
         },
-        margin: { left: 8, right: 8 },
-        tableWidth: 185,
+        margin: { left: 14, right: 14 },
+        tableWidth: 175,
       });
 
       // Update startY for next project
@@ -364,21 +364,39 @@ export default function TaskPayablePage() {
       doc.text(line, 14, finalY + 25 + index * 4);
     });
 
-    // Add footer
-    const footerText = invoiceDetails.footerHtml ? 
-      // Strip HTML tags for PDF text rendering
-      invoiceDetails.footerHtml.replace(/<[^>]*>?/gm, '') : 
-      "PDF generated through BayadMn.";
-      
-    const footerY = doc.internal.pageSize.getHeight() - 10;
+    // Add static footer
+    const footerText = "PDF generated through BayadMn";
+    const footerY = doc.internal.pageSize.getHeight() - 15;
     doc.setFontSize(10);
     const pageWidth = doc.internal.pageSize.getWidth();
     const textWidth = doc.getTextWidth(footerText);
     const textX = (pageWidth - textWidth) / 2;
     doc.text(footerText, textX, footerY);
+    
+    // Add website logo/URL on the next line
+    const websiteText = "https://bayadmn.pawn.media";
+    const websiteY = footerY + 5;
+    doc.setFontSize(8);
+    const websiteWidth = doc.getTextWidth(websiteText);
+    const websiteX = (pageWidth - websiteWidth) / 2;
+    doc.text(websiteText, websiteX, websiteY);
 
 
-    doc.save("Invoice.pdf");
+    // Create a dynamic filename based on the project ID and timestamp
+    const timestamp = new Date().getTime().toString().slice(-6);
+    let filename = "Invoice_" + timestamp + ".pdf";
+    
+    // If there's a specific project selected in the filter, add it to the filename
+    if (projectId && projectId !== "all") {
+      filename = projectId + "-" + filename;
+    } 
+    // Or if we have tasks from a project, use the first project's ID
+    else if (data.tasks.length > 0) {
+      const firstProjectId = data.tasks[0].projectId;
+      filename = firstProjectId + "-" + filename;
+    }
+    
+    doc.save(filename);
   };
 
   // Handle invoice details change
