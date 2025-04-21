@@ -60,9 +60,25 @@ export const getProjectById = async (req: Request, res: Response) => {
 
 export const createProject = async (req: Request, res: Response) => {
   try {
+    // Get the user's organizations
+    let organizationId = req.body.organizationId;
+    
+    // If no organization ID is provided, use the default organization for the user
+    if (!organizationId && req.user) {
+      const userOrgs = await storage.getUserOrganizations(req.user.id);
+      if (userOrgs && userOrgs.length > 0) {
+        // Use the first organization the user belongs to
+        organizationId = userOrgs[0].organizationId;
+      } else {
+        // Fallback to the default organization ID 1
+        organizationId = 1;
+      }
+    }
+    
     const projectData = insertProjectSchema.parse({
       ...req.body,
-      createdById: req.user?.id
+      createdById: req.user?.id,
+      organizationId: organizationId || 1
     });
     
     const newProject = await storage.createProject(projectData);
