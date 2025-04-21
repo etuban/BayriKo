@@ -41,6 +41,9 @@ const registerSchema = z
     confirmPassword: z
       .string()
       .min(6, "Password must be at least 6 characters"),
+    role: z.enum(["supervisor", "team_lead", "staff"]).default("staff"),
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    position: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -76,6 +79,9 @@ export default function LoginPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      fullName: "",
+      role: "staff",
+      position: "",
     },
   });
 
@@ -109,8 +115,9 @@ export default function LoginPage() {
           username: data.username,
           email: data.email,
           password: data.password,
-          fullName: data.username, // Initially use username as fullName
-          role: "staff" as const, // Default role is always staff for new registrations
+          fullName: data.fullName || data.username,
+          role: data.role,
+          position: data.position,
           isApproved: false // All new accounts require supervisor approval
         }),
       });
@@ -310,6 +317,60 @@ export default function LoginPage() {
                   {registerForm.formState.errors.confirmPassword && (
                     <p className="text-sm text-red-500">
                       {registerForm.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-fullname">Full Name</Label>
+                  <Input
+                    id="register-fullname"
+                    type="text"
+                    placeholder="John Doe"
+                    {...registerForm.register("fullName")}
+                    className="w-full"
+                  />
+                  {registerForm.formState.errors.fullName && (
+                    <p className="text-sm text-red-500">
+                      {registerForm.formState.errors.fullName.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-position">Position (Optional)</Label>
+                  <Input
+                    id="register-position"
+                    type="text"
+                    placeholder="e.g. Developer, Designer, etc."
+                    {...registerForm.register("position")}
+                    className="w-full"
+                  />
+                  {registerForm.formState.errors.position && (
+                    <p className="text-sm text-red-500">
+                      {registerForm.formState.errors.position.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="register-role">Role</Label>
+                  <Select 
+                    defaultValue="staff" 
+                    onValueChange={(value) => registerForm.setValue("role", value as "supervisor" | "team_lead" | "staff")}
+                  >
+                    <SelectTrigger id="register-role">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="supervisor">Supervisor</SelectItem>
+                      <SelectItem value="team_lead">Team Lead</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {registerForm.formState.errors.role && (
+                    <p className="text-sm text-red-500">
+                      {registerForm.formState.errors.role.message}
                     </p>
                   )}
                 </div>

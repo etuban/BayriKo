@@ -21,14 +21,24 @@ import { useEffect } from "react";
 
 // Protected route wrapper
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [location, setLocation] = useLocation();
   
   useEffect(() => {
+    // Redirect to login if not authenticated
     if (!isLoading && !isAuthenticated) {
       setLocation('/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+    
+    // If authenticated and at home route, redirect based on role
+    if (!isLoading && isAuthenticated && (location === '/' || location === '/dashboard')) {
+      // Only Super Admin and Supervisor can see Dashboard
+      if (user?.role !== 'super_admin' && user?.role !== 'supervisor') {
+        setLocation('/tasks');
+      }
+    }
+  }, [isAuthenticated, isLoading, setLocation, location, user]);
   
   // Show nothing while checking authentication
   if (isLoading) return null;
