@@ -54,7 +54,7 @@ export default function TaskPayablePage() {
   });
 
   // Fetch projects for filter dropdown
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["/api/projects"],
   });
 
@@ -169,11 +169,7 @@ export default function TaskPayablePage() {
     };
   };
 
-  // React-to-print setup (no longer used, but we'll keep as backup)
-  const reactToPrintRef = useReactToPrint({
-    documentTitle: "Invoice",
-    content: () => componentRef.current,
-  });
+  // Direct PDF generation is used instead of react-to-print
 
   // Download PDF handler
   const handleDownloadPDF = () => {
@@ -187,9 +183,13 @@ export default function TaskPayablePage() {
       floatPrecision: 16,
     });
 
+    // Set default font to Helvetica for the whole document
+    doc.setFont('helvetica', 'normal');
+    
     // Add title
     doc.setFontSize(18);
     doc.setTextColor(0, 128, 0); // Green color for the header
+    doc.setFont('helvetica', 'bold');
     doc.text("Invoice", 105, 20, { align: "center" });
 
     // Add invoice number and date
@@ -265,7 +265,7 @@ export default function TaskPayablePage() {
       doc.setFillColor(255, 255, 255);
       doc.setDrawColor(220, 220, 220);
       doc.rect(10, startY, 176, 8, "F");
-      doc.setFont(undefined, "bold");
+      doc.setFont('helvetica', "bold");
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
       doc.text(project.projectName, 14, startY + 5);
@@ -353,14 +353,14 @@ export default function TaskPayablePage() {
     doc.rect(110, finalY + 2, 86, 8, "F");
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.setFont(undefined, "bold");
+    doc.setFont('helvetica', "bold");
     doc.text("Grand Total:", 112, finalY + 7.5);
     doc.text(`PHP${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
       align: "right",
     });
 
     // Add payment terms
-    doc.setFont(undefined, "normal");
+    doc.setFont('helvetica', "normal");
     doc.setFontSize(10);
     doc.text("Payment Terms:", 14, finalY + 20);
     const paymentTermsLines = invoiceDetails.paymentTerms.split("\n");
@@ -374,10 +374,33 @@ export default function TaskPayablePage() {
     doc.setFontSize(9);
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Add footer text with URL
+    // Create a green circular logo with GiReceiveMoney icon (simplified icon representation)
+    const logoSize = 12;
+    const logoX = (pageWidth - logoSize) / 2;
+    const logoY = footerY - 15; // Position icon above footer text
+    
+    // Draw green circular background
+    doc.setFillColor(0, 128, 0); // Green background
+    doc.circle(logoX + (logoSize/2), logoY + (logoSize/2), logoSize/2, 'F');
+    
+    // Draw simplified money icon ($ symbol in white)
+    doc.setTextColor(255, 255, 255); // White text
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('$', logoX + (logoSize/2) - 1.5, logoY + (logoSize/2) + 2, { align: 'center' });
+    
+    // Add link annotation for the icon
+    doc.link(logoX, logoY, logoSize, logoSize, {
+      url: "https://bayadmn.pawn.media",
+    });
+    
+    // Add footer text with URL below the icon
     const footerText = "This PDF Invoice is generated through BayadMn";
     const textWidth = doc.getTextWidth(footerText);
     const textX = (pageWidth - textWidth) / 2;
+    doc.setTextColor(0, 0, 0); // Black text
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal'); // Helvetica is closest to Inter among standard fonts
     doc.text(footerText, textX, footerY);
 
     // Add website URL
@@ -388,30 +411,9 @@ export default function TaskPayablePage() {
     const websiteWidth = doc.getTextWidth(websiteText);
     const websiteX = (pageWidth - websiteWidth) / 2;
     doc.text(websiteText, websiteX, websiteY);
-
-    // Create a small logo
-    const logoWidth = 20;
-    const logoHeight = 7;
-    const logoX = (pageWidth - logoWidth) / 2;
-    const logoY = websiteY + 5;
-
-    // Simple "BayadMn" logo with green background
-    doc.setFillColor(0, 128, 0); // Green background
-    doc.roundedRect(logoX, logoY, logoWidth, logoHeight, 1, 1, "F");
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(9);
-    doc.setFont(undefined, "bold");
-    const logoText = "BayadMn";
-    const logoTextWidth = doc.getTextWidth(logoText);
-    const logoTextX = logoX + (logoWidth - logoTextWidth) / 2;
-    const logoTextY = logoY + 5;
-    doc.text(logoText, logoTextX, logoTextY);
-
-    // Add a link annotation for both the URL text and logo
+    
+    // Add a link annotation for the URL text
     doc.link(websiteX, websiteY - 3, websiteWidth, 4, {
-      url: "https://bayadmn.pawn.media",
-    });
-    doc.link(logoX, logoY, logoWidth, logoHeight, {
       url: "https://bayadmn.pawn.media",
     });
 
