@@ -1,5 +1,5 @@
 // User related types
-export type UserRole = 'supervisor' | 'team_lead' | 'staff';
+export type UserRole = 'super_admin' | 'supervisor' | 'team_lead' | 'staff';
 
 export interface User {
   id: number;

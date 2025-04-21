@@ -28,7 +28,7 @@ const userFormSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  role: z.enum(['supervisor', 'team_lead', 'staff']),
+  role: z.enum(['super_admin', 'supervisor', 'team_lead', 'staff']),
   position: z.string().optional(),
   isApproved: z.boolean().optional(),
   avatarUrl: z.string().url('Invalid URL').optional().or(z.literal(''))
@@ -69,7 +69,7 @@ export default function UsersPage() {
   // Load users
   const { data: users = [], isLoading, error } = useQuery<User[]>({
     queryKey: ['/api/users'],
-    enabled: user?.role === 'supervisor' || user?.role === 'team_lead',
+    enabled: user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead',
   });
   
   // Filter users by search
@@ -306,9 +306,9 @@ export default function UsersPage() {
   };
   
   // Check if the current user can perform actions
-  const canDelete = user?.role === 'supervisor';
-  const canEdit = user?.role === 'supervisor' || user?.role === 'team_lead';
-  const canCreate = user?.role === 'supervisor' || user?.role === 'team_lead';
+  const canDelete = user?.role === 'super_admin' || user?.role === 'supervisor';
+  const canEdit = user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead';
+  const canCreate = user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead';
 
   return (
     <div className="space-y-6">
