@@ -310,18 +310,22 @@ export default function TaskPayablePage() {
           textColor: [255, 255, 255],
           fontStyle: "bold",
           fontSize: 8,
+          minCellHeight: 10,
+          valign: "middle",
+          halign: "center"
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
         columnStyles: {
-          0: { cellWidth: 70 },
-          1: { cellWidth: 35 },
-          2: { cellWidth: 20, halign: "center" },
-          3: { cellWidth: 25, halign: "center" },
-          4: { cellWidth: 30, halign: "right" },
+          0: { cellWidth: 65 },  // Task title
+          1: { cellWidth: 35 },  // Date
+          2: { cellWidth: 15, halign: "center" },  // Hours
+          3: { cellWidth: 35, halign: "center" },  // Rate
+          4: { cellWidth: 35, halign: "right" },   // Total
         },
-        margin: { left: 10, right: 10 },
+        margin: { left: 8, right: 8 },
+        tableWidth: 185,
       });
 
       // Update startY for next project
