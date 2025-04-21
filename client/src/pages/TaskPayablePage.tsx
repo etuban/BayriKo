@@ -350,16 +350,47 @@ export default function TaskPayablePage() {
               // The first line is the title, set it to bold
               if (data.cell.text[0] !== '') {
                 data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fontSize = 9; // Making title slightly larger
               }
               
               // If there are multiple lines (description exists)
               if (data.cell.text.length > 1) {
-                // Set the title to bold and normal font size
-                data.cell.styles.fontSize = 8;
-                // The style applies to the whole cell, but we'll handle it in didDrawCell
+                // We need to handle this with a custom didDrawCell function
+                data.cell.styles.lineWidth = 0.1;
               }
             }
           }
+        },
+        // Custom draw cell function to handle title and description differently
+        didDrawCell: function(data) {
+          // Only process first column cells with multi-line text
+          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
+            const doc = data.doc;
+            const text = data.cell.text;
+            
+            // Get cell position/dimensions
+            const { x, y, width, height } = data.cell;
+            
+            // Clear the cell's existing content
+            doc.setFillColor(255, 255, 255);
+            doc.rect(x, y, width, height, 'F');
+            
+            // Draw title with bold and larger font
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.text(text[0], x + 2, y + 5);
+            
+            // Draw description with normal font and smaller size
+            if (text.length > 1) {
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(7);
+              doc.text(text.slice(1).join('\n'), x + 2, y + 10);
+            }
+            
+            // Return true to indicate we've handled the cell drawing
+            return true;
+          }
+          return false; // Let jsPDF-AutoTable handle other cells
         },
         columnStyles: {
           0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
