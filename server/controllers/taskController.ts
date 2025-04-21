@@ -210,6 +210,10 @@ export const updateTask = async (req: Request, res: Response) => {
 export const deleteTask = async (req: Request, res: Response) => {
   try {
     const taskId = parseInt(req.params.id);
+    if (isNaN(taskId)) {
+      return res.status(400).json({ message: 'Invalid task ID' });
+    }
+
     const task = await storage.getTaskById(taskId);
     
     if (!task) {
@@ -227,12 +231,21 @@ export const deleteTask = async (req: Request, res: Response) => {
       return res.status(403).json({ message: 'Forbidden: Team leads cannot delete tasks' });
     }
     
+    // Delete task history, comments, and notifications first
+    await Promise.all([
+      storage.deleteTaskHistory(taskId),
+      storage.deleteTaskComments(taskId),
+      storage.deleteTaskNotifications(taskId)
+    ]);
+    
+    // Then delete the task
     await storage.deleteTask(taskId);
     
     res.status(200).json({ message: 'Task deleted successfully' });
   } catch (error) {
     console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    res.status(500).json({ message });
   }
 };
 

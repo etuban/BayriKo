@@ -345,9 +345,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async deleteTaskHistory(taskId: number): Promise<void> {
+    await db.delete(taskHistory).where(eq(taskHistory.taskId, taskId));
+  }
+
+  async deleteTaskComments(taskId: number): Promise<void> {
+    await db.delete(taskComments).where(eq(taskComments.taskId, taskId));
+  }
+
+  async deleteTaskNotifications(taskId: number): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.taskId, taskId));
+  }
+
   async deleteTask(id: number): Promise<boolean> {
     await db.delete(tasks).where(eq(tasks.id, id));
-    return true; // If no error is thrown, deletion was successful
+    return true;
   }
 
   async getAllTasks(filters?: { projectId?: number, assignedToId?: number, status?: string, search?: string }): Promise<Task[]> {
