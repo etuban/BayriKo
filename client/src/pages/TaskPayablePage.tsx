@@ -287,9 +287,9 @@ export default function TaskPayablePage() {
             ? task.hours.toFixed(2)
             : task.hours || "",
           task.pricingType === "hourly"
-            ? `₱${((task.hourlyRate || 0) / 100).toFixed(2)}/hr`
+            ? `PHP ${((task.hourlyRate || 0) / 100).toFixed(2)}/hr`
             : "Fixed",
-          `₱${(task.totalAmount || 0).toFixed(2)}`,
+          `PHP ${(task.totalAmount || 0).toFixed(2)}`,
         ];
       });
 
@@ -344,7 +344,7 @@ export default function TaskPayablePage() {
     doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, "bold");
     doc.text("Grand Total:", 112, finalY + 7.5);
-    doc.text(`₱${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
+    doc.text(`PHP${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
       align: "right",
     });
 
@@ -357,6 +357,15 @@ export default function TaskPayablePage() {
     paymentTermsLines.forEach((line, index) => {
       doc.text(line, 14, finalY + 25 + index * 4);
     });
+
+    // Add footer
+    const footerText = "PDF generated through <a href='https://bayadmn.pawn.media'>BayadMn</a>.";
+    const footerY = doc.internal.pageSize.getHeight() - 10;
+    doc.setFontSize(10);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const textWidth = doc.getTextWidth(footerText);
+    const textX = (pageWidth - textWidth) / 2;
+    doc.text(footerText, textX, footerY);
 
 
     doc.save("Invoice.pdf");
