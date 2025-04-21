@@ -29,6 +29,7 @@ export default function TaskPayablePage() {
     billFrom: "",
     billTo: "",
     paymentTerms: "",
+    footerHtml: "<p>©2025 BayadMin. All rights reserved.</p>",
   });
 
   // Component ref for printing
@@ -488,6 +489,19 @@ export default function TaskPayablePage() {
               value={invoiceDetails.paymentTerms}
               onChange={(e) =>
                 handleDetailsChange("paymentTerms", e.target.value)
+              }
+            />
+          </div>
+
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-3">Footer HTML</h3>
+            <Textarea
+              rows={3}
+              className="w-full p-3 rounded-md bg-card border border-input text-sm font-mono"
+              placeholder="Enter HTML for the invoice footer (e.g. <p>Thank you for your business</p>)"
+              value={invoiceDetails.footerHtml}
+              onChange={(e) =>
+                handleDetailsChange("footerHtml", e.target.value)
               }
             />
           </div>
