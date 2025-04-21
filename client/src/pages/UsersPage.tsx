@@ -14,10 +14,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, UserPlus, Pencil, Trash2, AlertCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { getInitials } from '@/lib/utils';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Project } from '@/types';
 
 // Form validation schema
 const userFormSchema = z.object({
@@ -27,6 +29,7 @@ const userFormSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   role: z.enum(['supervisor', 'team_lead', 'staff']),
   position: z.string().optional(),
+  isApproved: z.boolean().optional(),
   avatarUrl: z.string().url('Invalid URL').optional().or(z.literal(''))
 });
 
@@ -39,6 +42,13 @@ export default function UsersPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
+  
+  // Load projects for assignment
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['/api/projects'],
+    enabled: user?.role === 'supervisor',
+  });
   
   // Form setup
   const form = useForm<z.infer<typeof userFormSchema>>({
@@ -160,6 +170,14 @@ export default function UsersPage() {
     deleteMutation.mutate(selectedUser.id);
   };
   
+  // Handle user approval
+  const handleApproveUser = (userId: number) => {
+    updateMutation.mutate({ 
+      id: userId, 
+      userData: { isApproved: true } 
+    });
+  };
+
   // Open edit dialog and populate form
   const openEditDialog = (user: User) => {
     setSelectedUser(user);
@@ -170,7 +188,8 @@ export default function UsersPage() {
       fullName: user.fullName,
       role: user.role,
       position: user.position || '',
-      avatarUrl: user.avatarUrl || ''
+      avatarUrl: user.avatarUrl || '',
+      isApproved: user.isApproved
     });
     setIsEditDialogOpen(true);
   };
@@ -259,15 +278,33 @@ export default function UsersPage() {
                     <p className="text-sm text-gray-400">@{user.username}</p>
                     <p className="text-sm">{user.email}</p>
                     <p className="text-sm mt-1">{user.position}</p>
-                    <p className="text-sm mt-1 capitalize">
-                      <span className="px-2 py-1 rounded-full bg-primary/20 text-primary">
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <span className="text-sm px-2 py-1 rounded-full bg-primary/20 text-primary capitalize">
                         {user.role}
                       </span>
-                    </p>
+                      {user.isApproved ? (
+                        <span className="text-sm px-2 py-1 rounded-full bg-green-500/20 text-green-500">
+                          Approved
+                        </span>
+                      ) : (
+                        <span className="text-sm px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-500">
+                          Pending Approval
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="pt-0 flex justify-end gap-2">
+                {!user.isApproved && user?.role === 'supervisor' && (
+                  <Button 
+                    size="sm"
+                    onClick={() => handleApproveUser(user.id)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    Approve
+                  </Button>
+                )}
                 {canEdit && (
                   <Button 
                     variant="outline" 
@@ -521,6 +558,17 @@ export default function UsersPage() {
                 <p className="text-red-500 text-xs">{form.formState.errors.avatarUrl.message}</p>
               )}
             </div>
+            
+            {user?.role === 'supervisor' && (
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="isApproved" 
+                  checked={form.watch('isApproved')}
+                  onCheckedChange={(checked) => form.setValue('isApproved', checked as boolean)}
+                />
+                <Label htmlFor="isApproved">Approve User</Label>
+              </div>
+            )}
             
             <DialogFooter>
               <Button 

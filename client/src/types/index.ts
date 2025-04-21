@@ -9,6 +9,7 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   position?: string;
+  isApproved: boolean;
   createdAt: string;
 }
 
@@ -78,7 +79,7 @@ export interface TaskHistory {
 }
 
 // Notification related types
-export type NotificationType = 'task_assigned' | 'task_status_changed' | 'task_comment' | 'task_due_soon';
+export type NotificationType = 'task_assigned' | 'task_status_changed' | 'task_comment' | 'task_due_soon' | 'new_user';
 
 export interface Notification {
   id: number;
@@ -123,6 +124,7 @@ export interface UserFormValues {
   role?: UserRole;
   position?: string;
   avatarUrl?: string;
+  isApproved?: boolean;
 }
 
 export interface TaskPayableFilters {
