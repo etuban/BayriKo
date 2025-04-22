@@ -69,6 +69,8 @@ export interface Task {
   currency?: CurrencyType;
   hourlyRate?: number;
   fixedPrice?: number;
+  timeSpent?: number;
+  completedAt?: string;
   status: TaskStatus;
   createdAt: string;
   updatedAt: string;
@@ -128,6 +130,8 @@ export interface TaskFormValues {
   currency?: CurrencyType;
   hourlyRate?: number;
   fixedPrice?: number;
+  timeSpent?: number;
+  completedAt?: string;
   status: TaskStatus;
 }
 

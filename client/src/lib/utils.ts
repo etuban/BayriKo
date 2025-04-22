@@ -126,14 +126,20 @@ export function formatHours(task: {
   endDate?: string | Date,
   startTime?: string,
   endTime?: string,
-  pricingType?: string
+  pricingType?: string,
+  timeSpent?: number
 }): string {
-  if (!task.startDate || !task.endDate) {
-    return 'N/A';
+  // If timeSpent is available, use it (new field from database)
+  if (task.timeSpent !== undefined && task.timeSpent > 0) {
+    return `${task.timeSpent} hr${task.timeSpent !== 1 ? 's' : ''}`;
   }
   
   if (task.pricingType === 'fixed') {
     return 'Fixed Price';
+  }
+  
+  if (!task.startDate || !task.endDate) {
+    return 'N/A';
   }
   
   const hours = calculateHours(task.startDate, task.endDate, task.startTime, task.endTime);
