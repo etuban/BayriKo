@@ -1,5 +1,5 @@
 /* Font Imports */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Special+Gothic+Expanded+One&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,9 +14,9 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
   
-  /* Custom fallback for Special Gothic Expanded One */
+  /* Special Gothic Expanded One font class */
   .font-specialGothic {
-    font-family: 'Special Elite', monospace;
+    font-family: 'Special Gothic Expanded One', serif;
     letter-spacing: 0.5px;
   }
 }

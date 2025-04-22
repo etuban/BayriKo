@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { GiReceiveMoney } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -233,16 +232,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-5xl flex flex-col md:flex-row gap-8 items-stretch">
+      <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8">
         {/* Form Section - Left Column */}
-        <div className="w-full md:w-1/2 flex-shrink-0">
+        <div className="w-full md:w-1/2">
           <Card className="w-full h-full bg-background border-border">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-4xl font-bold text-center mt-4">
+            <CardHeader className="space-y-2">
+              <CardTitle className="text-3xl font-bold text-center">
                 BAYRIKO
               </CardTitle>
-              <CardDescription className="text-center text-2xl mb-4">
-                Your Bay That Pays.
+              <CardDescription className="text-center text-lg">
+                Your Bay That Pays
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -252,288 +251,288 @@ export default function LoginPage() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="login">Login</TabsTrigger>
+                  <TabsTrigger value="register">Register</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="login" className="space-y-4">
-              <form
-                onSubmit={loginForm.handleSubmit(onLoginSubmit)}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    {...loginForm.register("email")}
-                    className="w-full"
-                  />
-                  {loginForm.formState.errors.email && (
-                    <p className="text-sm text-red-500">
-                      {loginForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
+                <TabsContent value="login" className="space-y-4">
+                  <form
+                    onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        {...loginForm.register("email")}
+                        className="w-full"
+                      />
+                      {loginForm.formState.errors.email && (
+                        <p className="text-sm text-red-500">
+                          {loginForm.formState.errors.email.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password">Password</Label>
-                    <a
-                      href="#"
-                      className="text-xs text-primary hover:underline"
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="login-password">Password</Label>
+                        <a
+                          href="#"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Forgot password?
+                        </a>
+                      </div>
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="••••••••"
+                        {...loginForm.register("password")}
+                        className="w-full"
+                      />
+                      {loginForm.formState.errors.password && (
+                        <p className="text-sm text-red-500">
+                          {loginForm.formState.errors.password.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {authError && (
+                      <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
+                        {authError}
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      className="w-full text-xl bg-primary hover:bg-primary/90"
+                      disabled={isLoading}
                     >
-                      Forgot password?
-                    </a>
-                  </div>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    {...loginForm.register("password")}
-                    className="w-full"
-                  />
-                  {loginForm.formState.errors.password && (
-                    <p className="text-sm text-red-500">
-                      {loginForm.formState.errors.password.message}
+                      {isLoading ? "Signing in..." : "Sign In"}
+                    </Button>
+                  </form>
+                  <div className="text-center mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Don't have an account?{" "}
+                      <button
+                        type="button"
+                        className="text-primary hover:underline"
+                        onClick={() => setActiveTab("register")}
+                      >
+                        Register
+                      </button>
                     </p>
-                  )}
-                </div>
-
-                {authError && (
-                  <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
-                    {authError}
                   </div>
-                )}
+                </TabsContent>
 
-                <Button
-                  type="submit"
-                  className="w-full text-xl bg-primary hover:bg-primary/90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Signing in..." : "Sign In"}
-                </Button>
-              </form>
-              <div className="text-center mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button
-                    type="button"
-                    className="text-primary hover:underline"
-                    onClick={() => setActiveTab("register")}
+                <TabsContent value="register" className="space-y-4">
+                  {/* Show invitation info if available */}
+                  {invitationInfo?.valid && (
+                    <Alert className="mb-4 bg-primary/10 border-primary/20">
+                      <AlertTitle className="text-primary">
+                        Organization Invitation
+                      </AlertTitle>
+                      <AlertDescription>
+                        You've been invited to join{" "}
+                        <strong>{invitationInfo.organizationName}</strong> as a{" "}
+                        <strong>{invitationInfo.role}</strong>. Complete
+                        registration to accept.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {validatingInvitation && (
+                    <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20 mb-4">
+                      <p className="text-center">Validating invitation...</p>
+                    </div>
+                  )}
+
+                  <form
+                    onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+                    className="space-y-4"
                   >
-                    Register
-                  </button>
-                </p>
-              </div>
-            </TabsContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-username">Username</Label>
+                      <Input
+                        id="register-username"
+                        type="text"
+                        placeholder="johndoe"
+                        {...registerForm.register("username")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.username && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.username.message}
+                        </p>
+                      )}
+                    </div>
 
-            <TabsContent value="register" className="space-y-4">
-              {/* Show invitation info if available */}
-              {invitationInfo?.valid && (
-                <Alert className="mb-4 bg-primary/10 border-primary/20">
-                  <AlertTitle className="text-primary">
-                    Organization Invitation
-                  </AlertTitle>
-                  <AlertDescription>
-                    You've been invited to join{" "}
-                    <strong>{invitationInfo.organizationName}</strong> as a{" "}
-                    <strong>{invitationInfo.role}</strong>. Complete
-                    registration to accept.
-                  </AlertDescription>
-                </Alert>
-              )}
+                    <div className="space-y-2">
+                      <Label htmlFor="register-email">Email</Label>
+                      <Input
+                        id="register-email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        {...registerForm.register("email")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.email && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.email.message}
+                        </p>
+                      )}
+                    </div>
 
-              {validatingInvitation && (
-                <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20 mb-4">
-                  <p className="text-center">Validating invitation...</p>
-                </div>
-              )}
+                    <div className="space-y-2">
+                      <Label htmlFor="register-password">Password</Label>
+                      <Input
+                        id="register-password"
+                        type="password"
+                        placeholder="••••••••"
+                        {...registerForm.register("password")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.password && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.password.message}
+                        </p>
+                      )}
+                    </div>
 
-              <form
-                onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="register-username">Username</Label>
-                  <Input
-                    id="register-username"
-                    type="text"
-                    placeholder="johndoe"
-                    {...registerForm.register("username")}
-                    className="w-full"
-                  />
-                  {registerForm.formState.errors.username && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.username.message}
-                    </p>
-                  )}
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-confirm-password">
+                        Confirm Password
+                      </Label>
+                      <Input
+                        id="register-confirm-password"
+                        type="password"
+                        placeholder="••••••••"
+                        {...registerForm.register("confirmPassword")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.confirmPassword && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.confirmPassword.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    {...registerForm.register("email")}
-                    className="w-full"
-                  />
-                  {registerForm.formState.errors.email && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-fullname">Full Name</Label>
+                      <Input
+                        id="register-fullname"
+                        type="text"
+                        placeholder="John Doe"
+                        {...registerForm.register("fullName")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.fullName && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.fullName.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
-                  <Input
-                    id="register-password"
-                    type="password"
-                    placeholder="••••••••"
-                    {...registerForm.register("password")}
-                    className="w-full"
-                  />
-                  {registerForm.formState.errors.password && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-position">Position (Optional)</Label>
+                      <Input
+                        id="register-position"
+                        type="text"
+                        placeholder="e.g. Developer, Designer, etc."
+                        {...registerForm.register("position")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.position && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.position.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-confirm-password">
-                    Confirm Password
-                  </Label>
-                  <Input
-                    id="register-confirm-password"
-                    type="password"
-                    placeholder="••••••••"
-                    {...registerForm.register("confirmPassword")}
-                    className="w-full"
-                  />
-                  {registerForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.confirmPassword.message}
-                    </p>
-                  )}
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-role">Role</Label>
+                      <Select
+                        defaultValue="staff"
+                        onValueChange={(value) =>
+                          registerForm.setValue(
+                            "role",
+                            value as "supervisor" | "team_lead" | "staff",
+                          )
+                        }
+                      >
+                        <SelectTrigger id="register-role">
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="supervisor">Supervisor</SelectItem>
+                          <SelectItem value="team_lead">Team Lead</SelectItem>
+                          <SelectItem value="staff">Staff</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {registerForm.formState.errors.role && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.role.message}
+                        </p>
+                      )}
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-fullname">Full Name</Label>
-                  <Input
-                    id="register-fullname"
-                    type="text"
-                    placeholder="John Doe"
-                    {...registerForm.register("fullName")}
-                    className="w-full"
-                  />
-                  {registerForm.formState.errors.fullName && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.fullName.message}
-                    </p>
-                  )}
-                </div>
+                    {/* Registration complete notice - will be shown after successful registration */}
+                    {registering && (
+                      <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20">
+                        <p className="mb-1 font-medium text-center">
+                          Creating your account...
+                        </p>
+                        <p className="text-center">
+                          Please wait while we process your registration.
+                        </p>
+                      </div>
+                    )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-position">Position (Optional)</Label>
-                  <Input
-                    id="register-position"
-                    type="text"
-                    placeholder="e.g. Developer, Designer, etc."
-                    {...registerForm.register("position")}
-                    className="w-full"
-                  />
-                  {registerForm.formState.errors.position && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.position.message}
-                    </p>
-                  )}
-                </div>
+                    {registerError && (
+                      <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
+                        {registerError}
+                      </div>
+                    )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="register-role">Role</Label>
-                  <Select
-                    defaultValue="staff"
-                    onValueChange={(value) =>
-                      registerForm.setValue(
-                        "role",
-                        value as "supervisor" | "team_lead" | "staff",
-                      )
-                    }
-                  >
-                    <SelectTrigger id="register-role">
-                      <SelectValue placeholder="Select your role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="supervisor">Supervisor</SelectItem>
-                      <SelectItem value="team_lead">Team Lead</SelectItem>
-                      <SelectItem value="staff">Staff</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {registerForm.formState.errors.role && (
-                    <p className="text-sm text-red-500">
-                      {registerForm.formState.errors.role.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Registration complete notice - will be shown after successful registration */}
-                {registering && (
-                  <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20">
-                    <p className="mb-1 font-medium text-center">
-                      Creating your account...
-                    </p>
-                    <p className="text-center">
-                      Please wait while we process your registration.
+                    <Button
+                      type="submit"
+                      className="w-full text-xl bg-primary hover:bg-primary/90"
+                      disabled={registering}
+                    >
+                      {registering ? "Creating Account..." : "Create Account"}
+                    </Button>
+                  </form>
+                  <div className="text-center mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Already have an account?{" "}
+                      <button
+                        type="button"
+                        className="text-primary hover:underline"
+                        onClick={() => setActiveTab("login")}
+                      >
+                        Login
+                      </button>
                     </p>
                   </div>
-                )}
-
-                {registerError && (
-                  <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
-                    {registerError}
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  className="w-full text-xl bg-primary hover:bg-primary/90"
-                  disabled={registering}
-                >
-                  {registering ? "Creating Account..." : "Create Account"}
-                </Button>
-              </form>
-              <div className="text-center mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    className="text-primary text-xl hover:underline"
-                    onClick={() => setActiveTab("login")}
-                  >
-                    Login
-                  </button>
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-center text-muted-foreground">
-            BayriKo &copy; {new Date().getFullYear()}
-          </p>
-        </CardFooter>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <p className="text-sm text-center text-muted-foreground">
+                BayriKo &copy; {new Date().getFullYear()}
+              </p>
+            </CardFooter>
           </Card>
         </div>
-        
-        {/* Content Section - Right Column */}
+
+        {/* Content Section - Right Column (only visible on md and larger screens) */}
         <div className="w-full md:w-1/2 hidden md:block">
-          <Card className="w-full h-full bg-background border-border shadow-lg flex flex-col justify-center">
-            <CardContent className="p-6 flex flex-col items-center justify-center">
+          <Card className="w-full h-full bg-background border-border overflow-hidden flex flex-col justify-center">
+            <CardContent className="p-8 flex flex-col items-center justify-center">
               <div className="flex items-center justify-center mb-8 overflow-hidden rounded-xl">
                 <img
                   src="https://pawn.media/bayriko/kyawil.jpg"
@@ -542,8 +541,8 @@ export default function LoginPage() {
                 />
               </div>
               <div className="text-center mt-8 mb-4">
-                <CardTitle className="text-3xl mb-2">Welcome to BayriKo</CardTitle>
-                <CardDescription className="text-xl mb-6">
+                <CardTitle className="text-3xl mb-2 font-specialGothic">Welcome to BayriKo</CardTitle>
+                <CardDescription className="text-xl mb-6 font-specialGothic">
                   Your Bay That Pays
                 </CardDescription>
                 <p className="text-center text-xl italic font-specialGothic mt-6">

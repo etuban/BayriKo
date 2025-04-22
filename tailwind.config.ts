@@ -18,7 +18,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        specialGothic: ['Special Elite', 'monospace'],
+        specialGothic: ['"Special Gothic Expanded One"', 'serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
