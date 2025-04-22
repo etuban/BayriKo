@@ -157,9 +157,7 @@ export function PayableTaskTable({
                     {/* Task info for mobile/desktop view */}
                     <div className="flex items-center px-4 sm:px-6 py-3 print:hidden">
                       <div className="flex-1">
-                        <div className="text-sm font-bold">
-                          {task.title}
-                        </div>
+                        <div className="text-sm font-bold">{task.title}</div>
                         {task.description && (
                           <div className="text-xs font-normal text-muted-foreground mt-1">
                             {task.description}
@@ -186,9 +184,7 @@ export function PayableTaskTable({
 
                     {/* Print view cells */}
                     <div className="hidden print:table-cell px-4 sm:px-6 py-3">
-                      <div className="text-sm font-bold">
-                        {task.title}
-                      </div>
+                      <div className="text-sm font-bold">{task.title}</div>
                       {task.description && (
                         <div className="text-xs font-normal text-muted-foreground mt-1">
                           {task.description}
@@ -251,7 +247,7 @@ export function PayableTaskTable({
             justifyContent: "center",
           }}
         >
-          <a href="https://bayadmn.pawn.media">
+          <a href="https://bayriko.pawn.media">
             <div
               className="bg-primary p-2 rounded-full"
               style={{
@@ -269,8 +265,8 @@ export function PayableTaskTable({
         <p style={{ marginTop: "8px" }}>
           This PDF Invoice is generated through{" "}
           <a
-            href="https://bayadmn.pawn.media"
-            style={{ color: "blue", textDecoration: "underline" }}
+            href="https://bayriko.pawn.media"
+            style={{ color: "green", textDecoration: "underline" }}
           >
             BayriKo
           </a>

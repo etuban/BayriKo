@@ -23,12 +23,14 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function TaskPayablePage() {
   const { user } = useAuth();
-  
+
   // State for filters
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("all-projects");
-  const [selectedOrganization, setSelectedOrganization] = useState<number | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<
+    number | null
+  >(null);
 
   // State for invoice details
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails>({
@@ -43,10 +45,10 @@ export default function TaskPayablePage() {
 
   // Load user's organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
-    queryKey: ['/api/users/organizations/current'],
+    queryKey: ["/api/users/organizations/current"],
     enabled: !!user,
   });
-  
+
   // Set default organization based on user's current organization if available
   useEffect(() => {
     if (organizations.length > 0 && !selectedOrganization) {
@@ -62,9 +64,9 @@ export default function TaskPayablePage() {
 
   // Fetch projects for filter dropdown, filtered by organization
   const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ['/api/projects', selectedOrganization],
+    queryKey: ["/api/projects", selectedOrganization],
     queryFn: async () => {
-      let url = '/api/projects';
+      let url = "/api/projects";
       if (selectedOrganization) {
         url += `?organizationId=${selectedOrganization}`;
       }
@@ -79,13 +81,21 @@ export default function TaskPayablePage() {
     tasks: Task[];
     grandTotal: number;
   }>({
-    queryKey: ["/api/tasks/payable/report", startDate, endDate, projectId, selectedOrganization],
+    queryKey: [
+      "/api/tasks/payable/report",
+      startDate,
+      endDate,
+      projectId,
+      selectedOrganization,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (projectId && projectId !== "all-projects") params.append("projectId", projectId);
-      if (selectedOrganization) params.append("organizationId", selectedOrganization.toString());
+      if (projectId && projectId !== "all-projects")
+        params.append("projectId", projectId);
+      if (selectedOrganization)
+        params.append("organizationId", selectedOrganization.toString());
 
       const url = `/api/tasks/payable/report?${params.toString()}`;
       return fetch(url).then((res) => res.json());
@@ -179,9 +189,9 @@ export default function TaskPayablePage() {
         <div class="container">
           ${contentToPrint.innerHTML}
           <div class="footer">
-            <p>This PDF Invoice is generated through <a href="https://bayadmn.pawn.media" style="color: blue; text-decoration: underline;">BayriKo</a></p>
+            <p>This PDF Invoice is generated through <a href="https://bayriko.pawn.media" style="color: green; text-decoration: underline;">BayriKo</a></p>
             <div style="margin-top: 5px;">
-              <a href="https://bayadmn.pawn.media">
+              <a href="https://bayriko.pawn.media">
                 <div className="bg-primary p-2 rounded-md">
                  <GiReceiveMoney className="w-6 h-6 text-white" />
                </div>
@@ -328,12 +338,12 @@ export default function TaskPayablePage() {
 
         // Format title and description for display with bold title
         let taskTitle = "";
-        
+
         if (task.title) {
           // We'll use styling in autoTable to make this bold
           taskTitle = task.title;
         }
-        
+
         if (task.description) {
           // Add description as a separate line
           taskTitle += task.description ? `\n${task.description}` : "";
@@ -377,17 +387,17 @@ export default function TaskPayablePage() {
           fillColor: [245, 245, 245],
         },
         // Add custom cell styling for titles and descriptions
-        didParseCell: function(data) {
+        didParseCell: function (data) {
           // Only style cells in the first column (task title/description)
           if (data.column.index === 0 && data.cell.text) {
             // If this is a cell in the first column with content
             if (Array.isArray(data.cell.text) && data.cell.text.length > 0) {
               // The first line is the title, set it to bold
-              if (data.cell.text[0] !== '') {
-                data.cell.styles.fontStyle = 'bold';
+              if (data.cell.text[0] !== "") {
+                data.cell.styles.fontStyle = "bold";
                 data.cell.styles.fontSize = 9; // Making title slightly larger
               }
-              
+
               // If there are multiple lines (description exists)
               if (data.cell.text.length > 1) {
                 // We need to handle this with a custom didDrawCell function
@@ -397,31 +407,36 @@ export default function TaskPayablePage() {
           }
         },
         // Custom draw cell function to handle title and description differently
-        didDrawCell: function(data) {
+        didDrawCell: function (data) {
           // Only process first column cells with multi-line text
-          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
+          if (
+            data.column.index === 0 &&
+            data.cell.text &&
+            Array.isArray(data.cell.text) &&
+            data.cell.text.length > 1
+          ) {
             const doc = data.doc;
             const text = data.cell.text;
-            
+
             // Get cell position/dimensions
             const { x, y, width, height } = data.cell;
-            
+
             // Clear the cell's existing content
             doc.setFillColor(255, 255, 255);
-            doc.rect(x, y, width, height, 'F');
-            
+            doc.rect(x, y, width, height, "F");
+
             // Draw title with bold and larger font
-            doc.setFont('helvetica', 'bold');
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
             doc.text(text[0], x + 2, y + 5);
-            
+
             // Draw description with normal font and smaller size
             if (text.length > 1) {
-              doc.setFont('helvetica', 'normal');
+              doc.setFont("helvetica", "normal");
               doc.setFontSize(7);
-              doc.text(text.slice(1).join('\n'), x + 2, y + 10);
+              doc.text(text.slice(1).join("\n"), x + 2, y + 10);
             }
-            
+
             // Return true to indicate we've handled the cell drawing
             return true;
           }
@@ -501,11 +516,11 @@ export default function TaskPayablePage() {
 
     // Add link annotation for the icon
     doc.link(logoX, logoY, logoSize, logoSize, {
-      url: "https://bayadmn.pawn.media",
+      url: "https://bayriko.pawn.media",
     });
 
     // Add website URL
-    const websiteText = "https://bayadmn.pawn.media";
+    const websiteText = "https://bayriko.pawn.media";
     const websiteY = footerY + 5;
     doc.setFontSize(8);
     doc.setTextColor(0, 128, 0); // Green color for URL
@@ -554,8 +569,8 @@ export default function TaskPayablePage() {
   // Apply filters
   const applyFilters = () => {
     // Manually refetch the payable tasks with updated filters
-    queryClient.invalidateQueries({ 
-      queryKey: ["/api/tasks/payable/report"]
+    queryClient.invalidateQueries({
+      queryKey: ["/api/tasks/payable/report"],
     });
   };
 
@@ -567,29 +582,36 @@ export default function TaskPayablePage() {
         {/* Payable Filters */}
         <div className="flex flex-wrap gap-3 items-center">
           {/* Organization Selector (visible to supervisors, team leads, and super admins) */}
-          {organizations.length > 1 && (user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead') && (
-            <div className="w-[200px]">
-              <Select 
-                value={selectedOrganization?.toString() || 'no-organization'}
-                onValueChange={(value) => value !== 'no-organization' ? setSelectedOrganization(parseInt(value, 10)) : setSelectedOrganization(null)}
-              >
-                <SelectTrigger className="h-10 bg-dark-bg border-dark-border">
-                  <div className="flex items-center">
-                    <Building className="w-4 h-4 mr-2 text-primary" />
-                    <SelectValue placeholder="Select organization" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map(org => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          
+          {organizations.length > 1 &&
+            (user?.role === "super_admin" ||
+              user?.role === "supervisor" ||
+              user?.role === "team_lead") && (
+              <div className="w-[200px]">
+                <Select
+                  value={selectedOrganization?.toString() || "no-organization"}
+                  onValueChange={(value) =>
+                    value !== "no-organization"
+                      ? setSelectedOrganization(parseInt(value, 10))
+                      : setSelectedOrganization(null)
+                  }
+                >
+                  <SelectTrigger className="h-10 bg-dark-bg border-dark-border">
+                    <div className="flex items-center">
+                      <Building className="w-4 h-4 mr-2 text-primary" />
+                      <SelectValue placeholder="Select organization" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id.toString()}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
           {/* Date Range */}
           <div className="flex items-center space-x-2">
             <Input
@@ -615,11 +637,12 @@ export default function TaskPayablePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all-projects">All Projects</SelectItem>
-                {projects && projects.map((project: Project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
-                  </SelectItem>
-                ))}
+                {projects &&
+                  projects.map((project: Project) => (
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <FolderKanban className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />

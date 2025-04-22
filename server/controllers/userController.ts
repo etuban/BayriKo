@@ -265,7 +265,42 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Username already in use' });
     }
     
+    // Automatically approve users added by supervisors
+    const currentUser = req.user;
+    if (currentUser && currentUser.role === 'supervisor') {
+      userData.isApproved = true;
+    }
+    
     const newUser = await storage.createUser(userData);
+    
+    // If created by a supervisor, automatically add to supervisor's organization
+    if (currentUser && currentUser.role === 'supervisor' && (currentUser as any).currentOrganizationId) {
+      const organizationId = (currentUser as any).currentOrganizationId;
+      await storage.addUserToOrganization(newUser.id, organizationId, userData.role || 'staff');
+      
+      // Notify the user about being added to the organization
+      await storage.createNotification({
+        userId: newUser.id,
+        type: 'new_organization_user',
+        message: `You have been added to an organization by ${currentUser.username}`,
+        read: false
+      });
+      
+      // Notify other supervisors in the organization
+      const organizationUsers = await storage.getOrganizationUsers(organizationId);
+      const supervisorIds = organizationUsers
+        .filter(user => user.role === 'supervisor' && user.id !== currentUser.id)
+        .map(user => user.id);
+      
+      for (const supervisorId of supervisorIds) {
+        await storage.createNotification({
+          userId: supervisorId,
+          type: 'new_organization_user',
+          message: `New user ${userData.username} (${userData.email}) has been added to your organization by ${currentUser.username}`,
+          read: false
+        });
+      }
+    }
     
     // Remove password before sending response
     const { password, ...userWithoutPassword } = newUser;
