@@ -86,11 +86,16 @@ export default function ProjectsPage() {
   // Create project mutation
   const createMutation = useMutation({
     mutationFn: async (projectData: ProjectFormValues) => {
-      const res = await apiRequest('POST', '/api/projects', projectData);
+      // Include organization ID in the project data
+      const projectWithOrg = {
+        ...projectData,
+        organizationId: selectedOrganization
+      };
+      const res = await apiRequest('POST', '/api/projects', projectWithOrg);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedOrganization] });
       toast({
         title: 'Success',
         description: 'Project created successfully',
@@ -114,7 +119,11 @@ export default function ProjectsPage() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all project queries and the specific organization query
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      if (selectedOrganization) {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedOrganization] });
+      }
       toast({
         title: 'Success',
         description: 'Project updated successfully',
@@ -137,7 +146,11 @@ export default function ProjectsPage() {
       await apiRequest('DELETE', `/api/projects/${id}`, {});
     },
     onSuccess: () => {
+      // Invalidate all project queries and the specific organization query
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      if (selectedOrganization) {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', selectedOrganization] });
+      }
       toast({
         title: 'Success',
         description: 'Project deleted successfully',
@@ -341,7 +354,17 @@ export default function ProjectsPage() {
         <DialogContent className="bg-dark-surface border border-dark-border">
           <DialogHeader>
             <DialogTitle>New Project</DialogTitle>
-            <DialogDescription>Create a new project for organizing tasks.</DialogDescription>
+            <DialogDescription>
+              Create a new project for organizing tasks.
+              {selectedOrganization && organizations.length > 0 && (
+                <div className="mt-2 flex items-center">
+                  <span className="text-sm text-primary font-medium flex items-center">
+                    <Building className="h-4 w-4 mr-1" />
+                    Organization: {organizations.find(org => org.id === selectedOrganization)?.name}
+                  </span>
+                </div>
+              )}
+            </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={form.handleSubmit(handleCreateProject)} className="space-y-4">
