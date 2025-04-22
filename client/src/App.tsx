@@ -91,18 +91,17 @@ function Router() {
 function AppContent() {
   const { isAuthenticated } = useAuth();
   
-  // If not authenticated, no need to load task or notification providers
-  if (!isAuthenticated) {
-    return <Router />;
-  }
-  
   return (
     <>
       <NotificationProvider>
         <TaskProvider>
-          <Layout>
+          {isAuthenticated ? (
+            <Layout>
+              <Router />
+            </Layout>
+          ) : (
             <Router />
-          </Layout>
+          )}
         </TaskProvider>
       </NotificationProvider>
     </>

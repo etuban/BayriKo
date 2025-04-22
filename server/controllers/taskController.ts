@@ -505,55 +505,35 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
       // Super admin can see all tasks
       if (orgId) {
         // If specific organization is requested by super admin, filter by it
-        tasks = await Promise.all(allTasks.map(async (task) => {
+        tasks = allTasks.filter(task => {
           const project = allProjects.find(p => p.id === task.projectId);
-          
-          // If no project found or it doesn't belong to the requested organization, skip
-          if (!project || project.organizationId !== orgId) {
-            return null;
-          }
-          
-          return task;
-        })).then(results => results.filter(task => task !== null) as typeof allTasks);
+          return project && project.organizationId === orgId;
+        });
       }
       // Otherwise show all tasks to super admin
     } else if (orgId) {
       // Regular users with specific organization requested
-      tasks = await Promise.all(allTasks.map(async (task) => {
+      tasks = allTasks.filter(task => {
         const project = allProjects.find(p => p.id === task.projectId);
-        
-        // If no project found or it doesn't belong to the requested organization, skip
-        if (!project || project.organizationId !== orgId) {
-          return null;
-        }
-        
-        return task;
-      })).then(results => results.filter(task => task !== null) as typeof allTasks);
+        return project && project.organizationId === orgId;
+      });
     } else if (userId) {
       // If no specific org ID requested but user is authenticated (and not super_admin), filter by user's organizations
       const orgUsers = await storage.getUserOrganizations(userId);
       const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
       
       // Filter tasks by user's organizations
-      tasks = await Promise.all(allTasks.map(async (task) => {
+      tasks = allTasks.filter(task => {
         const project = allProjects.find(p => p.id === task.projectId);
-        
-        // If no project found or it doesn't belong to user's organizations, skip
-        if (!project || !userOrganizationIds.includes(project.organizationId)) {
-          return null;
-        }
-        
-        return task;
-      })).then(results => results.filter(task => task !== null) as typeof allTasks);
+        return project && userOrganizationIds.includes(project.organizationId);
+      });
     }
     
     // Calculate totals and hours
     const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
       // Get project and assigned user details
-      const [project, assignedTo] = await Promise.all([
-        storage.getProjectById(task.projectId),
-        task.assignedToId ? storage.getUserById(task.assignedToId) : null
-      ]);
+      const project = task.projectId ? await storage.getProjectById(task.projectId) : null;
+      const assignedTo = task.assignedToId ? await storage.getUserById(task.assignedToId) : null;
       
       let hours = 0;
       let totalAmount = 0;
@@ -598,54 +578,39 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
         }
       }
       
-      // Calculate total amount
+      // If hours are already set in the task, use that
+      if (task.hours) {
+        if (typeof task.hours === 'string') {
+          hours = parseFloat(task.hours);
+        } else {
+          hours = task.hours;
+        }
+      }
+      
+      // Calculate total amount based on pricing type
       if (task.pricingType === 'hourly' && task.hourlyRate) {
         totalAmount = hours * (task.hourlyRate / 100); // Convert cents to dollars
-      } else if (task.pricingType === 'fixed' && task.fixedPrice) {
-        totalAmount = task.fixedPrice / 100; // Convert cents to dollars
+      } else if (task.pricingType === 'fixed' && task.fixedAmount) {
+        totalAmount = task.fixedAmount / 100; // Convert cents to dollars
       }
       
       return {
         ...task,
         project,
         assignedTo: assignedTo ? { ...assignedTo, password: undefined } : null,
-        hours: task.pricingType === 'hourly' ? hours : 'Fixed',
-        totalAmount
+        hours: isNaN(hours) ? 0 : hours,  // Ensure hours is a number 
+        totalAmount: isNaN(totalAmount) ? 0 : totalAmount  // Ensure totalAmount is a number
       };
     }));
     
-    // Group tasks by assignedTo for the payable report
-    const groupedByUser: Record<string, any> = {};
+    // Calculate grand total for the invoice
+    const grandTotal = tasksWithDetails.reduce((sum, task) => sum + (task.totalAmount || 0), 0);
     
-    tasksWithDetails.forEach(task => {
-      if (!task.assignedTo) return; // Skip tasks without assigned user
-      
-      const userId = task.assignedTo.id;
-      const userKey = userId.toString();
-      
-      if (!groupedByUser[userKey]) {
-        groupedByUser[userKey] = {
-          user: task.assignedTo,
-          tasks: [],
-          totalHours: 0,
-          totalAmount: 0
-        };
-      }
-      
-      groupedByUser[userKey].tasks.push(task);
-      
-      // Add hours and amount to totals if applicable
-      if (typeof task.hours === 'number') {
-        groupedByUser[userKey].totalHours += task.hours;
-      }
-      
-      groupedByUser[userKey].totalAmount += task.totalAmount;
+    // Return in the format expected by the PDF invoice page
+    res.status(200).json({
+      tasks: tasksWithDetails,
+      grandTotal
     });
-    
-    // Convert to array for response
-    const payableReport = Object.values(groupedByUser);
-    
-    res.status(200).json(payableReport);
   } catch (error) {
     console.error('Error generating payable report:', error);
     res.status(500).json({ message: 'Internal server error' });
