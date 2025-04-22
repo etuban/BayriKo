@@ -27,6 +27,35 @@ export async function runDatabaseMigration() {
       `);
     } else {
       console.log('Organizations table already exists.');
+      
+      // Check if new columns exist in organizations table
+      const addressColumnExists = await checkColumnExists('organizations', 'address');
+      const phoneColumnExists = await checkColumnExists('organizations', 'phone');
+      const emailColumnExists = await checkColumnExists('organizations', 'email');
+      
+      if (!addressColumnExists) {
+        console.log('Adding address column to organizations table...');
+        await db.execute(sql`
+          ALTER TABLE "organizations" 
+          ADD COLUMN IF NOT EXISTS "address" TEXT;
+        `);
+      }
+      
+      if (!phoneColumnExists) {
+        console.log('Adding phone column to organizations table...');
+        await db.execute(sql`
+          ALTER TABLE "organizations" 
+          ADD COLUMN IF NOT EXISTS "phone" TEXT;
+        `);
+      }
+      
+      if (!emailColumnExists) {
+        console.log('Adding email column to organizations table...');
+        await db.execute(sql`
+          ALTER TABLE "organizations" 
+          ADD COLUMN IF NOT EXISTS "email" TEXT;
+        `);
+      }
     }
 
     // Check if is_super_admin column exists in users table

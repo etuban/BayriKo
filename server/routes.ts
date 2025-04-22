@@ -96,6 +96,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Task payable route
   app.get('/api/tasks/payable/report', authenticateUser, taskController.getTaskPayableReport);
+  
+  // Organization routes
+  app.get('/api/organizations', authenticateUser, organizationController.getAllOrganizations);
+  app.get('/api/organizations/:id', authenticateUser, organizationController.getOrganizationById);
+  app.post('/api/organizations', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.createOrganization);
+  app.put('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.updateOrganization);
+  app.delete('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin']), organizationController.deleteOrganization);
 
   // Run database migrations
   try {
