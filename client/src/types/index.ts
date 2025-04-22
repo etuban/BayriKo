@@ -1,6 +1,22 @@
 // User related types
 export type UserRole = 'super_admin' | 'supervisor' | 'team_lead' | 'staff';
 
+export interface Organization {
+  id: number;
+  name: string;
+  description?: string;
+  logoUrl?: string;
+  website?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  createdById: number;
+  createdAt: string;
+  updatedAt: string;
+  userCount?: number;
+  projectCount?: number;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -11,6 +27,8 @@ export interface User {
   position?: string;
   isApproved: boolean;
   createdAt: string;
+  organizations?: Organization[];
+  currentOrganizationId?: number;
 }
 
 // Project related types
@@ -18,6 +36,8 @@ export interface Project {
   id: number;
   name: string;
   description?: string;
+  organizationId: number;
+  organization?: Organization;
   createdById: number;
   createdAt: string;
   creator?: User;
@@ -114,6 +134,7 @@ export interface TaskFormValues {
 export interface ProjectFormValues {
   name: string;
   description?: string;
+  organizationId?: number;
 }
 
 export interface UserFormValues {

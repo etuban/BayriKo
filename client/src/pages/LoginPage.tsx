@@ -25,11 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Form validation schema
 const loginSchema = z.object({
@@ -66,7 +62,7 @@ export default function LoginPage() {
   const [registering, setRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
   const { toast } = useToast();
-  
+
   // Invitation state
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [invitationInfo, setInvitationInfo] = useState<{
@@ -75,52 +71,53 @@ export default function LoginPage() {
     valid: boolean;
   } | null>(null);
   const [validatingInvitation, setValidatingInvitation] = useState(false);
-  
+
   // Check for invitation token in URL on component mount
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const token = searchParams.get('token');
-    
+    const token = searchParams.get("token");
+
     if (token) {
       setInvitationToken(token);
       validateInvitationToken(token);
       // Switch to register tab
-      setActiveTab('register');
+      setActiveTab("register");
     }
   }, []);
-  
+
   // Function to validate invitation token
   const validateInvitationToken = async (token: string) => {
     try {
       setValidatingInvitation(true);
-      
+
       const response = await fetch(`/api/invitations/validate/${token}`);
       const data = await response.json();
-      
+
       if (response.ok && data.valid) {
         setInvitationInfo({
           organizationName: data.organization.name,
           role: data.role,
-          valid: true
+          valid: true,
         });
-        
+
         // Pre-set the role in the form
-        registerForm.setValue('role', data.role);
+        registerForm.setValue("role", data.role);
       } else {
         // Invalid token
         setInvitationInfo(null);
         toast({
           title: "Invalid Invitation",
-          description: data.message || "The invitation link is invalid or has expired.",
-          variant: "destructive"
+          description:
+            data.message || "The invitation link is invalid or has expired.",
+          variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error validating invitation token:', error);
+      console.error("Error validating invitation token:", error);
       toast({
         title: "Error",
         description: "Failed to validate invitation token. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setValidatingInvitation(false);
@@ -180,7 +177,7 @@ export default function LoginPage() {
         role: data.role,
         position: data.position,
         // If there's a valid invitation token, include it
-        ...(invitationToken ? { invitationToken } : { isApproved: false })
+        ...(invitationToken ? { invitationToken } : { isApproved: false }),
       };
 
       const response = await fetch("/api/auth/register", {
@@ -200,7 +197,7 @@ export default function LoginPage() {
       // If using an invitation token, mark it as used
       if (invitationToken) {
         await fetch(`/api/invitations/use/${invitationToken}`, {
-          method: "POST"
+          method: "POST",
         });
       }
 
@@ -214,14 +211,15 @@ export default function LoginPage() {
       } else {
         toast({
           title: "Registration Successful",
-          description: "Please wait for supervisor approval. You'll be notified when your account is approved.",
+          description:
+            "Please wait for supervisor approval. You'll be notified when your account is approved.",
           duration: 6000,
         });
       }
-      
+
       // Change to login tab
       setActiveTab("login");
-      
+
       // Clear URL params to remove token
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error: any) {
@@ -237,12 +235,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-xl bg-background border-border">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <div className="w-[498px] h-[280px] flex items-center justify-center mb-4 overflow-hidden">
+          <div className="flex items-center justify-center mb-4 overflow-hidden">
             <img
-              src="https://pawn.media/money.gif"
+              src="https://pawn.media/bayriko/kyawil.jpg"
               alt="Money GIF"
-              width="498"
-              height="280"
+              width="100%"
             />
           </div>
           <CardTitle className="text-2xl font-bold text-center">
@@ -341,19 +338,24 @@ export default function LoginPage() {
               {/* Show invitation info if available */}
               {invitationInfo?.valid && (
                 <Alert className="mb-4 bg-primary/10 border-primary/20">
-                  <AlertTitle className="text-primary">Organization Invitation</AlertTitle>
+                  <AlertTitle className="text-primary">
+                    Organization Invitation
+                  </AlertTitle>
                   <AlertDescription>
-                    You've been invited to join <strong>{invitationInfo.organizationName}</strong> as a <strong>{invitationInfo.role}</strong>. Complete registration to accept.
+                    You've been invited to join{" "}
+                    <strong>{invitationInfo.organizationName}</strong> as a{" "}
+                    <strong>{invitationInfo.role}</strong>. Complete
+                    registration to accept.
                   </AlertDescription>
                 </Alert>
               )}
-              
+
               {validatingInvitation && (
                 <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20 mb-4">
                   <p className="text-center">Validating invitation...</p>
                 </div>
               )}
-              
+
               <form
                 onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
                 className="space-y-4"
@@ -458,9 +460,14 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="register-role">Role</Label>
-                  <Select 
-                    defaultValue="staff" 
-                    onValueChange={(value) => registerForm.setValue("role", value as "supervisor" | "team_lead" | "staff")}
+                  <Select
+                    defaultValue="staff"
+                    onValueChange={(value) =>
+                      registerForm.setValue(
+                        "role",
+                        value as "supervisor" | "team_lead" | "staff",
+                      )
+                    }
                   >
                     <SelectTrigger id="register-role">
                       <SelectValue placeholder="Select your role" />
@@ -481,8 +488,12 @@ export default function LoginPage() {
                 {/* Registration complete notice - will be shown after successful registration */}
                 {registering && (
                   <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20">
-                    <p className="mb-1 font-medium text-center">Creating your account...</p>
-                    <p className="text-center">Please wait while we process your registration.</p>
+                    <p className="mb-1 font-medium text-center">
+                      Creating your account...
+                    </p>
+                    <p className="text-center">
+                      Please wait while we process your registration.
+                    </p>
                   </div>
                 )}
 
