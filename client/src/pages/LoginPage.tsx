@@ -233,33 +233,25 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-xl bg-background border-border">
-        <CardHeader className="space-y-1 flex flex-col items-center">
-          <CardTitle className="text-4xl font-bold text-center mt-4">
-            BAYRIKO
-          </CardTitle>
-          <CardDescription className="text-center text-2xl mb-4">
-            Your Bay That Pays.
-          </CardDescription>
-          <p>&nbsp;</p>
-          <div className="flex items-center justify-center m-8 mb-8 overflow-hidden rounded-xl">
-            <img
-              src="https://pawn.media/bayriko/kyawil.jpg"
-              alt="Koya Wel"
-              width="100%"
-            />
-          </div>
-          <div className="text-center text-lg mt-8 mb-8">
-            "Magbabayad ka ba or papapulis kita?"
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs
-            defaultValue="login"
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
+      <div className="w-full max-w-5xl flex flex-col md:flex-row gap-8 items-stretch">
+        {/* Form Section - Left Column */}
+        <div className="w-full md:w-1/2 flex-shrink-0">
+          <Card className="w-full h-full bg-background border-border">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-4xl font-bold text-center mt-4">
+                BAYRIKO
+              </CardTitle>
+              <CardDescription className="text-center text-2xl mb-4">
+                Your Bay That Pays.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs
+                defaultValue="login"
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
@@ -318,7 +310,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90"
+                  className="w-full text-xl bg-primary hover:bg-primary/90"
                   disabled={isLoading}
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
@@ -509,7 +501,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-primary hover:bg-primary/90"
+                  className="w-full text-xl bg-primary hover:bg-primary/90"
                   disabled={registering}
                 >
                   {registering ? "Creating Account..." : "Create Account"}
@@ -520,7 +512,7 @@ export default function LoginPage() {
                   Already have an account?{" "}
                   <button
                     type="button"
-                    className="text-primary hover:underline"
+                    className="text-primary text-xl hover:underline"
                     onClick={() => setActiveTab("login")}
                   >
                     Login
@@ -535,7 +527,33 @@ export default function LoginPage() {
             BayriKo &copy; {new Date().getFullYear()}
           </p>
         </CardFooter>
-      </Card>
+          </Card>
+        </div>
+        
+        {/* Content Section - Right Column */}
+        <div className="w-full md:w-1/2 hidden md:block">
+          <Card className="w-full h-full bg-background border-border shadow-lg flex flex-col justify-center">
+            <CardContent className="p-6 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center mb-8 overflow-hidden rounded-xl">
+                <img
+                  src="https://pawn.media/bayriko/kyawil.jpg"
+                  alt="Koya Wel"
+                  className="w-full max-w-md rounded-lg shadow-md"
+                />
+              </div>
+              <div className="text-center mt-8 mb-4">
+                <CardTitle className="text-3xl mb-2">Welcome to BayriKo</CardTitle>
+                <CardDescription className="text-xl mb-6">
+                  Your Bay That Pays
+                </CardDescription>
+                <p className="text-center text-xl italic font-specialGothic mt-6">
+                  "Magbabayad ka ba or papapulis kita?"
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
