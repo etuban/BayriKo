@@ -8,6 +8,7 @@ import {
   userProjects,
   organizations,
   organizationUsers,
+  invitationLinks,
   type User, 
   type InsertUser,
   type Project,
@@ -25,10 +26,12 @@ import {
   type Organization,
   type InsertOrganization,
   type OrganizationUser,
-  type InsertOrganizationUser
+  type InsertOrganizationUser,
+  type InvitationLink,
+  type InsertInvitationLink
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, inArray, gte, lte, desc, asc, like, isNull, not } from "drizzle-orm";
+import { eq, and, or, inArray, gte, lte, desc, asc, like, isNull, not, sql } from "drizzle-orm";
 import { hash, compare } from "bcrypt";
 
 export interface IStorage {
@@ -40,6 +43,14 @@ export interface IStorage {
   getAllOrganizations(): Promise<Organization[]>;
   getOrganizationsForUser(userId: number): Promise<Organization[]>;
   getSuperAdminEmail(): Promise<string>;
+  
+  // Invitation links methods
+  createInvitationLink(invitation: InsertInvitationLink): Promise<InvitationLink>;
+  getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined>;
+  getInvitationLinksByOrganization(organizationId: number): Promise<InvitationLink[]>;
+  updateInvitationLink(id: number, data: Partial<InvitationLink>): Promise<InvitationLink | undefined>;
+  deleteInvitationLink(id: number): Promise<boolean>;
+  incrementInvitationLinkUsage(id: number): Promise<boolean>;
   
   // Organization-User methods
   addUserToOrganization(userId: number, organizationId: number, role: string): Promise<OrganizationUser>;
@@ -742,6 +753,53 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ read: true })
       .where(eq(notifications.userId, userId));
+    return true;
+  }
+  
+  // Invitation links methods
+  async createInvitationLink(invitation: InsertInvitationLink): Promise<InvitationLink> {
+    const [newInvitation] = await db
+      .insert(invitationLinks)
+      .values(invitation)
+      .returning();
+    return newInvitation;
+  }
+  
+  async getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(invitationLinks)
+      .where(eq(invitationLinks.token, token));
+    return invitation;
+  }
+  
+  async getInvitationLinksByOrganization(organizationId: number): Promise<InvitationLink[]> {
+    return await db
+      .select()
+      .from(invitationLinks)
+      .where(eq(invitationLinks.organizationId, organizationId));
+  }
+  
+  async updateInvitationLink(id: number, data: Partial<InvitationLink>): Promise<InvitationLink | undefined> {
+    const [updatedInvitation] = await db
+      .update(invitationLinks)
+      .set(data)
+      .where(eq(invitationLinks.id, id))
+      .returning();
+    return updatedInvitation;
+  }
+  
+  async deleteInvitationLink(id: number): Promise<boolean> {
+    await db.delete(invitationLinks).where(eq(invitationLinks.id, id));
+    return true;
+  }
+  
+  async incrementInvitationLinkUsage(id: number): Promise<boolean> {
+    await db.execute(sql`
+      UPDATE invitation_links
+      SET used_count = used_count + 1
+      WHERE id = ${id}
+    `);
     return true;
   }
 }
