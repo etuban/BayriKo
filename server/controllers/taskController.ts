@@ -46,6 +46,17 @@ export const getAllTasks = async (req: Request, res: Response) => {
       // If no project found or project has no organization, skip
       if (!project) return null;
       
+      // Super admin can see all tasks
+      if (req.user?.role === 'super_admin') {
+        // If specific organization is requested by super admin, filter by it
+        if (requestedOrgId && project.organizationId !== requestedOrgId) {
+          return null;
+        }
+        // Otherwise show all tasks to super admin
+        return task;
+      }
+      
+      // For non-super admins:
       // If specific organization requested and project doesn't match, skip
       if (requestedOrgId && project.organizationId !== requestedOrgId) return null;
       
@@ -442,11 +453,27 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
     // If an organization ID is specified, filter tasks by organization
     let tasks = allTasks;
     
-    if (orgId) {
-      // Get all projects to filter tasks by organization
-      const allProjects = await storage.getAllProjects();
-      
-      // Filter tasks to only include those from projects in the specified organization
+    // Get all projects for organization filtering
+    const allProjects = await storage.getAllProjects();
+    
+    if (req.user?.role === 'super_admin') {
+      // Super admin can see all tasks
+      if (orgId) {
+        // If specific organization is requested by super admin, filter by it
+        tasks = await Promise.all(allTasks.map(async (task) => {
+          const project = allProjects.find(p => p.id === task.projectId);
+          
+          // If no project found or it doesn't belong to the requested organization, skip
+          if (!project || project.organizationId !== orgId) {
+            return null;
+          }
+          
+          return task;
+        })).then(results => results.filter(task => task !== null));
+      }
+      // Otherwise show all tasks to super admin
+    } else if (orgId) {
+      // Regular users with specific organization requested
       tasks = await Promise.all(allTasks.map(async (task) => {
         const project = allProjects.find(p => p.id === task.projectId);
         
@@ -457,13 +484,10 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
         
         return task;
       })).then(results => results.filter(task => task !== null));
-    } else if (req.user && req.user.role !== 'super_admin') {
-      // If no specific org ID requested but user is authenticated, filter by user's organizations
+    } else if (req.user) {
+      // If no specific org ID requested but user is authenticated (and not super_admin), filter by user's organizations
       const orgUsers = await storage.getUserOrganizations(req.user.id);
       const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
-      
-      // Get all projects
-      const allProjects = await storage.getAllProjects();
       
       // Filter tasks by user's organizations
       tasks = await Promise.all(allTasks.map(async (task) => {

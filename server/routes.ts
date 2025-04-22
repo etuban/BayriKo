@@ -68,6 +68,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User-Project routes
   app.get('/api/users/:id/projects', authenticateUser, userController.getUserProjects);
   app.post('/api/users/:id/projects', authenticateUser, authorizeRole(['super_admin', 'supervisor']), userController.assignProjectsToUser);
+  
+  // User-Organization routes
+  app.get('/api/users/:id/organizations', authenticateUser, userController.getUserOrganizations);
+  app.get('/api/users/organizations', authenticateUser, userController.getCurrentUserOrganizations);
 
   // Task routes
   app.get('/api/tasks', authenticateUser, taskController.getAllTasks);

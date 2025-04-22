@@ -518,3 +518,66 @@ export const seedAdminUser = async () => {
     console.error('Error seeding admin user:', error);
   }
 };
+
+// Get organizations for a specific user
+export const getUserOrganizations = async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    // Only allow access to own organizations or if user is a supervisor or super_admin
+    if (req.user?.id !== userId && req.user?.role !== 'supervisor' && req.user?.role !== 'super_admin') {
+      return res.status(403).json({ message: 'Forbidden: You can only view your own organizations' });
+    }
+    
+    // Get user's organizations
+    const userOrgs = await storage.getUserOrganizations(userId);
+    
+    // Get full organization details for each
+    const organizations = await Promise.all(
+      userOrgs.map(async (orgUser) => {
+        return await storage.getOrganizationById(orgUser.organizationId);
+      })
+    );
+    
+    // Filter out any undefined organizations (shouldn't happen, but to be safe)
+    const validOrganizations = organizations.filter(org => org !== undefined);
+    
+    res.status(200).json(validOrganizations);
+  } catch (error) {
+    console.error('Error getting user organizations:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Get organizations for the currently authenticated user
+export const getCurrentUserOrganizations = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    // If user is super_admin, get all organizations
+    if (req.user.role === 'super_admin') {
+      const allOrgs = await storage.getAllOrganizations();
+      return res.status(200).json(allOrgs);
+    }
+    
+    // Otherwise, get user's organizations
+    const userOrgs = await storage.getUserOrganizations(req.user.id);
+    
+    // Get full organization details for each
+    const organizations = await Promise.all(
+      userOrgs.map(async (orgUser) => {
+        return await storage.getOrganizationById(orgUser.organizationId);
+      })
+    );
+    
+    // Filter out any undefined organizations
+    const validOrganizations = organizations.filter(org => org !== undefined);
+    
+    res.status(200).json(validOrganizations);
+  } catch (error) {
+    console.error('Error getting current user organizations:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
