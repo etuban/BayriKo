@@ -14,6 +14,7 @@ declare global {
       isApproved: boolean;
       isSuperAdmin?: boolean;
       createdAt: Date;
+      currentOrganizationId?: number;
     }
   }
 }
