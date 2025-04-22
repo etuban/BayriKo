@@ -26,11 +26,19 @@ export const getAllTasks = async (req: Request, res: Response) => {
     
     // If user is authenticated, get their organizations
     let userOrganizations: number[] = [];
-    if (req.user && req.user.id) {
-      const userId = parseInt(req.user.id.toString(), 10);
-      if (!isNaN(userId)) {
-        const orgUsers = await storage.getUserOrganizations(userId);
-        userOrganizations = orgUsers.map(ou => ou.organizationId);
+    if (req.user) {
+      try {
+        // Handle cases where id might be a string, number, or object
+        const userId = typeof req.user.id === 'number' 
+          ? req.user.id 
+          : parseInt(String(req.user.id), 10);
+          
+        if (!isNaN(userId)) {
+          const orgUsers = await storage.getUserOrganizations(userId);
+          userOrganizations = orgUsers.map(ou => ou.organizationId);
+        }
+      } catch (error) {
+        console.error('Error parsing user ID in getAllTasks:', error);
       }
     }
     
@@ -122,20 +130,29 @@ export const getTaskById = async (req: Request, res: Response) => {
     }
     
     // Check if the user has access to the task's organization
-    if (req.user && req.user.role !== 'super_admin' && req.user.id) {
-      const userId = parseInt(req.user.id.toString(), 10);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: 'Invalid user ID' });
-      }
+    if (req.user && req.user.role !== 'super_admin') {
+      try {
+        // Handle cases where id might be a string, number, or object
+        const userId = typeof req.user.id === 'number' 
+          ? req.user.id 
+          : parseInt(String(req.user.id), 10);
+          
+        if (isNaN(userId)) {
+          return res.status(500).json({ message: 'Server error processing user identity' });
+        }
+        
+        const orgUsers = await storage.getUserOrganizations(userId);
+        const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
       
-      const orgUsers = await storage.getUserOrganizations(userId);
-      const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
-      
-      // If the task's project is not in the user's organizations, deny access
-      if (!userOrganizationIds.includes(project.organizationId) && 
-          // Exception: staff can view tasks assigned to them even if in different org
-          !(req.user.role === 'staff' && task.assignedToId === req.user.id)) {
-        return res.status(403).json({ message: 'Forbidden: You do not have access to tasks in this organization' });
+        // If the task's project is not in the user's organizations, deny access
+        if (!userOrganizationIds.includes(project.organizationId) && 
+            // Exception: staff can view tasks assigned to them even if in different org
+            !(req.user.role === 'staff' && task.assignedToId === req.user.id)) {
+          return res.status(403).json({ message: 'Forbidden: You do not have access to tasks in this organization' });
+        }
+      } catch (error) {
+        console.error('Error checking user organization access:', error);
+        return res.status(500).json({ message: 'Error verifying organization access' });
       }
     }
     
@@ -178,7 +195,7 @@ export const createTask = async (req: Request, res: Response) => {
     // Create task history for creation
     await storage.createTaskHistory({
       taskId: newTask.id,
-      userId: req.user!.id,
+      userId: req.user.id,
       action: 'created',
       details: { task: newTask }
     });
@@ -246,7 +263,7 @@ export const updateTask = async (req: Request, res: Response) => {
     if (Object.keys(changes).length > 0) {
       await storage.createTaskHistory({
         taskId,
-        userId: req.user!.id,
+        userId: req.user.id,
         action: 'updated',
         details: { changes }
       });
@@ -375,7 +392,7 @@ export const addTaskComment = async (req: Request, res: Response) => {
     // Create task history entry for comment
     await storage.createTaskHistory({
       taskId,
-      userId: req.user!.id,
+      userId: req.user.id,
       action: 'commented',
       details: { commentId: newComment.id }
     });
@@ -452,7 +469,22 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
     const orgId = organizationId ? parseInt(organizationId as string) : undefined;
     
     // Pass user role and id for staff permissions
-    const userId = req.user?.id;
+    let userId = null;
+    if (req.user && req.user.id) {
+      try {
+        userId = typeof req.user.id === 'number' 
+          ? req.user.id 
+          : parseInt(String(req.user.id), 10);
+        
+        if (isNaN(userId)) {
+          console.error('Invalid user ID format in getTaskPayableReport');
+          userId = null;
+        }
+      } catch (error) {
+        console.error('Error parsing user ID in getTaskPayableReport:', error);
+      }
+    }
+    
     const userRole = req.user?.role;
     
     // Get all tasks based on filters
@@ -477,7 +509,7 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
           }
           
           return task;
-        })).then(results => results.filter(task => task !== null));
+        })).then(results => results.filter(task => task !== null) as typeof allTasks);
       }
       // Otherwise show all tasks to super admin
     } else if (orgId) {
@@ -491,15 +523,9 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
         }
         
         return task;
-      })).then(results => results.filter(task => task !== null));
-    } else if (req.user && req.user.id) {
+      })).then(results => results.filter(task => task !== null) as typeof allTasks);
+    } else if (userId) {
       // If no specific org ID requested but user is authenticated (and not super_admin), filter by user's organizations
-      const userId = parseInt(req.user.id.toString(), 10);
-      if (isNaN(userId)) {
-        console.error('Invalid user ID in getTaskPayableReport');
-        return res.status(400).json({ message: 'Invalid user ID' });
-      }
-      
       const orgUsers = await storage.getUserOrganizations(userId);
       const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
       
@@ -513,7 +539,7 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
         }
         
         return task;
-      })).then(results => results.filter(task => task !== null));
+      })).then(results => results.filter(task => task !== null) as typeof allTasks);
     }
     
     // Calculate totals and hours
@@ -583,15 +609,38 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
       };
     }));
     
-    // Calculate grand total
-    const grandTotal = tasksWithDetails.reduce((total, task) => {
-      return total + task.totalAmount;
-    }, 0);
+    // Group tasks by assignedTo for the payable report
+    const groupedByUser: Record<string, any> = {};
     
-    res.status(200).json({
-      tasks: tasksWithDetails,
-      grandTotal
+    tasksWithDetails.forEach(task => {
+      if (!task.assignedTo) return; // Skip tasks without assigned user
+      
+      const userId = task.assignedTo.id;
+      const userKey = userId.toString();
+      
+      if (!groupedByUser[userKey]) {
+        groupedByUser[userKey] = {
+          user: task.assignedTo,
+          tasks: [],
+          totalHours: 0,
+          totalAmount: 0
+        };
+      }
+      
+      groupedByUser[userKey].tasks.push(task);
+      
+      // Add hours and amount to totals if applicable
+      if (typeof task.hours === 'number') {
+        groupedByUser[userKey].totalHours += task.hours;
+      }
+      
+      groupedByUser[userKey].totalAmount += task.totalAmount;
     });
+    
+    // Convert to array for response
+    const payableReport = Object.values(groupedByUser);
+    
+    res.status(200).json(payableReport);
   } catch (error) {
     console.error('Error generating payable report:', error);
     res.status(500).json({ message: 'Internal server error' });

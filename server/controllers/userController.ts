@@ -610,7 +610,7 @@ export const getUserOrganizations = async (req: Request, res: Response) => {
 // Get organizations for the currently authenticated user
 export const getCurrentUserOrganizations = async (req: Request, res: Response) => {
   try {
-    if (!req.user || !req.user.id) {
+    if (!req.user) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     
@@ -621,10 +621,19 @@ export const getCurrentUserOrganizations = async (req: Request, res: Response) =
     }
     
     // Otherwise, get user's organizations
-    const userId = parseInt(req.user.id.toString(), 10);
-    if (isNaN(userId)) {
-      console.error('Invalid user ID in getCurrentUserOrganizations');
-      return res.status(400).json({ message: 'Invalid user ID' });
+    let userId: number;
+    try {
+      // Handle cases where id might be a string, number, or object
+      userId = typeof req.user.id === 'number' 
+        ? req.user.id 
+        : parseInt(String(req.user.id), 10);
+        
+      if (isNaN(userId)) {
+        throw new Error('Invalid user ID format');
+      }
+    } catch (error) {
+      console.error('Error parsing user ID:', error);
+      return res.status(500).json({ message: 'Server error processing user identity' });
     }
     
     const userOrgs = await storage.getUserOrganizations(userId);
