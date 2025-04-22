@@ -1,6 +1,7 @@
 import { db } from './db';
 import { organizations, organizationUsers, users, projects } from '@shared/schema';
 import { sql } from 'drizzle-orm';
+import { addTaskTimeColumns } from './migrations/addTaskTimeColumns';
 
 /**
  * This function creates the necessary tables for organization-based structure
@@ -195,6 +196,9 @@ export async function runDatabaseMigration() {
       }
     }
 
+    // Run task time columns migration
+    await addTaskTimeColumns();
+    
     console.log('Database migration completed successfully!');
   } catch (error) {
     console.error('Database migration failed:', error);
