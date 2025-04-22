@@ -9,6 +9,7 @@ import TasksPage from "@/pages/TasksPage";
 import DashboardPage from "@/pages/DashboardPage";
 import PDFInvoicePage from "@/pages/TaskPayablePage"; // Renamed for better clarity
 import ProjectsPage from "@/pages/ProjectsPage";
+import ProjectComparisonPage from "@/pages/ProjectComparisonPage";
 import UsersPage from "@/pages/UsersPage";
 import SettingsPage from "@/pages/SettingsPage";
 import OrganizationsPage from "@/pages/OrganizationsPage";
@@ -63,6 +64,9 @@ function Router() {
       </Route>
       <Route path="/projects">
         {() => <ProtectedRoute component={ProjectsPage} />}
+      </Route>
+      <Route path="/project-comparison">
+        {() => <ProtectedRoute component={ProjectComparisonPage} />}
       </Route>
       <Route path="/users">
         {() => <ProtectedRoute component={UsersPage} />}

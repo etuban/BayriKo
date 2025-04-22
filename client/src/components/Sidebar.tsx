@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   LogOut,
   X,
-  Building
+  Building,
+  BarChart2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 

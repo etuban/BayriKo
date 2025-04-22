@@ -52,7 +52,7 @@ export default function ProjectComparisonPage() {
   });
 
   // Transform projects into options for MultiSelect
-  const projectOptions: Option[] = projects 
+  const projectOptions: Option[] = projects && Array.isArray(projects)
     ? projects.map((project: Project) => ({ 
         value: project.id.toString(), 
         label: project.name 
@@ -108,8 +108,9 @@ export default function ProjectComparisonPage() {
       });
       
       // Calculate earnings per task
-      const earningsPerTask = projectTasks.map(task => {
+      const earningsPerTask = projectTasks.map((task: Task) => {
         let earnings = 0;
+        // Use the pricingType field from the schema
         if (task.pricingType === 'hourly' && task.hourlyRate) {
           earnings = (task.timeSpent || 0) * task.hourlyRate;
         } else if (task.pricingType === 'fixed' && task.fixedPrice) {
@@ -123,7 +124,7 @@ export default function ProjectComparisonPage() {
       });
       
       // Calculate hours per task
-      const hoursPerTask = projectTasks.map(task => ({
+      const hoursPerTask = projectTasks.map((task: Task) => ({
         taskName: task.title,
         hours: task.timeSpent || 0
       }));
@@ -147,7 +148,7 @@ export default function ProjectComparisonPage() {
 
   // Update selected projects when selectedProjectIds change
   useEffect(() => {
-    if (!projects) return;
+    if (!projects || !Array.isArray(projects)) return;
     
     const selected = selectedProjectIds.map((id, index) => {
       const project = projects.find((p: Project) => p.id.toString() === id);
