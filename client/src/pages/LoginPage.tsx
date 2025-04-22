@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 
 // Form validation schema
 const loginSchema = z.object({
@@ -55,12 +60,72 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [authError, setAuthError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
   const { toast } = useToast();
+  
+  // Invitation state
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [invitationInfo, setInvitationInfo] = useState<{
+    organizationName: string;
+    role: string;
+    valid: boolean;
+  } | null>(null);
+  const [validatingInvitation, setValidatingInvitation] = useState(false);
+  
+  // Check for invitation token in URL on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const token = searchParams.get('token');
+    
+    if (token) {
+      setInvitationToken(token);
+      validateInvitationToken(token);
+      // Switch to register tab
+      setActiveTab('register');
+    }
+  }, []);
+  
+  // Function to validate invitation token
+  const validateInvitationToken = async (token: string) => {
+    try {
+      setValidatingInvitation(true);
+      
+      const response = await fetch(`/api/invitations/validate/${token}`);
+      const data = await response.json();
+      
+      if (response.ok && data.valid) {
+        setInvitationInfo({
+          organizationName: data.organization.name,
+          role: data.role,
+          valid: true
+        });
+        
+        // Pre-set the role in the form
+        registerForm.setValue('role', data.role);
+      } else {
+        // Invalid token
+        setInvitationInfo(null);
+        toast({
+          title: "Invalid Invitation",
+          description: data.message || "The invitation link is invalid or has expired.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error validating invitation token:', error);
+      toast({
+        title: "Error",
+        description: "Failed to validate invitation token. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setValidatingInvitation(false);
+    }
+  };
 
   // Initialize login form
   const loginForm = useForm<LoginFormValues>({
@@ -106,20 +171,24 @@ export default function LoginPage() {
       setRegisterError(null);
       setRegistering(true);
 
+      // Prepare registration data
+      const registrationData = {
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName || data.username,
+        role: data.role,
+        position: data.position,
+        // If there's a valid invitation token, include it
+        ...(invitationToken ? { invitationToken } : { isApproved: false })
+      };
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username: data.username,
-          email: data.email,
-          password: data.password,
-          fullName: data.fullName || data.username,
-          role: data.role,
-          position: data.position,
-          isApproved: false // All new accounts require supervisor approval
-        }),
+        body: JSON.stringify(registrationData),
       });
 
       const result = await response.json();
@@ -128,15 +197,33 @@ export default function LoginPage() {
         throw new Error(result.message || "Registration failed");
       }
 
-      // Show success message instead of auto-login
-      toast({
-        title: "Registration Successful",
-        description: "Please wait for supervisor approval. You'll be notified when your account is approved.",
-        duration: 6000,
-      });
+      // If using an invitation token, mark it as used
+      if (invitationToken) {
+        await fetch(`/api/invitations/use/${invitationToken}`, {
+          method: "POST"
+        });
+      }
+
+      // Show appropriate success message based on invitation status
+      if (invitationInfo?.valid) {
+        toast({
+          title: "Registration Successful",
+          description: `You have been registered as a ${invitationInfo.role} in ${invitationInfo.organizationName}. You can now login.`,
+          duration: 6000,
+        });
+      } else {
+        toast({
+          title: "Registration Successful",
+          description: "Please wait for supervisor approval. You'll be notified when your account is approved.",
+          duration: 6000,
+        });
+      }
       
       // Change to login tab
       setActiveTab("login");
+      
+      // Clear URL params to remove token
+      window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error: any) {
       setRegisterError(
         error.message || "Failed to register. Please try again.",
@@ -251,6 +338,22 @@ export default function LoginPage() {
             </TabsContent>
 
             <TabsContent value="register" className="space-y-4">
+              {/* Show invitation info if available */}
+              {invitationInfo?.valid && (
+                <Alert className="mb-4 bg-primary/10 border-primary/20">
+                  <AlertTitle className="text-primary">Organization Invitation</AlertTitle>
+                  <AlertDescription>
+                    You've been invited to join <strong>{invitationInfo.organizationName}</strong> as a <strong>{invitationInfo.role}</strong>. Complete registration to accept.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {validatingInvitation && (
+                <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20 mb-4">
+                  <p className="text-center">Validating invitation...</p>
+                </div>
+              )}
+              
               <form
                 onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
                 className="space-y-4"

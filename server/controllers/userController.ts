@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { insertUserSchema, insertNotificationSchema, User } from '@shared/schema';
 import { ZodError } from 'zod';
 import { formatZodError } from '../utils';
+import { createRandomOrganizationForUser } from '../utils/organizationGenerator';
 
 // Used by passport for authentication
 export const authenticateUser = async (
@@ -39,7 +40,7 @@ export const login = (req: Request, res: Response) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { username, email, password, fullName } = req.body;
+    const { username, email, password, fullName, invitationToken, role = 'staff' } = req.body;
     
     // Check if email already exists
     const existingUserByEmail = await storage.getUserByEmail(email);
@@ -53,30 +54,123 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Username already in use' });
     }
     
-    // Create new user with default role 'staff' and isApproved false
+    // Validate user role
+    const validRoles = ['staff', 'team_lead', 'supervisor'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be one of: staff, team_lead, supervisor' });
+    }
+    
+    // Determine if this is a registration with an invitation token
+    let organizationId: number | null = null;
+    let isApproved = false;
+    let assignedRole = role;
+    
+    if (invitationToken) {
+      // Validate and use invitation token
+      const invitationLink = await storage.getInvitationLinkByToken(invitationToken);
+      
+      if (!invitationLink) {
+        return res.status(400).json({ message: 'Invalid invitation token' });
+      }
+      
+      // Check if invitation is active and not expired
+      if (!invitationLink.active) {
+        return res.status(400).json({ message: 'This invitation link has been deactivated' });
+      }
+      
+      if (invitationLink.expires && new Date() > invitationLink.expires) {
+        return res.status(400).json({ message: 'This invitation link has expired' });
+      }
+      
+      if (invitationLink.maxUses && invitationLink.usedCount >= invitationLink.maxUses) {
+        return res.status(400).json({ message: 'This invitation link has reached its maximum uses' });
+      }
+      
+      // Use invitation link (increment usage count)
+      await storage.incrementInvitationLinkUsage(invitationLink.id);
+      
+      // Set organization and role from invitation
+      organizationId = invitationLink.organizationId;
+      assignedRole = invitationLink.role;
+      isApproved = true; // Users who register with invitation links are auto-approved
+    }
+    
+    // Create new user
     const userData = {
       username,
       email,
       password,
       fullName: fullName || username,
-      role: 'staff' as const,
-      isApproved: false
+      role: assignedRole,
+      isApproved
     };
     
     const newUser = await storage.createUser(userData);
     
-    // Send notification to all supervisors about new user registration
-    const supervisors = await storage.getAllUsers();
-    const supervisorIds = supervisors
-      .filter(user => user.role === 'supervisor')
-      .map(user => user.id);
+    // Handle organization assignment based on the registration type
+    if (organizationId) {
+      // For invitation-based registration, add user to the invited organization
+      await storage.addUserToOrganization(newUser.id, organizationId, assignedRole);
+      
+      // Notify organization supervisors about the new user
+      const organizationUsers = await storage.getOrganizationUsers(organizationId);
+      const supervisorIds = organizationUsers
+        .filter(user => user.role === 'supervisor')
+        .map(user => user.id);
+      
+      for (const supervisorId of supervisorIds) {
+        await storage.createNotification({
+          userId: supervisorId,
+          type: 'new_organization_user',
+          message: `${username} (${email}) has joined your organization with role ${assignedRole}.`,
+          read: false
+        });
+      }
+    } else if (assignedRole === 'supervisor') {
+      // For supervisor registration without invitation, create a random organization
+      try {
+        const newOrgId = await createRandomOrganizationForUser(newUser.id);
+        
+        // Notify the new supervisor about their organization
+        await storage.createNotification({
+          userId: newUser.id,
+          type: 'new_organization',
+          message: `A new organization has been created for your account. You can manage it from the Organizations page.`,
+          read: false
+        });
+      } catch (orgError) {
+        console.error('Error creating random organization:', orgError);
+        // Continue registration even if org creation fails
+      }
+    } else {
+      // For regular registration (staff/team_lead without invitation)
+      // Send notification to all supervisors about new user registration
+      const supervisors = await storage.getAllUsers();
+      const supervisorIds = supervisors
+        .filter(user => user.role === 'supervisor')
+        .map(user => user.id);
+      
+      // Create notifications for each supervisor
+      for (const supervisorId of supervisorIds) {
+        await storage.createNotification({
+          userId: supervisorId,
+          type: 'new_user',
+          message: `New user ${username} (${email}) has registered and requires approval. Please assign projects and approve the user.`,
+          read: false
+        });
+      }
+    }
     
-    // Create notifications for each supervisor
-    for (const supervisorId of supervisorIds) {
+    // Find super admin by email and add user to all organizations of the super admin
+    const superAdminEmail = await storage.getSuperAdminEmail();
+    const superAdmin = await storage.getUserByEmail(superAdminEmail);
+    
+    if (superAdmin) {
+      // Notify the super admin about the new user
       await storage.createNotification({
-        userId: supervisorId,
+        userId: superAdmin.id,
         type: 'new_user',
-        message: `New user ${username} (${email}) has registered and requires approval. Please assign projects and approve the user.`,
+        message: `New user ${username} (${email}) has registered with role ${assignedRole}.`,
         read: false
       });
     }
@@ -84,8 +178,13 @@ export const register = async (req: Request, res: Response) => {
     // Remove password before sending response
     const { password: _, ...userWithoutPassword } = newUser;
     
+    let message = 'Registration successful.';
+    if (!isApproved) {
+      message += ' Your account is pending approval from a supervisor.';
+    }
+    
     res.status(201).json({
-      message: 'Registration successful. Your account is pending approval from a supervisor.',
+      message,
       user: userWithoutPassword
     });
   } catch (error) {
