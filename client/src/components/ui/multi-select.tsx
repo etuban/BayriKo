@@ -1,20 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Check, X, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
+import React, { useRef, useState, useEffect } from 'react';
+import { X, Check } from 'lucide-react';
 
 export type Option = {
   value: string;
@@ -35,164 +20,128 @@ export function MultiSelect({
   options,
   value,
   onChange,
-  placeholder = 'Select options...',
-  className,
+  placeholder = "Select options...",
+  className = "",
   maxItems,
-  disabled = false,
+  disabled = false
 }: MultiSelectProps) {
-  const [open, setOpen] = useState(false);
-  const [selectedValues, setSelectedValues] = useState<string[]>(value || []);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const [inputValue, setInputValue] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Sync value changes with internal state
+  const filteredOptions = options.filter(option => 
+    option.label.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    !value.includes(option.value)
+  );
+
+  const selectedOptions = value
+    .map(v => options.find(option => option.value === v))
+    .filter(Boolean) as Option[];
+
+  const hasReachedMaxItems = maxItems ? value.length >= maxItems : false;
+
   useEffect(() => {
-    setSelectedValues(value || []);
-  }, [value]);
-
-  const handleSelect = (optionValue: string) => {
-    const isSelected = selectedValues.includes(optionValue);
-    let updatedValues: string[];
-
-    if (isSelected) {
-      // Remove option if already selected
-      updatedValues = selectedValues.filter((v) => v !== optionValue);
-    } else {
-      // Add option if not at max limit
-      if (maxItems && selectedValues.length >= maxItems) {
-        return; // Don't add if at max limit
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
       }
-      updatedValues = [...selectedValues, optionValue];
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
 
-    setSelectedValues(updatedValues);
-    onChange(updatedValues);
-    setInputValue(''); // Clear input after selection
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleOption = (option: Option) => {
+    if (value.includes(option.value)) {
+      onChange(value.filter(v => v !== option.value));
+    } else {
+      if (maxItems && value.length >= maxItems) return;
+      onChange([...value, option.value]);
+    }
   };
 
-  const handleRemove = (optionValue: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    const updatedValues = selectedValues.filter((v) => v !== optionValue);
-    setSelectedValues(updatedValues);
-    onChange(updatedValues);
+  const removeOption = (option: Option, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(value.filter(v => v !== option.value));
   };
 
-  // Get the label for a value
-  const getLabel = (optionValue: string) => {
-    const option = options.find((o) => o.value === optionValue);
-    return option ? option.label : optionValue;
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !searchTerm && selectedOptions.length > 0) {
+      onChange(value.slice(0, -1));
+    }
   };
-
-  // Filter options based on input value
-  const filteredOptions = options.filter((option) => {
-    // Show all options when no input, otherwise filter by label
-    return !inputValue ||
-      option.label.toLowerCase().includes(inputValue.toLowerCase());
-  });
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          ref={triggerRef}
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            'w-full justify-between min-h-10',
-            selectedValues.length > 0 ? 'h-auto' : '',
-            className
-          )}
-          onClick={() => setOpen(!open)}
-          disabled={disabled}
-        >
-          <div className="flex flex-wrap gap-1 mr-2">
-            {selectedValues.length > 0 ? (
-              selectedValues.map((value) => (
-                <Badge
-                  key={value}
-                  variant="secondary"
-                  className="mr-1 mb-1"
-                >
-                  {getLabel(value)}
-                  <button
-                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleRemove(value);
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onClick={(e) => handleRemove(value, e)}
-                  >
-                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                    <span className="sr-only">Remove {getLabel(value)}</span>
-                  </button>
-                </Badge>
-              ))
-            ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
+    <div 
+      ref={containerRef}
+      className={`relative w-full ${className}`}
+      onClick={() => !disabled && setIsOpen(true)}
+    >
+      <div 
+        className={`border rounded-md p-1.5 min-h-10 flex flex-wrap gap-1 ${
+          isOpen ? 'ring-2 ring-primary/50 border-primary' : 'border-input'
+        } ${disabled ? 'bg-muted cursor-not-allowed' : 'cursor-pointer'}`}
+      >
+        {selectedOptions.length === 0 && !searchTerm && (
+          <div className="text-muted-foreground py-0.5 px-1.5">
+            {placeholder}
+          </div>
+        )}
+        
+        {selectedOptions.map(option => (
+          <div 
+            key={option.value}
+            className="bg-primary/10 border border-primary/20 text-primary rounded-md px-2 py-0.5 flex items-center gap-1"
+          >
+            <span>{option.label}</span>
+            {!disabled && (
+              <X 
+                className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-pointer" 
+                onClick={(e) => removeOption(option, e)}
+              />
             )}
           </div>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-full min-w-[200px] p-0"
-        style={{ width: triggerRef.current?.offsetWidth }}
-      >
-        <Command className="max-h-[300px]">
-          <CommandInput 
-            placeholder="Search options..." 
-            className="h-9"
-            value={inputValue}
-            onValueChange={setInputValue}
+        ))}
+        
+        {isOpen && !hasReachedMaxItems && (
+          <input
+            type="text"
+            className="flex-1 outline-none bg-transparent min-w-[80px] py-0.5 px-1.5"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleKeyDown}
+            autoFocus
           />
-          {filteredOptions.length === 0 && (
-            <CommandEmpty>No options found.</CommandEmpty>
+        )}
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-auto">
+          {filteredOptions.length === 0 ? (
+            <div className="p-2 text-center text-muted-foreground">
+              No options available
+            </div>
+          ) : (
+            filteredOptions.map(option => (
+              <div
+                key={option.value}
+                className="px-3 py-2 hover:bg-accent cursor-pointer flex items-center justify-between"
+                onClick={() => toggleOption(option)}
+              >
+                {option.label}
+                <div className="h-4 w-4 rounded-sm border flex items-center justify-center">
+                  {value.includes(option.value) && <Check className="h-3 w-3" />}
+                </div>
+              </div>
+            ))
           )}
-          <CommandGroup className="max-h-[240px] overflow-auto">
-            {filteredOptions.map((option) => {
-              const isSelected = selectedValues.includes(option.value);
-              // Skip rendering if already selected and no matching input
-              if (isSelected && inputValue === '') {
-                return null;
-              }
-              // Disable option if at max limit and not already selected
-              const isDisabled = maxItems ? selectedValues.length >= maxItems && !isSelected : false;
-              
-              return (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={handleSelect}
-                  disabled={isDisabled}
-                  className={cn(
-                    'flex items-center gap-2',
-                    isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                      isSelected
-                        ? 'bg-primary text-primary-foreground'
-                        : 'opacity-50'
-                    )}
-                  >
-                    {isSelected && <Check className="h-3 w-3" />}
-                  </div>
-                  <span>{option.label}</span>
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </div>
+      )}
+    </div>
   );
 }

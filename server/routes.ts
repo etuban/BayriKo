@@ -109,6 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Task routes
   app.get('/api/tasks', authenticateUser, taskController.getAllTasks);
+  app.get('/api/tasks/comparison', authenticateUser, taskController.getTasksForComparison);
   app.get('/api/tasks/:id', authenticateUser, taskController.getTaskById);
   app.post('/api/tasks', authenticateUser, taskController.createTask);
   app.put('/api/tasks/:id', authenticateUser, taskController.updateTask);

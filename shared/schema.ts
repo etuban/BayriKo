@@ -69,6 +69,8 @@ export const tasks = pgTable("tasks", {
   currency: text("currency", { enum: ["PHP", "USD"] }).notNull().default("PHP"),
   hourlyRate: integer("hourly_rate"),
   fixedPrice: integer("fixed_price"),
+  timeSpent: integer("time_spent").default(0),
+  completedAt: timestamp("completed_at"),
   status: text("status", { enum: ["todo", "in_progress", "completed"] }).notNull().default("todo"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -201,6 +203,8 @@ export const insertTaskSchema = baseTaskSchema.extend({
   startDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
   endDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
   dueDate: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
+  completedAt: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
+  timeSpent: z.number().optional().default(0),
 });
 
 export const insertTaskCommentSchema = createInsertSchema(taskComments).omit({ id: true, createdAt: true });

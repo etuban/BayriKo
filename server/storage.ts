@@ -615,6 +615,10 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(tasks.projectId, filters.projectId));
       }
       
+      if (filters.projectIds && filters.projectIds.length > 0) {
+        conditions.push(inArray(tasks.projectId, filters.projectIds));
+      }
+      
       if (filters.assignedToId) {
         conditions.push(eq(tasks.assignedToId, filters.assignedToId));
       }
