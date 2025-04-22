@@ -7,13 +7,26 @@ import { formatZodError } from '../utils';
 export const getAllProjects = async (req: Request, res: Response) => {
   try {
     let projects;
+    const organizationId = req.query.organizationId 
+      ? parseInt(req.query.organizationId as string) 
+      : req.user?.currentOrganizationId;
     
     if (req.user) {
-      // Get projects based on user role (staff can only see assigned projects)
-      projects = await storage.getProjectsForUser(req.user.id);
+      if (req.user.role === 'super_admin' && !organizationId) {
+        // Super admins can see all projects, but they can also filter by org
+        projects = organizationId 
+          ? await storage.getProjectsForOrganization(organizationId) 
+          : await storage.getAllProjects();
+      } else if (organizationId) {
+        // Filter by organization if specified
+        projects = await storage.getProjectsForOrganization(organizationId);
+      } else {
+        // Regular users can only see projects they're part of
+        projects = await storage.getProjectsForUser(req.user.id);
+      }
     } else {
-      // Fallback to all projects (should not happen as endpoint is protected)
-      projects = await storage.getAllProjects();
+      // Fallback (should not happen as endpoint is protected)
+      projects = [];
     }
     
     // Get creator information and task count for each project
@@ -43,6 +56,28 @@ export const getProjectById = async (req: Request, res: Response) => {
     
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
+    }
+    
+    // Check if user has access to this project based on organization
+    if (req.user && req.user.role !== 'super_admin') {
+      // Get user's organizations
+      const userOrgs = await storage.getUserOrganizations(req.user.id);
+      const userOrgIds = userOrgs.map(org => org.organizationId);
+      
+      // If user doesn't belong to the project's organization, deny access
+      if (!userOrgIds.includes(project.organizationId)) {
+        return res.status(403).json({ message: 'You do not have access to this project' });
+      }
+      
+      // If user is staff, also check if they're assigned to this project
+      if (req.user.role === 'staff') {
+        const userProjects = await storage.getProjectsForUser(req.user.id);
+        const projectIds = userProjects.map(p => p.id);
+        
+        if (!projectIds.includes(projectId)) {
+          return res.status(403).json({ message: 'You do not have access to this project' });
+        }
+      }
     }
     
     // Get creator information
