@@ -351,7 +351,14 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    const userId = parseInt(req.params.id);
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
     
     // Check if user exists
     const user = await storage.getUserById(userId);
@@ -454,7 +461,15 @@ export const getUserProjects = async (req: Request, res: Response) => {
 // Assign projects to a user (supervisor only)
 export const assignProjectsToUser = async (req: Request, res: Response) => {
   try {
-    const userId = parseInt(req.params.id);
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
     const { projectIds } = req.body;
     
     // Only supervisors and super_admins can assign projects
