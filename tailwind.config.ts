@@ -12,9 +12,13 @@ export default {
       'xl': '1280px',
       '2xl': '1536px',
     },
+    fontFamily: {
+      inter: ['Inter', 'sans-serif'],
+      sans: ['Inter', 'sans-serif'],
+    },
     extend: {
       fontFamily: {
-        specialGothic: ['"Special Gothic Expanded One"', 'sans-serif'],
+        specialGothic: ['Special Elite', 'monospace'],
       },
       borderRadius: {
         lg: "var(--radius)",

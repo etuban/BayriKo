@@ -1,9 +1,9 @@
+/* Font Imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Special+Elite&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Special Gothic Expanded One Font Import */
-@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
 
 @layer base {
   * {
@@ -16,6 +16,7 @@
   
   /* Custom fallback for Special Gothic Expanded One */
   .font-specialGothic {
-    font-family: 'Special Elite', 'Special Gothic Expanded One', monospace;
+    font-family: 'Special Elite', monospace;
+    letter-spacing: 0.5px;
   }
 }
