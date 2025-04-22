@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PayableTaskTable } from "@/components/PayableTaskTable";
 import { Input } from "@/components/ui/input";
@@ -11,19 +11,23 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FolderKanban, Printer, Download } from "lucide-react";
+import { FolderKanban, Printer, Download, Building } from "lucide-react";
 import { GiReceiveMoney } from "react-icons/gi";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Task, InvoiceDetails } from "@/types";
+import { Task, InvoiceDetails, Organization, Project } from "@/types";
 import { useReactToPrint } from "react-to-print";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useAuth } from "@/context/AuthContext";
 
 export default function TaskPayablePage() {
+  const { user } = useAuth();
+  
   // State for filters
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [projectId, setProjectId] = useState<string>("");
+  const [selectedOrganization, setSelectedOrganization] = useState<number | null>(null);
 
   // State for invoice details
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails>({
@@ -36,26 +40,56 @@ export default function TaskPayablePage() {
   // Component ref for printing
   const componentRef = React.useRef<HTMLDivElement>(null);
 
+  // Load user's organizations
+  const { data: organizations = [] } = useQuery<Organization[]>({
+    queryKey: ['/api/users/organizations'],
+    enabled: !!user,
+  });
+  
+  // Set default organization based on user's current organization if available
+  useEffect(() => {
+    if (organizations.length > 0 && !selectedOrganization) {
+      // Use the user's current organization if available
+      if (user?.currentOrganizationId) {
+        setSelectedOrganization(user.currentOrganizationId);
+      } else {
+        // Otherwise use the first organization
+        setSelectedOrganization(organizations[0]?.id || null);
+      }
+    }
+  }, [organizations, user]);
+
+  // Fetch projects for filter dropdown, filtered by organization
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['/api/projects', selectedOrganization],
+    queryFn: async () => {
+      let url = '/api/projects';
+      if (selectedOrganization) {
+        url += `?organizationId=${selectedOrganization}`;
+      }
+      const res = await fetch(url);
+      return res.json();
+    },
+    enabled: !!selectedOrganization,
+  });
+
   // Fetch payable tasks with filters
   const { data, isLoading, error } = useQuery<{
     tasks: Task[];
     grandTotal: number;
   }>({
-    queryKey: ["/api/tasks/payable/report", startDate, endDate, projectId],
+    queryKey: ["/api/tasks/payable/report", startDate, endDate, projectId, selectedOrganization],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
       if (projectId) params.append("projectId", projectId);
+      if (selectedOrganization) params.append("organizationId", selectedOrganization.toString());
 
       const url = `/api/tasks/payable/report?${params.toString()}`;
       return fetch(url).then((res) => res.json());
     },
-  });
-
-  // Fetch projects for filter dropdown
-  const { data: projects = [] } = useQuery<any[]>({
-    queryKey: ["/api/projects"],
+    enabled: !!selectedOrganization,
   });
 
   // Function to handle manual printing
@@ -528,6 +562,30 @@ export default function TaskPayablePage() {
 
         {/* Payable Filters */}
         <div className="flex flex-wrap gap-3 items-center">
+          {/* Organization Selector (visible to supervisors, team leads, and super admins) */}
+          {organizations.length > 1 && (user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead') && (
+            <div className="w-[200px]">
+              <Select 
+                value={selectedOrganization?.toString() || ''}
+                onValueChange={(value) => setSelectedOrganization(parseInt(value, 10))}
+              >
+                <SelectTrigger className="h-10 bg-dark-bg border-dark-border">
+                  <div className="flex items-center">
+                    <Building className="w-4 h-4 mr-2 text-primary" />
+                    <SelectValue placeholder="Select organization" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map(org => (
+                    <SelectItem key={org.id} value={org.id.toString()}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
           {/* Date Range */}
           <div className="flex items-center space-x-2">
             <Input
@@ -552,8 +610,8 @@ export default function TaskPayablePage() {
                 <SelectValue placeholder="All Projects" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {projects.map((project: any) => (
+                <SelectItem value="">All Projects</SelectItem>
+                {projects && projects.map((project: Project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
                   </SelectItem>

@@ -424,18 +424,59 @@ export const getTaskHistory = async (req: Request, res: Response) => {
 
 export const getTaskPayableReport = async (req: Request, res: Response) => {
   try {
-    const { startDate, endDate, projectId } = req.query;
+    const { startDate, endDate, projectId, organizationId } = req.query;
     
     // Parse date strings to Date objects
     const start = startDate ? new Date(startDate as string) : undefined;
     const end = endDate ? new Date(endDate as string) : undefined;
     const project = projectId ? parseInt(projectId as string) : undefined;
+    const orgId = organizationId ? parseInt(organizationId as string) : undefined;
     
     // Pass user role and id for staff permissions
     const userId = req.user?.id;
     const userRole = req.user?.role;
     
-    const tasks = await storage.getTasksForPayable(start, end, project, userId, userRole);
+    // Get all tasks based on filters
+    const allTasks = await storage.getTasksForPayable(start, end, project, userId, userRole);
+    
+    // If an organization ID is specified, filter tasks by organization
+    let tasks = allTasks;
+    
+    if (orgId) {
+      // Get all projects to filter tasks by organization
+      const allProjects = await storage.getAllProjects();
+      
+      // Filter tasks to only include those from projects in the specified organization
+      tasks = await Promise.all(allTasks.map(async (task) => {
+        const project = allProjects.find(p => p.id === task.projectId);
+        
+        // If no project found or it doesn't belong to the requested organization, skip
+        if (!project || project.organizationId !== orgId) {
+          return null;
+        }
+        
+        return task;
+      })).then(results => results.filter(task => task !== null));
+    } else if (req.user && req.user.role !== 'super_admin') {
+      // If no specific org ID requested but user is authenticated, filter by user's organizations
+      const orgUsers = await storage.getUserOrganizations(req.user.id);
+      const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
+      
+      // Get all projects
+      const allProjects = await storage.getAllProjects();
+      
+      // Filter tasks by user's organizations
+      tasks = await Promise.all(allTasks.map(async (task) => {
+        const project = allProjects.find(p => p.id === task.projectId);
+        
+        // If no project found or it doesn't belong to user's organizations, skip
+        if (!project || !userOrganizationIds.includes(project.organizationId)) {
+          return null;
+        }
+        
+        return task;
+      })).then(results => results.filter(task => task !== null));
+    }
     
     // Calculate totals and hours
     const tasksWithDetails = await Promise.all(tasks.map(async (task) => {
