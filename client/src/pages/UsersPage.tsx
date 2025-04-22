@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { User, UserFormValues } from '@/types';
+import { User, UserFormValues, Organization, Project } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -13,14 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, Pencil, Trash2, AlertCircle, X } from 'lucide-react';
+import { Search, UserPlus, Pencil, Trash2, AlertCircle, X, Building } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getInitials } from '@/lib/utils';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Project } from '@/types';
 
 // Form validation schema
 const userFormSchema = z.object({
@@ -44,12 +43,20 @@ export default function UsersPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
+  const [selectedOrganization, setSelectedOrganization] = useState<number | null>(null);
   const [projectsLoading, setProjectsLoading] = useState(false);
+  const [organizationsLoading, setOrganizationsLoading] = useState(false);
   
   // Load projects for assignment
   const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     enabled: user?.role === 'supervisor',
+  });
+  
+  // Load organizations for super admin
+  const { data: organizations = [] } = useQuery<Organization[]>({
+    queryKey: ['/api/organizations'],
+    enabled: user?.role === 'super_admin',
   });
   
   // Form setup
@@ -264,6 +271,55 @@ export default function UsersPage() {
       });
     }
   });
+  
+  // Organization assignment mutation (for super admin)
+  const assignOrganizationMutation = useMutation({
+    mutationFn: async ({ userId, organizationId }: { userId: number, organizationId: number }) => {
+      const res = await apiRequest('POST', `/api/users/${userId}/organizations`, { organizationId });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users', selectedUser?.id, 'organizations'] });
+      toast({
+        title: 'Success',
+        description: 'User assigned to organization successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to assign user to organization',
+        variant: 'destructive',
+      });
+    }
+  });
+  
+  // Fetch user organizations
+  const fetchUserOrganizations = async (userId: number) => {
+    if (user?.role === 'super_admin') {
+      setOrganizationsLoading(true);
+      try {
+        const res = await apiRequest('GET', `/api/users/${userId}/organizations`);
+        const userOrgs = await res.json();
+        if (userOrgs.length > 0) {
+          setSelectedOrganization(userOrgs[0].id);
+        } else {
+          setSelectedOrganization(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user organizations:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load user organizations',
+          variant: 'destructive',
+        });
+        setSelectedOrganization(null);
+      } finally {
+        setOrganizationsLoading(false);
+      }
+    }
+  };
 
   // Open edit dialog and populate form
   const openEditDialog = async (user: User) => {
@@ -281,6 +337,11 @@ export default function UsersPage() {
     
     // Fetch user's assigned projects
     await fetchUserProjects(user.id);
+    
+    // Fetch user's organization if super admin
+    if (user?.role === 'super_admin') {
+      await fetchUserOrganizations(user.id);
+    }
     
     setIsEditDialogOpen(true);
   };
