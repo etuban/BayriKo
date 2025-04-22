@@ -249,8 +249,8 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.id);
     
-    // Only allow users to update their own profile unless they are a supervisor
-    if (req.user?.id !== userId && req.user?.role !== 'supervisor') {
+    // Only allow users to update their own profile unless they are a supervisor or super_admin
+    if (req.user?.id !== userId && req.user?.role !== 'supervisor' && req.user?.role !== 'super_admin') {
       return res.status(403).json({ message: 'Forbidden: You can only update your own profile' });
     }
     
@@ -262,9 +262,9 @@ export const updateUser = async (req: Request, res: Response) => {
     // Partial validation
     // Allow updating only specific fields
     const allowedFields = ['fullName', 'email', 'password', 'position', 'avatarUrl'];
-    if (req.user?.role === 'supervisor') {
-      allowedFields.push('role'); // Only supervisors can change roles
-      allowedFields.push('isApproved'); // Only supervisors can approve users
+    if (req.user?.role === 'supervisor' || req.user?.role === 'super_admin') {
+      allowedFields.push('role'); // Only supervisors and super_admins can change roles
+      allowedFields.push('isApproved'); // Only supervisors and super_admins can approve users
     }
     
     const updateData: Record<string, any> = {};
@@ -280,8 +280,8 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Handle project assignments if provided (supervisors only)
-    if (req.user?.role === 'supervisor' && req.body.projectIds && Array.isArray(req.body.projectIds)) {
+    // Handle project assignments if provided (supervisors and super_admins only)
+    if ((req.user?.role === 'supervisor' || req.user?.role === 'super_admin') && req.body.projectIds && Array.isArray(req.body.projectIds)) {
       // Get current project assignments
       const currentAssignments = await storage.getUserProjects(userId);
       const currentProjectIds = currentAssignments.map(a => a.projectId);
@@ -433,9 +433,9 @@ export const assignProjectsToUser = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.id);
     const { projectIds } = req.body;
     
-    // Only supervisors can assign projects
-    if (req.user?.role !== 'supervisor') {
-      return res.status(403).json({ message: 'Forbidden: Only supervisors can assign projects' });
+    // Only supervisors and super_admins can assign projects
+    if (req.user?.role !== 'supervisor' && req.user?.role !== 'super_admin') {
+      return res.status(403).json({ message: 'Forbidden: Only supervisors and super admins can assign projects' });
     }
     
     // Check if user exists
