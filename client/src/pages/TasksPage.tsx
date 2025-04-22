@@ -1,36 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TaskTable } from '@/components/TaskTable';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, FolderKanban, CheckCircle } from 'lucide-react';
+import { Search, FolderKanban, CheckCircle, Building } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Task } from '@/types';
+import { Task, Organization, Project } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TasksPage() {
+  const { user } = useAuth();
+  
   // State for filters
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [selectedOrganization, setSelectedOrganization] = useState<number | null>(null);
 
+  // Load user's organizations
+  const { data: organizations = [] } = useQuery<Organization[]>({
+    queryKey: ['/api/users/organizations'],
+    enabled: !!user,
+  });
+  
+  // Set default organization based on user's current organization if available
+  useEffect(() => {
+    if (organizations.length > 0 && !selectedOrganization) {
+      // Use the user's current organization if available
+      if (user?.currentOrganizationId) {
+        setSelectedOrganization(user.currentOrganizationId);
+      } else {
+        // Otherwise use the first organization
+        setSelectedOrganization(organizations[0]?.id || null);
+      }
+    }
+  }, [organizations, user]);
+
+  // Fetch projects for filter dropdown, filtered by organization
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['/api/projects', selectedOrganization],
+    queryFn: async () => {
+      let url = '/api/projects';
+      if (selectedOrganization) {
+        url += `?organizationId=${selectedOrganization}`;
+      }
+      const res = await fetch(url);
+      return res.json();
+    },
+    enabled: !!selectedOrganization,
+  });
+
+  // Get project IDs from the user's organization
+  const organizationProjectIds = projects ? projects.map((project: Project) => project.id) : [];
+  
   // Fetch tasks with filters
-  const { data: tasks, isLoading, error } = useQuery<Task[]>({
-    queryKey: ['/api/tasks', searchQuery, projectFilter, statusFilter],
+  const { data: allTasks = [], isLoading, error } = useQuery<Task[]>({
+    queryKey: ['/api/tasks', searchQuery, projectFilter, statusFilter, selectedOrganization],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
       if (projectFilter) params.append('projectId', projectFilter);
       if (statusFilter) params.append('status', statusFilter);
+      if (selectedOrganization) params.append('organizationId', selectedOrganization.toString());
       
       const url = `/api/tasks?${params.toString()}`;
       return fetch(url).then(res => res.json());
     },
+    enabled: !!selectedOrganization,
   });
-
-  // Fetch projects for filter dropdown
-  const { data: projects = [] } = useQuery({
-    queryKey: ['/api/projects'],
-  });
+  
+  // Filter tasks to only include those from projects in the user's organization
+  const tasks = allTasks.filter(task => 
+    // Include if user selected a specific project in their org
+    (projectFilter && projectFilter !== 'all' && task.projectId === parseInt(projectFilter, 10)) ||
+    // Or if the task belongs to any project in the user's organization
+    (!projectFilter || projectFilter === 'all') && organizationProjectIds.includes(task.projectId)
+  );
 
   return (
     <div className="space-y-6">
@@ -39,6 +84,30 @@ export default function TasksPage() {
         
         {/* Filters */}
         <div className="flex flex-wrap gap-3 items-center">
+          {/* Organization Selector (visible to supervisors, team leads, and super admins) */}
+          {organizations.length > 1 && (user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead') && (
+            <div className="w-[200px]">
+              <Select 
+                value={selectedOrganization?.toString() || ''}
+                onValueChange={(value) => setSelectedOrganization(parseInt(value, 10))}
+              >
+                <SelectTrigger className="h-10 bg-dark-bg border-dark-border">
+                  <div className="flex items-center">
+                    <Building className="w-4 h-4 mr-2 text-primary" />
+                    <SelectValue placeholder="Select organization" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map(org => (
+                    <SelectItem key={org.id} value={org.id.toString()}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
           {/* Search */}
           <div className="relative">
             <Input
@@ -62,7 +131,7 @@ export default function TasksPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Projects</SelectItem>
-                {projects.map((project: any) => (
+                {projects && projects.map((project: Project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
                   </SelectItem>

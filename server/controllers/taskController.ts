@@ -6,7 +6,7 @@ import { formatZodError } from '../utils';
 
 export const getAllTasks = async (req: Request, res: Response) => {
   try {
-    const { projectId, assignedToId, status, search } = req.query;
+    const { projectId, assignedToId, status, search, organizationId } = req.query;
     
     // Convert query params to appropriate types
     const filters: { projectId?: number, assignedToId?: number, status?: string, search?: string } = {};
@@ -21,10 +21,48 @@ export const getAllTasks = async (req: Request, res: Response) => {
       filters.assignedToId = req.user.id;
     }
     
+    // Get all tasks based on filters
     const tasks = await storage.getAllTasks(filters);
     
+    // If user is authenticated, get their organizations
+    let userOrganizations: number[] = [];
+    if (req.user) {
+      const orgUsers = await storage.getUserOrganizations(req.user.id);
+      userOrganizations = orgUsers.map(ou => ou.organizationId);
+    }
+    
+    // Specific organization ID was provided in the query
+    const requestedOrgId = organizationId 
+      ? parseInt(organizationId as string)
+      : null;
+    
+    // Get all projects to filter tasks by organization
+    const allProjects = await storage.getAllProjects();
+    
+    // Filter tasks by organization
+    const filteredTasks = await Promise.all(tasks.map(async (task) => {
+      const project = allProjects.find(p => p.id === task.projectId);
+      
+      // If no project found or project has no organization, skip
+      if (!project) return null;
+      
+      // If specific organization requested and project doesn't match, skip
+      if (requestedOrgId && project.organizationId !== requestedOrgId) return null;
+      
+      // If no specific organization requested, check if user has access to this project's organization
+      if (!requestedOrgId && userOrganizations.length > 0 && !userOrganizations.includes(project.organizationId)) {
+        // User doesn't belong to this organization, skip task
+        return null;
+      }
+      
+      return task;
+    }));
+    
+    // Remove null values (filtered out tasks)
+    const validTasks = filteredTasks.filter(task => task !== null);
+    
     // Get related data for each task
-    const tasksWithRelations = await Promise.all(tasks.map(async (task) => {
+    const tasksWithRelations = await Promise.all(validTasks.map(async (task) => {
       const [project, assignedTo] = await Promise.all([
         storage.getProjectById(task.projectId),
         task.assignedToId ? storage.getUserById(task.assignedToId) : null
@@ -58,17 +96,34 @@ export const getTaskById = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Task not found' });
     }
     
-    // Staff can only view tasks assigned to them
-    if (req.user?.role === 'staff' && task.assignedToId !== req.user.id) {
-      return res.status(403).json({ message: 'Forbidden: You can only view your own tasks' });
-    }
-    
     // Get related data
     const [project, assignedTo, creator] = await Promise.all([
       storage.getProjectById(task.projectId),
       task.assignedToId ? storage.getUserById(task.assignedToId) : null,
       storage.getUserById(task.createdById)
     ]);
+    
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found for this task' });
+    }
+    
+    // Check if the user has access to the task's organization
+    if (req.user && req.user.role !== 'super_admin') {
+      const orgUsers = await storage.getUserOrganizations(req.user.id);
+      const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
+      
+      // If the task's project is not in the user's organizations, deny access
+      if (!userOrganizationIds.includes(project.organizationId) && 
+          // Exception: staff can view tasks assigned to them even if in different org
+          !(req.user.role === 'staff' && task.assignedToId === req.user.id)) {
+        return res.status(403).json({ message: 'Forbidden: You do not have access to tasks in this organization' });
+      }
+    }
+    
+    // Additional check: Staff can only view tasks assigned to them
+    if (req.user?.role === 'staff' && task.assignedToId !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden: You can only view your own tasks' });
+    }
     
     // Remove passwords
     const assignedToWithoutPassword = assignedTo 

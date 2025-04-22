@@ -235,18 +235,19 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-xl bg-background border-border">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <div className="flex items-center justify-center mb-4 overflow-hidden">
+          <CardTitle className="text-4xl font-bold text-center mb-8">
+            BayriKo
+          </CardTitle>
+          <div className="flex items-center justify-center m-8 mb-8 overflow-hidden rounded-lg">
             <img
               src="https://pawn.media/bayriko/kyawil.jpg"
-              alt="Money GIF"
+              alt="Koya Wel"
               width="100%"
             />
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
-            BayriKo
-          </CardTitle>
-          <CardDescription className="text-center">
-            Your Task to Invoice tool
+          <p>&nbsp;</p>
+          <CardDescription className="text-center mt-8">
+            "Magbabayad ka ba or papapulis kita?"
           </CardDescription>
         </CardHeader>
         <CardContent>
