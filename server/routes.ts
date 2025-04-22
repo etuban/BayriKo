@@ -25,16 +25,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     cookie: { 
       maxAge: 86400000, // 24 hours
       secure: false,    // set to true in production with HTTPS
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     },
     store: new PgStore({
       pool,
       createTableIfMissing: true, // Create session table if it doesn't exist
-      tableName: 'session'        // Default table name
+      tableName: 'session',       // Default table name
+      errorLog: console.error.bind(console, 'session store error:')
     }),
     resave: false,
     saveUninitialized: false,
-    secret: process.env.SESSION_SECRET || 'mybyd-secret'
+    secret: process.env.SESSION_SECRET || 'mybyd-secret',
+    name: 'bayriko.sid' // Custom session name to avoid conflicts
   }));
 
   // Initialize passport
