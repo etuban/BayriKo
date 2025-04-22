@@ -17,25 +17,45 @@ function generateInvitationToken(): string {
  */
 export const createInvitationLink = async (req: Request, res: Response) => {
   try {
-    // Only supervisors can create invitation links for their organization
+    // Detailed logging for debugging
+    console.log('CREATE INVITATION LINK REQUEST:');
+    console.log('- User authenticated:', req.isAuthenticated());
+    console.log('- User role:', req.user?.role);
+    console.log('- User ID:', req.user?.id);
+    console.log('- User currentOrganizationId:', (req.user as any)?.currentOrganizationId);
+    console.log('- Request body:', JSON.stringify(req.body));
+    
+    // Only supervisors and super_admins can create invitation links
     const user = req.user;
     if (!user || (user.role !== 'supervisor' && user.role !== 'super_admin')) {
-      return res.status(403).json({ message: 'Forbidden: Only supervisors can create invitation links' });
+      console.log('FORBIDDEN: User not authorized to create invitations');
+      return res.status(403).json({ message: 'Forbidden: Only supervisors and super admins can create invitation links' });
     }
     
     // Get the organization ID from the request
     const { organizationId, role, expires, maxUses, message } = req.body;
     
+    if (!organizationId) {
+      console.log('BAD REQUEST: Missing organizationId in request body');
+      return res.status(400).json({ message: 'Missing organizationId in request' });
+    }
+    
+    console.log(`Validating user ${user.id} for organization ${organizationId}`);
+    
     // Validate if the user is part of the organization
     if (user.role !== 'super_admin') {
       const userRole = await storage.getUserRoleInOrganization(user.id, organizationId);
+      console.log('User role in organization:', userRole);
+      
       if (!userRole || userRole !== 'supervisor') {
+        console.log('FORBIDDEN: User is not a supervisor of this organization');
         return res.status(403).json({ message: 'Forbidden: You are not a supervisor of this organization' });
       }
     }
     
     // Generate a unique token
     const token = generateInvitationToken();
+    console.log('Generated invitation token:', token);
     
     // Create the invitation link
     const invitationData = {
@@ -49,11 +69,14 @@ export const createInvitationLink = async (req: Request, res: Response) => {
       createdById: user.id
     };
     
+    console.log('Invitation data to be saved:', JSON.stringify(invitationData));
+    
     // Validate the invitation data against the schema
     const parsedData = insertInvitationLinkSchema.parse(invitationData);
     
     // Create the invitation link
     const invitationLink = await storage.createInvitationLink(parsedData);
+    console.log('Invitation link created:', JSON.stringify(invitationLink));
     
     // Return the invitation link
     res.status(201).json(invitationLink);

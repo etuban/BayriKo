@@ -63,7 +63,10 @@ const invitationLinkSchema = z.object({
   expires: z.string().optional().nullable(),
   maxUses: z.coerce.number().optional().nullable(),
   message: z.string().min(1, 'Message is required'),
-  organizationId: z.number()
+  organizationId: z.number({
+    required_error: "Organization ID is required",
+    invalid_type_error: "Organization ID must be a number",
+  }),
 });
 
 export default function UsersPage() {
@@ -236,15 +239,31 @@ export default function UsersPage() {
   const createInvitationMutation = useMutation({
     mutationFn: async (data: z.infer<typeof invitationLinkSchema>) => {
       try {
-        console.log('Making API request with data:', data);
+        console.log('Making invitation API request with data:', JSON.stringify(data));
+        
+        // Extra validation before API call
+        if (!data.organizationId) {
+          throw new Error('Organization ID is required but missing');
+        }
+        
         const res = await apiRequest('POST', '/api/invitations', data);
         console.log('API response status:', res.status);
+        
         if (!res.ok) {
-          const errorData = await res.json();
-          console.error('API error:', errorData);
-          throw new Error(errorData.message || 'Failed to create invitation link');
+          let errorMessage = 'Failed to create invitation link';
+          try {
+            const errorData = await res.json();
+            console.error('API error response:', errorData);
+            errorMessage = errorData.message || errorMessage;
+          } catch (e) {
+            console.error('Could not parse error response:', e);
+          }
+          throw new Error(errorMessage);
         }
-        return res.json();
+        
+        const responseData = await res.json();
+        console.log('Success response:', responseData);
+        return responseData;
       } catch (error) {
         console.error('Invitation creation error:', error);
         throw error;
@@ -309,6 +328,26 @@ export default function UsersPage() {
   // Handle invitation link creation
   const handleCreateInvitation = (data: z.infer<typeof invitationLinkSchema>) => {
     console.log('Submitting invitation data:', data);
+    
+    // Ensure organizationId is present and valid
+    if (!data.organizationId && user?.currentOrganizationId) {
+      console.log('Setting missing organizationId to currentOrganizationId:', user.currentOrganizationId);
+      data.organizationId = user.currentOrganizationId;
+    }
+    
+    // Final validation before sending
+    if (!data.organizationId) {
+      console.error('No organization ID available');
+      toast({
+        title: 'Error',
+        description: 'Organization ID is required. Please select an organization.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Log full data before submission
+    console.log('Final invitation data to submit:', data);
     createInvitationMutation.mutate(data);
   };
 
