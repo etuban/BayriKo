@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Loader2, Plus, Pencil, Trash2, Building2, Users, Briefcase } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, Building2, Users, Briefcase, Link2, Copy, Mail, Calendar, Share2 } from 'lucide-react';
 import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +15,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define the Organization interface
 interface Organization {
@@ -32,6 +35,28 @@ interface Organization {
   projectCount?: number;
 }
 
+// Define the InvitationLink interface
+interface InvitationLink {
+  id: number;
+  organizationId: number;
+  createdById: number;
+  token: string;
+  role: 'super_admin' | 'supervisor' | 'team_lead' | 'staff';
+  message: string;
+  expires: string | null;
+  maxUses: number | null;
+  usedCount: number;
+  createdAt: string;
+  active: boolean;
+  organization?: {
+    name: string;
+  };
+  createdBy?: {
+    name: string;
+    email: string;
+  };
+}
+
 // Define the form schema
 const organizationFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -43,14 +68,27 @@ const organizationFormSchema = z.object({
   website: z.string().url("Must be a valid URL").optional().or(z.literal(''))
 });
 
+// Invitation form schema
+const invitationFormSchema = z.object({
+  role: z.enum(['super_admin', 'supervisor', 'team_lead', 'staff']),
+  message: z.string().min(1, "Message is required"),
+  expires: z.string().optional(),
+  maxUses: z.number().min(1, "Must be at least 1").optional(),
+});
+
 type OrganizationFormValues = z.infer<typeof organizationFormSchema>;
+type InvitationFormValues = z.infer<typeof invitationFormSchema>;
 
 export default function OrganizationsPage() {
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
+  const [invitations, setInvitations] = useState<InvitationLink[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(false);
+  const linkRef = useRef<HTMLInputElement>(null);
 
   // Fetch organizations
   const { data: organizations, isLoading } = useQuery<Organization[]>({
@@ -194,6 +232,107 @@ export default function OrganizationsPage() {
     setSelectedOrganization(organization);
     setDeleteDialogOpen(true);
   };
+  
+  // Invitation form
+  const invitationForm = useForm<InvitationFormValues>({
+    resolver: zodResolver(invitationFormSchema),
+    defaultValues: {
+      role: 'staff',
+      message: "You've been invited to join our organization.",
+      expires: '',
+      maxUses: undefined,
+    },
+  });
+  
+  // Create invitation mutation
+  const createInvitationMutation = useMutation({
+    mutationFn: async (data: InvitationFormValues & { organizationId: number }) => {
+      const res = await apiRequest("POST", "/api/invitations", data);
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      if (selectedOrganization) {
+        fetchInvitations(selectedOrganization.id);
+      }
+      invitationForm.reset();
+      toast({
+        title: "Invitation created",
+        description: "The invitation link has been successfully created.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to create invitation: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Delete invitation mutation
+  const deleteInvitationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/invitations/${id}`);
+    },
+    onSuccess: () => {
+      if (selectedOrganization) {
+        fetchInvitations(selectedOrganization.id);
+      }
+      toast({
+        title: "Invitation deleted",
+        description: "The invitation link has been successfully deleted.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete invitation: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const handleCreateInvitation = (data: InvitationFormValues) => {
+    if (selectedOrganization) {
+      createInvitationMutation.mutate({
+        ...data,
+        organizationId: selectedOrganization.id,
+      });
+    }
+  };
+  
+  const fetchInvitations = async (organizationId: number) => {
+    try {
+      setLoadingInvitations(true);
+      const res = await apiRequest("GET", `/api/organizations/${organizationId}/invitations`);
+      const data = await res.json();
+      setInvitations(data);
+    } catch (error) {
+      console.error("Failed to fetch invitations:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch invitations.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingInvitations(false);
+    }
+  };
+  
+  const openInviteDialog = (organization: Organization) => {
+    setSelectedOrganization(organization);
+    setInviteDialogOpen(true);
+    fetchInvitations(organization.id);
+  };
+  
+  const copyInvitationLink = (token: string) => {
+    const link = `${window.location.origin}/auth?invitation=${token}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copied",
+      description: "Invitation link copied to clipboard.",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -235,12 +374,42 @@ export default function OrganizationsPage() {
                     )}
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="icon" onClick={() => openEditDialog(org)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={() => openDeleteDialog(org)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" onClick={() => openInviteDialog(org)}>
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Manage Invitations</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" onClick={() => openEditDialog(org)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit Organization</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" onClick={() => openDeleteDialog(org)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete Organization</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
               </CardHeader>
@@ -534,6 +703,233 @@ export default function OrganizationsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Invitation Links Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Invitation Links</DialogTitle>
+            <DialogDescription>
+              {selectedOrganization && (
+                <>Manage invitation links for <strong>{selectedOrganization.name}</strong></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="active">
+            <TabsList className="mb-4">
+              <TabsTrigger value="active">Active Invitations</TabsTrigger>
+              <TabsTrigger value="create">Create New Invitation</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="active">
+              {loadingInvitations ? (
+                <div className="flex justify-center p-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : invitations.length > 0 ? (
+                <div className="space-y-4">
+                  {invitations
+                    .filter(inv => inv.active)
+                    .map(invitation => (
+                      <Card key={invitation.id} className="relative overflow-hidden">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg flex items-center">
+                                <Badge className="mr-2">{invitation.role}</Badge>
+                                <span>Invitation Link</span>
+                              </CardTitle>
+                              <CardDescription>
+                                Created on {new Date(invitation.createdAt).toLocaleDateString()}
+                              </CardDescription>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteInvitationMutation.mutate(invitation.id)}
+                              className="text-red-500"
+                              disabled={deleteInvitationMutation.isPending}
+                            >
+                              {deleteInvitationMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pb-2">
+                          <div className="flex flex-col space-y-3">
+                            <div className="flex space-x-2 items-center">
+                              <Input 
+                                readOnly 
+                                value={`${window.location.origin}/auth?invitation=${invitation.token}`}
+                                ref={linkRef}
+                                className="font-mono text-xs"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => copyInvitationLink(invitation.token)}
+                                className="flex-shrink-0"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            <div className="text-sm text-muted-foreground">
+                              <div className="border p-3 rounded-md bg-muted/30">
+                                <p className="whitespace-pre-wrap">{invitation.message}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-4 text-xs text-muted-foreground">
+                              <div className="flex items-center">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                {invitation.expires 
+                                  ? `Expires: ${new Date(invitation.expires).toLocaleDateString()}`
+                                  : "Never expires"}
+                              </div>
+                              <div className="flex items-center">
+                                <Users className="h-3 w-3 mr-1" />
+                                {invitation.maxUses 
+                                  ? `Usage: ${invitation.usedCount}/${invitation.maxUses}`
+                                  : `Used ${invitation.usedCount} times`}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              ) : (
+                <Alert className="my-4">
+                  <AlertTitle>No active invitations</AlertTitle>
+                  <AlertDescription>
+                    You haven't created any invitation links for this organization yet.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="create">
+              <Form {...invitationForm}>
+                <form onSubmit={invitationForm.handleSubmit(handleCreateInvitation)} className="space-y-4">
+                  <FormField
+                    control={invitationForm.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>User Role</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="staff">Staff</SelectItem>
+                            <SelectItem value="team_lead">Team Lead</SelectItem>
+                            <SelectItem value="supervisor">Supervisor</SelectItem>
+                            <SelectItem value="super_admin">Super Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          The role determines what permissions the user will have in the organization
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={invitationForm.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Invitation Message</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter the message you want to send with the invitation"
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          This message will be displayed to the user when they use the invitation link
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={invitationForm.control}
+                      name="expires"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiration Date (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="date" 
+                              {...field}
+                              min={new Date().toISOString().split('T')[0]}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Leave empty for no expiration
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={invitationForm.control}
+                      name="maxUses"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Maximum Uses (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              min={1}
+                              placeholder="Unlimited"
+                              {...field}
+                              onChange={e => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Leave empty for unlimited uses
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={() => setInviteDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createInvitationMutation.isPending}>
+                      {createInvitationMutation.isPending && (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      )}
+                      Create Invitation
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
