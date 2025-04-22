@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { PayableTaskTable } from "@/components/PayableTaskTable";
 import { Input } from "@/components/ui/input";
 import {
