@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Project, ProjectFormValues } from '@/types';
+import { Project, ProjectFormValues, Organization } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -12,7 +12,8 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Folder, Plus, Pencil, Trash2, AlertCircle, ListTodo } from 'lucide-react';
+import { Search, Folder, Plus, Pencil, Trash2, AlertCircle, ListTodo, Building } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -33,6 +34,7 @@ export default function ProjectsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<number | null>(null);
   
   // Form setup
   const form = useForm<z.infer<typeof projectFormSchema>>({
@@ -43,9 +45,36 @@ export default function ProjectsPage() {
     }
   });
   
-  // Load projects
+  // Load user's organizations
+  const { data: organizations = [], isLoading: orgsLoading } = useQuery<Organization[]>({
+    queryKey: ['/api/users/organizations'],
+  });
+  
+  // Set default organization based on user's current organization if available
+  React.useEffect(() => {
+    if (organizations.length > 0 && !selectedOrganization) {
+      // Use the user's current organization if available
+      if (user?.currentOrganizationId) {
+        setSelectedOrganization(user.currentOrganizationId);
+      } else {
+        // Otherwise use the first organization
+        setSelectedOrganization(organizations[0]?.id || null);
+      }
+    }
+  }, [organizations, user]);
+  
+  // Load projects filtered by organization
   const { data: projects = [], isLoading, error } = useQuery<Project[]>({
-    queryKey: ['/api/projects'],
+    queryKey: ['/api/projects', selectedOrganization],
+    queryFn: async () => {
+      let url = '/api/projects';
+      if (selectedOrganization) {
+        url += `?organizationId=${selectedOrganization}`;
+      }
+      const res = await apiRequest('GET', url);
+      return res.json();
+    },
+    enabled: !!selectedOrganization || user?.role === 'super_admin',
   });
   
   // Filter projects by search
@@ -176,6 +205,30 @@ export default function ProjectsPage() {
         <h1 className="text-2xl font-semibold mb-4 md:mb-0">Projects</h1>
         
         <div className="flex flex-wrap gap-3 items-center">
+          {/* Organization Selector (visible to supervisors, team leads, and super admins) */}
+          {organizations.length > 1 && (user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead') && (
+            <div className="w-[200px]">
+              <Select 
+                value={selectedOrganization?.toString() || ''}
+                onValueChange={(value) => setSelectedOrganization(parseInt(value, 10))}
+              >
+                <SelectTrigger className="h-10 bg-dark-bg border-dark-border">
+                  <div className="flex items-center">
+                    <Building className="w-4 h-4 mr-2 text-primary" />
+                    <SelectValue placeholder="Select organization" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map(org => (
+                    <SelectItem key={org.id} value={org.id.toString()}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
           {/* Search */}
           <div className="relative">
             <Input
@@ -226,9 +279,17 @@ export default function ProjectsPage() {
                 )}
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between text-sm text-gray-400">
-                  <div>Created by: {project.creator?.fullName || 'Unknown'}</div>
-                  <div>{project.taskCount || 0} Tasks</div>
+                <div className="flex flex-col gap-1 text-sm text-gray-400">
+                  <div className="flex items-center justify-between">
+                    <div>Created by: {project.creator?.fullName || 'Unknown'}</div>
+                    <div>{project.taskCount || 0} Tasks</div>
+                  </div>
+                  {project.organization && (
+                    <div className="flex items-center text-primary/80">
+                      <Building className="h-3.5 w-3.5 mr-1" />
+                      {project.organization.name}
+                    </div>
+                  )}
                 </div>
               </CardContent>
               <CardFooter className="pt-0 flex justify-between gap-2">

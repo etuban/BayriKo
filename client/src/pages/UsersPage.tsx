@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, Pencil, Trash2, AlertCircle, X, Building } from 'lucide-react';
+import { Search, UserPlus, Pencil, Trash2, AlertCircle, X, Building, Loader2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getInitials } from '@/lib/utils';
@@ -721,6 +721,70 @@ export default function UsersPage() {
                   />
                   <Label htmlFor="isApproved">Approve User</Label>
                 </div>
+                
+                {/* Organization Assignment (Super Admin only) */}
+                {user?.role === 'super_admin' && selectedUser && (
+                  <div className="space-y-2 mt-4 border-t border-dark-border pt-4">
+                    <Label className="text-base font-medium">Organization Assignment</Label>
+                    <p className="text-sm text-gray-400 mb-3">
+                      Assign this user to an organization.
+                    </p>
+                    
+                    {organizationsLoading ? (
+                      <Skeleton className="h-10 w-full" />
+                    ) : organizations.length > 0 ? (
+                      <div className="space-y-2">
+                        <Select 
+                          value={selectedOrganization?.toString() || ''}
+                          onValueChange={(value) => setSelectedOrganization(parseInt(value, 10))}
+                        >
+                          <SelectTrigger className="bg-dark-bg">
+                            <SelectValue placeholder="Select an organization" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {organizations.map(org => (
+                              <SelectItem key={org.id} value={org.id.toString()}>
+                                <div className="flex items-center">
+                                  <Building className="h-4 w-4 mr-2" />
+                                  {org.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {selectedOrganization && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => {
+                              if (selectedUser && selectedOrganization) {
+                                assignOrganizationMutation.mutate({
+                                  userId: selectedUser.id,
+                                  organizationId: selectedOrganization
+                                });
+                              }
+                            }}
+                            disabled={assignOrganizationMutation.isPending}
+                          >
+                            {assignOrganizationMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Assigning...
+                              </>
+                            ) : (
+                              <>Assign to Organization</>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-amber-500">No organizations available.</p>
+                    )}
+                  </div>
+                )}
                 
                 {/* Project Assignment (only for Staff users) */}
                 {selectedUser && form.watch('role') === 'staff' && (
