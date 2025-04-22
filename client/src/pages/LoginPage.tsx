@@ -236,6 +236,13 @@ export default function LoginPage() {
         {/* Form Section - Left Column */}
         <div className="w-full md:w-1/2">
           <Card className="w-full h-full bg-background border-border">
+            <div className="hidden text-center">
+              <img
+                src="https://pawn.media/bayriko/kyawil.jpg"
+                alt="Koya Wel"
+                className="w-full max-w-md rounded-lg shadow-md"
+              />
+            </div>
             <CardHeader className="space-y-2">
               <CardTitle className="text-3xl font-bold text-center">
                 BAYRIKO
@@ -416,7 +423,10 @@ export default function LoginPage() {
                       />
                       {registerForm.formState.errors.confirmPassword && (
                         <p className="text-sm text-red-500">
-                          {registerForm.formState.errors.confirmPassword.message}
+                          {
+                            registerForm.formState.errors.confirmPassword
+                              .message
+                          }
                         </p>
                       )}
                     </div>
@@ -438,7 +448,9 @@ export default function LoginPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="register-position">Position (Optional)</Label>
+                      <Label htmlFor="register-position">
+                        Position (Optional)
+                      </Label>
                       <Input
                         id="register-position"
                         type="text"
@@ -530,8 +542,8 @@ export default function LoginPage() {
         </div>
 
         {/* Content Section - Right Column (only visible on md and larger screens) */}
-        <div className="w-full md:w-1/2 hidden md:block">
-          <Card className="w-full h-full bg-background border-border overflow-hidden flex flex-col justify-center">
+        <div className="w-full md:w-1/2 hidden md:block align-top">
+          <Card className="w-full h-full bg-background border-border overflow-hidden flex flex-col align-top">
             <CardContent className="p-8 flex flex-col items-center justify-center">
               <div className="flex items-center justify-center mb-8 overflow-hidden rounded-xl">
                 <img
@@ -540,12 +552,8 @@ export default function LoginPage() {
                   className="w-full max-w-md rounded-lg shadow-md"
                 />
               </div>
-              <div className="text-center mt-8 mb-4">
-                <CardTitle className="text-3xl mb-2 font-specialGothic">Welcome to BayriKo</CardTitle>
-                <CardDescription className="text-xl mb-6 font-specialGothic">
-                  Your Bay That Pays
-                </CardDescription>
-                <p className="text-center text-xl italic font-specialGothic mt-6">
+              <div className="text-center mb-4">
+                <p className="text-center text-md italic">
                   "Magbabayad ka ba or papapulis kita?"
                 </p>
               </div>
