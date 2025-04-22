@@ -678,7 +678,86 @@ export const getUserOrganizations = async (req: Request, res: Response) => {
   }
 };
 
-// Get organizations for the currently authenticated user
+// Add user to organization - called from the edit user dialog by super_admin
+export const addUserToOrganization = async (req: Request, res: Response) => {
+  try {
+    // Ensure we have a valid user ID
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    // Get the organization ID from the request body
+    const { organizationId, role = 'staff' } = req.body;
+    if (!organizationId) {
+      return res.status(400).json({ message: 'Missing organization ID' });
+    }
+    
+    const orgId = parseInt(organizationId.toString(), 10);
+    if (isNaN(orgId)) {
+      return res.status(400).json({ message: 'Invalid organization ID format' });
+    }
+    
+    // Make sure the authenticated user exists and has an ID
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    // Only supervisors and super_admins can add users to organizations
+    if (req.user.role !== 'supervisor' && req.user.role !== 'super_admin') {
+      return res.status(403).json({ message: 'Forbidden: Only supervisors and super admins can add users to organizations' });
+    }
+    
+    // If a supervisor, check if they belong to the organization
+    if (req.user.role === 'supervisor') {
+      const userRole = await storage.getUserRoleInOrganization(parseInt(req.user.id.toString()), orgId);
+      if (!userRole || userRole !== 'supervisor') {
+        return res.status(403).json({ message: 'Forbidden: You can only add users to your own organization' });
+      }
+    }
+    
+    // Verify both user and organization exist
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    const organization = await storage.getOrganizationById(orgId);
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+    
+    // Check if the user is already in the organization
+    const existingRole = await storage.getUserRoleInOrganization(userId, orgId);
+    if (existingRole) {
+      return res.status(400).json({ message: 'User is already in this organization' });
+    }
+    
+    // Add the user to the organization
+    const result = await storage.addUserToOrganization(userId, orgId, role);
+    
+    // Create notification for the user
+    await storage.createNotification({
+      userId,
+      type: 'new_organization_user',
+      message: `You have been added to organization: ${organization.name}`,
+      read: false
+    });
+    
+    res.status(200).json({
+      message: `User successfully added to organization as ${role}`,
+      result
+    });
+  } catch (error) {
+    console.error('Error adding user to organization:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export const getCurrentUserOrganizations = async (req: Request, res: Response) => {
   try {
     if (!req.isAuthenticated() || !req.user) {

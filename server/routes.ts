@@ -106,6 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User-Organization routes
   app.get('/api/users/:id/organizations', authenticateUser, userController.getUserOrganizations);
   app.get('/api/users/organizations/current', authenticateUser, userController.getCurrentUserOrganizations);
+  app.post('/api/users/:id/organizations', authenticateUser, userController.addUserToOrganization);
 
   // Task routes
   app.get('/api/tasks', authenticateUser, taskController.getAllTasks);
