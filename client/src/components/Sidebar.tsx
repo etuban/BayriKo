@@ -14,7 +14,8 @@ import {
   ChevronRight,
   ChevronLeft,
   LogOut,
-  X
+  X,
+  Building
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -74,6 +75,12 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       icon: <FolderKanban className="w-5 h-5 mr-3" />,
       path: '/projects',
       display: user?.role !== 'staff',
+    },
+    {
+      title: 'Organizations',
+      icon: <Building className="w-5 h-5 mr-3" />,
+      path: '/organizations',
+      display: user?.role === 'super_admin' || user?.role === 'supervisor',
     },
     {
       title: 'Users',

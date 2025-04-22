@@ -8,6 +8,7 @@ import * as userController from './controllers/userController';
 import * as taskController from './controllers/taskController';
 import * as projectController from './controllers/projectController';
 import * as notificationController from './controllers/notificationController';
+import * as organizationController from './controllers/organizationController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';

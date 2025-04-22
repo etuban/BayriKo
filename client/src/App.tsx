@@ -11,6 +11,7 @@ import PDFInvoicePage from "@/pages/TaskPayablePage"; // Renamed for better clar
 import ProjectsPage from "@/pages/ProjectsPage";
 import UsersPage from "@/pages/UsersPage";
 import SettingsPage from "@/pages/SettingsPage";
+import OrganizationsPage from "@/pages/OrganizationsPage";
 import { Layout } from "@/components/Layout";
 import { ThemeProvider } from "next-themes";
 import { TaskProvider } from "./context/TaskContext";
@@ -65,6 +66,9 @@ function Router() {
       </Route>
       <Route path="/users">
         {() => <ProtectedRoute component={UsersPage} />}
+      </Route>
+      <Route path="/organizations">
+        {() => <ProtectedRoute component={OrganizationsPage} />}
       </Route>
       <Route path="/settings">
         {() => <ProtectedRoute component={SettingsPage} />}
