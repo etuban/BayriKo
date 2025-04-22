@@ -84,7 +84,7 @@ export default function TaskPayablePage() {
       const params = new URLSearchParams();
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
-      if (projectId) params.append("projectId", projectId);
+      if (projectId && projectId !== "all-projects") params.append("projectId", projectId);
       if (selectedOrganization) params.append("organizationId", selectedOrganization.toString());
 
       const url = `/api/tasks/payable/report?${params.toString()}`;
@@ -614,7 +614,7 @@ export default function TaskPayablePage() {
                 <SelectValue placeholder="All Projects" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Projects</SelectItem>
+                <SelectItem value="all-projects">All Projects</SelectItem>
                 {projects && projects.map((project: Project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
