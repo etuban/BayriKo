@@ -552,7 +552,10 @@ export default function TaskPayablePage() {
 
   // Apply filters
   const applyFilters = () => {
-    // Trigger refetch by updating query key
+    // Manually refetch the payable tasks with updated filters
+    queryClient.invalidateQueries({ 
+      queryKey: ["/api/tasks/payable/report"]
+    });
   };
 
   return (

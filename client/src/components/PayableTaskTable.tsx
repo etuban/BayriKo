@@ -82,10 +82,10 @@ export function PayableTaskTable({
             <div className="print:table-cell px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider bg-primary text-white">
               Date
             </div>
-            <div className="print:table-cell px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-20">
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-20 sm:w-28">
               Hours
             </div>
-            <div className="print:table-cell px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-24">
+            <div className="print:table-cell px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider bg-primary text-white w-16 sm:w-20">
               Rate
             </div>
             <div className="print:table-cell px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider bg-primary text-white w-20 sm:w-24">
@@ -99,10 +99,10 @@ export function PayableTaskTable({
           <div className="flex-1 px-4 sm:px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
             Task
           </div>
-          <div className="w-16 sm:w-20 px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+          <div className="w-20 sm:w-28 px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
             Hours
           </div>
-          <div className="w-16 sm:w-24 px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+          <div className="w-16 sm:w-20 px-4 sm:px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
             Rate
           </div>
           <div className="w-20 sm:w-24 px-4 sm:px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
@@ -166,12 +166,12 @@ export function PayableTaskTable({
                           </div>
                         )}
                       </div>
-                      <div className="w-16 sm:w-20 text-xs text-center">
+                      <div className="w-20 sm:w-28 text-xs text-center font-medium">
                         {typeof task.hours === "number"
-                          ? task.hours.toFixed(2)
+                          ? `${task.hours.toFixed(2)} hrs`
                           : task.hours}
                       </div>
-                      <div className="w-16 sm:w-24 text-xs text-center">
+                      <div className="w-16 sm:w-20 text-xs text-center text-muted-foreground">
                         {task.pricingType === "hourly"
                           ? `${formatCurrency((task.hourlyRate || 0) / 100, task.currency || "PHP")}/hr`
                           : "Fixed"}
@@ -208,12 +208,12 @@ export function PayableTaskTable({
                           : ""}
                       </div>
                     </div>
-                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-xs text-center">
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-xs text-center font-medium">
                       {typeof task.hours === "number"
-                        ? task.hours.toFixed(2)
+                        ? `${task.hours.toFixed(2)} hrs`
                         : task.hours}
                     </div>
-                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-xs text-center">
+                    <div className="hidden print:table-cell px-4 sm:px-6 py-3 text-xs text-center text-muted-foreground">
                       {task.pricingType === "hourly"
                         ? `${formatCurrency((task.hourlyRate || 0) / 100, task.currency || "PHP")}/hr`
                         : "Fixed"}
