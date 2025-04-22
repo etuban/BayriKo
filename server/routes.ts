@@ -61,6 +61,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUserById(id);
       if (user) {
         console.log(`[PASSPORT] Successfully deserialized user: ${user.username}`);
+        
+        // Get user's organizations and set the first one as current if needed
+        try {
+          const userOrgs = await storage.getUserOrganizations(id);
+          if (userOrgs && userOrgs.length > 0) {
+            // Add currentOrganizationId to the user object
+            (user as any).currentOrganizationId = userOrgs[0].organizationId;
+            console.log(`[PASSPORT] Setting current organization ID: ${(user as any).currentOrganizationId}`);
+          }
+        } catch (orgError) {
+          console.error(`[PASSPORT] Error getting user organizations: ${orgError}`);
+          // Continue with user deserialization even if we can't get orgs
+        }
+        
         done(null, user);
       } else {
         console.log(`[PASSPORT] Failed to deserialize user ID: ${id} - User not found`);

@@ -219,7 +219,7 @@ export const logout = (req: Request, res: Response) => {
   });
 };
 
-export const getSession = (req: Request, res: Response) => {
+export const getSession = async (req: Request, res: Response) => {
   console.log(`[SESSION] Session ID: ${req.sessionID}`);
   console.log(`[SESSION] Is authenticated: ${req.isAuthenticated()}`);
   
@@ -229,6 +229,20 @@ export const getSession = (req: Request, res: Response) => {
   }
   
   console.log(`[SESSION] User authenticated: ${(req.user as any).username} (${(req.user as any).id})`);
+  
+  // If we don't have a currentOrganizationId, try to set it
+  if (!(req.user as any).currentOrganizationId) {
+    try {
+      const userOrgs = await storage.getUserOrganizations(req.user.id);
+      if (userOrgs && userOrgs.length > 0) {
+        (req.user as any).currentOrganizationId = userOrgs[0].organizationId;
+        console.log(`[SESSION] Setting missing current organization ID: ${(req.user as any).currentOrganizationId}`);
+      }
+    } catch (orgError) {
+      console.error(`[SESSION] Error getting user organizations: ${orgError}`);
+    }
+  }
+  
   res.status(200).json({
     authenticated: true,
     user: req.user
