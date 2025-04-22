@@ -517,7 +517,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-center text-muted-foreground">
-            BayadMin &copy; {new Date().getFullYear()}
+            BayriKo &copy; {new Date().getFullYear()}
           </p>
         </CardFooter>
       </Card>
