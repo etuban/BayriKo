@@ -27,7 +27,7 @@ export default function TaskPayablePage() {
   // State for filters
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [projectId, setProjectId] = useState<string>("");
+  const [projectId, setProjectId] = useState<string>("all-projects");
   const [selectedOrganization, setSelectedOrganization] = useState<number | null>(null);
 
   // State for invoice details
@@ -570,8 +570,8 @@ export default function TaskPayablePage() {
           {organizations.length > 1 && (user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead') && (
             <div className="w-[200px]">
               <Select 
-                value={selectedOrganization?.toString() || ''}
-                onValueChange={(value) => setSelectedOrganization(parseInt(value, 10))}
+                value={selectedOrganization?.toString() || 'no-organization'}
+                onValueChange={(value) => value !== 'no-organization' ? setSelectedOrganization(parseInt(value, 10)) : setSelectedOrganization(null)}
               >
                 <SelectTrigger className="h-10 bg-dark-bg border-dark-border">
                   <div className="flex items-center">
