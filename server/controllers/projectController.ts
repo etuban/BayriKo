@@ -6,10 +6,12 @@ import { formatZodError } from '../utils';
 
 export const getAllProjects = async (req: Request, res: Response) => {
   try {
-    let projects;
+    let projects: any[] = [];
+    // Get the current user organization ID if available in user object
+    // or from the query parameter
     const organizationId = req.query.organizationId 
       ? parseInt(req.query.organizationId as string) 
-      : req.user?.currentOrganizationId;
+      : (req.user as any)?.currentOrganizationId;
     
     if (req.user) {
       if (req.user.role === 'super_admin' && !organizationId) {

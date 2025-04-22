@@ -579,19 +579,19 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
       }
       
       // If hours are already set in the task, use that
-      if (task.hours) {
-        if (typeof task.hours === 'string') {
-          hours = parseFloat(task.hours);
+      if ((task as any).hours) {
+        if (typeof (task as any).hours === 'string') {
+          hours = parseFloat((task as any).hours);
         } else {
-          hours = task.hours;
+          hours = (task as any).hours;
         }
       }
       
       // Calculate total amount based on pricing type
       if (task.pricingType === 'hourly' && task.hourlyRate) {
         totalAmount = hours * (task.hourlyRate / 100); // Convert cents to dollars
-      } else if (task.pricingType === 'fixed' && task.fixedAmount) {
-        totalAmount = task.fixedAmount / 100; // Convert cents to dollars
+      } else if (task.pricingType === 'fixed' && task.fixedPrice) {
+        totalAmount = task.fixedPrice / 100; // Convert cents to dollars
       }
       
       return {
