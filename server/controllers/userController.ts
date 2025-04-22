@@ -324,7 +324,15 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const userId = parseInt(req.params.id);
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
     const user = await storage.getUserById(userId);
     
     if (!user) {
@@ -366,6 +374,10 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
     const loggedInUser = req.user as User;
     let users: User[] = [];
     
@@ -374,7 +386,12 @@ export const getAllUsers = async (req: Request, res: Response) => {
       users = await storage.getAllUsers();
     } else {
       // Other roles can only see users in their organization
-      const userOrgs = await storage.getUserOrganizations(loggedInUser.id);
+      const userId = parseInt(loggedInUser.id.toString(), 10);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+      
+      const userOrgs = await storage.getUserOrganizations(userId);
       if (userOrgs.length > 0) {
         // Get all organization users (use first org if user belongs to multiple)
         const orgId = userOrgs[0].organizationId;
@@ -399,7 +416,14 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // Get projects assigned to a specific user
 export const getUserProjects = async (req: Request, res: Response) => {
   try {
-    const userId = parseInt(req.params.id);
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
     
     // Check if user exists
     const user = await storage.getUserById(userId);
@@ -522,10 +546,29 @@ export const seedAdminUser = async () => {
 // Get organizations for a specific user
 export const getUserOrganizations = async (req: Request, res: Response) => {
   try {
-    const userId = parseInt(req.params.id);
+    // Ensure we have a valid user ID
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Missing user ID' });
+    }
+    
+    const userId = parseInt(req.params.id, 10);
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+    
+    // Make sure the authenticated user exists and has an ID
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    // Parse authenticated user's ID for comparison
+    const authUserId = parseInt(req.user.id.toString(), 10);
+    if (isNaN(authUserId)) {
+      return res.status(400).json({ message: 'Invalid authenticated user ID' });
+    }
     
     // Only allow access to own organizations or if user is a supervisor or super_admin
-    if (req.user?.id !== userId && req.user?.role !== 'supervisor' && req.user?.role !== 'super_admin') {
+    if (authUserId !== userId && req.user.role !== 'supervisor' && req.user.role !== 'super_admin') {
       return res.status(403).json({ message: 'Forbidden: You can only view your own organizations' });
     }
     
@@ -552,7 +595,7 @@ export const getUserOrganizations = async (req: Request, res: Response) => {
 // Get organizations for the currently authenticated user
 export const getCurrentUserOrganizations = async (req: Request, res: Response) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
     
@@ -563,7 +606,13 @@ export const getCurrentUserOrganizations = async (req: Request, res: Response) =
     }
     
     // Otherwise, get user's organizations
-    const userOrgs = await storage.getUserOrganizations(req.user.id);
+    const userId = parseInt(req.user.id.toString(), 10);
+    if (isNaN(userId)) {
+      console.error('Invalid user ID in getCurrentUserOrganizations');
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    const userOrgs = await storage.getUserOrganizations(userId);
     
     // Get full organization details for each
     const organizations = await Promise.all(

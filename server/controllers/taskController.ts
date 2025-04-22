@@ -26,9 +26,12 @@ export const getAllTasks = async (req: Request, res: Response) => {
     
     // If user is authenticated, get their organizations
     let userOrganizations: number[] = [];
-    if (req.user) {
-      const orgUsers = await storage.getUserOrganizations(req.user.id);
-      userOrganizations = orgUsers.map(ou => ou.organizationId);
+    if (req.user && req.user.id) {
+      const userId = parseInt(req.user.id.toString(), 10);
+      if (!isNaN(userId)) {
+        const orgUsers = await storage.getUserOrganizations(userId);
+        userOrganizations = orgUsers.map(ou => ou.organizationId);
+      }
     }
     
     // Specific organization ID was provided in the query
@@ -119,8 +122,13 @@ export const getTaskById = async (req: Request, res: Response) => {
     }
     
     // Check if the user has access to the task's organization
-    if (req.user && req.user.role !== 'super_admin') {
-      const orgUsers = await storage.getUserOrganizations(req.user.id);
+    if (req.user && req.user.role !== 'super_admin' && req.user.id) {
+      const userId = parseInt(req.user.id.toString(), 10);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+      
+      const orgUsers = await storage.getUserOrganizations(userId);
       const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
       
       // If the task's project is not in the user's organizations, deny access
@@ -484,9 +492,15 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
         
         return task;
       })).then(results => results.filter(task => task !== null));
-    } else if (req.user) {
+    } else if (req.user && req.user.id) {
       // If no specific org ID requested but user is authenticated (and not super_admin), filter by user's organizations
-      const orgUsers = await storage.getUserOrganizations(req.user.id);
+      const userId = parseInt(req.user.id.toString(), 10);
+      if (isNaN(userId)) {
+        console.error('Invalid user ID in getTaskPayableReport');
+        return res.status(400).json({ message: 'Invalid user ID' });
+      }
+      
+      const orgUsers = await storage.getUserOrganizations(userId);
       const userOrganizationIds = orgUsers.map(ou => ou.organizationId);
       
       // Filter tasks by user's organizations
