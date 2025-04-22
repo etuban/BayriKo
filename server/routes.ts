@@ -9,6 +9,7 @@ import * as taskController from './controllers/taskController';
 import * as projectController from './controllers/projectController';
 import * as notificationController from './controllers/notificationController';
 import * as organizationController from './controllers/organizationController';
+import * as invitationController from './controllers/invitationController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
@@ -103,6 +104,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/organizations', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.createOrganization);
   app.put('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.updateOrganization);
   app.delete('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin']), organizationController.deleteOrganization);
+  
+  // Invitation link routes
+  app.post('/api/invitations', authenticateUser, authorizeRole(['super_admin', 'supervisor']), invitationController.createInvitationLink);
+  app.get('/api/organizations/:id/invitations', authenticateUser, invitationController.getOrganizationInvitationLinks);
+  app.delete('/api/invitations/:id', authenticateUser, invitationController.deleteInvitationLink);
+  
+  // Public invitation validation routes (no auth required)
+  app.get('/api/invitations/validate/:token', invitationController.validateInvitationToken);
+  app.post('/api/invitations/use/:token', invitationController.useInvitationLink);
 
   // Run database migrations
   try {

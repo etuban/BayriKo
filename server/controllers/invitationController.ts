@@ -119,15 +119,15 @@ export const deleteInvitationLink = async (req: Request, res: Response) => {
     const linkId = parseInt(req.params.id);
     
     // Get the invitation link
-    const link = await db.select().from(invitationLinks).where(eq(invitationLinks.id, linkId)).limit(1);
-    if (!link || link.length === 0) {
+    const link = await storage.getInvitationLinkById(linkId);
+    if (!link) {
       return res.status(404).json({ message: 'Invitation link not found' });
     }
     
     // If user is not super_admin, verify they are the creator or a supervisor in this organization
     if (req.user?.role !== 'super_admin') {
-      const isCreator = link[0].createdById === req.user?.id;
-      const orgUser = await storage.getUserRoleInOrganization(req.user?.id || 0, link[0].organizationId);
+      const isCreator = link.createdById === req.user?.id;
+      const orgUser = await storage.getUserRoleInOrganization(req.user?.id || 0, link.organizationId);
       
       if (!isCreator && (!orgUser || orgUser !== 'supervisor')) {
         return res.status(403).json({

@@ -46,6 +46,7 @@ export interface IStorage {
   
   // Invitation links methods
   createInvitationLink(invitation: InsertInvitationLink): Promise<InvitationLink>;
+  getInvitationLinkById(id: number): Promise<InvitationLink | undefined>;
   getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined>;
   getInvitationLinksByOrganization(organizationId: number): Promise<InvitationLink[]>;
   updateInvitationLink(id: number, data: Partial<InvitationLink>): Promise<InvitationLink | undefined>;
@@ -763,6 +764,14 @@ export class DatabaseStorage implements IStorage {
       .values(invitation)
       .returning();
     return newInvitation;
+  }
+  
+  async getInvitationLinkById(id: number): Promise<InvitationLink | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(invitationLinks)
+      .where(eq(invitationLinks.id, id));
+    return invitation;
   }
   
   async getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined> {

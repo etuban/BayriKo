@@ -1,65 +1,48 @@
-/**
- * List of Philippine barangay names for random organization generation
- */
-export const barangayNames = [
-  "San Antonio",
-  "San Jose",
-  "San Isidro",
-  "San Miguel",
-  "San Roque",
-  "San Pedro",
-  "San Pablo",
-  "San Juan",
-  "San Rafael",
-  "Santa Maria",
-  "Santo Niño",
-  "Santa Cruz",
-  "Santo Tomas",
-  "Santa Rosa",
-  "Santa Ana",
-  "Santo Domingo",
-  "San Nicolas",
-  "San Francisco",
-  "San Vicente",
-  "San Agustin",
-  "Poblacion",
-  "Mabini",
-  "Rizal",
-  "Buena Vista",
-  "Bagong Silang",
-  "Malibay",
-  "Pinagkaisahan",
-  "Pinagbuhatan",
-  "Malanday",
-  "Manggahan",
-  "Maybunga",
-  "Commonwealth",
-  "Batasan Hills",
-  "Holy Spirit",
-  "Payatas",
-  "Kamuning",
-  "Diliman",
-  "Pansol",
-  "Masambong",
-  "Pasong Tamo",
-  "BF Homes",
-  "Greenhills",
-  "Moonwalk",
-  "Sun Valley",
-  "Don Bosco",
-  "Fortune",
-  "Ususan",
-  "Western Bicutan",
-  "Pembo",
-  "Comembo"
+// List of Barangay names in the Philippines (subset)
+const barangayNames = [
+  'Poblacion', 'San Jose', 'San Isidro', 'San Antonio', 'Santo Niño', 
+  'Santa Cruz', 'Santa Maria', 'San Pedro', 'San Miguel', 'San Roque',
+  'Malabon', 'Marikina', 'Mandaluyong', 'Makati', 'Pasay', 'Pasig',
+  'Greenhills', 'Bagong Silang', 'Batasan Hills', 'Commonwealth',
+  'Payatas', 'Fairview', 'North Fairview', 'South Fairview', 'Novaliches',
+  'Tondo', 'Sampaloc', 'Quiapo', 'Intramuros', 'Malate', 'Ermita',
+  'Paco', 'Pandacan', 'Santa Ana', 'San Andres', 'Santa Mesa',
+  'Cubao', 'Kamias', 'Kamuning', 'Galas', 'Santol', 'Valencia',
+  'Barangka', 'Malanday', 'Concepcion', 'Barangka Ilaya', 'Addition Hills',
+  'Plainview', 'Barangka Itaas', 'San Joaquin', 'Daang Bakal', 'Hagdang Bato',
+  'Hulo', 'Mabini-J. Rizal', 'Malamig', 'Barangay Heights', 'New Zaniga',
+  'Vergara', 'Wack-Wack Greenhills', 'Highway Hills', 'Burol', 'Pagasa',
+  'Talon', 'BF Homes', 'Moonwalk', 'Don Bosco', 'Sun Valley',
+  'Parañaque', 'Las Piñas', 'Muntinlupa', 'Taguig', 'Pateros',
+  'Caloocan', 'Malabon', 'Navotas', 'Valenzuela'
+];
+
+// List of descriptive prefixes for organization names
+const orgPrefixes = [
+  'United', 'Progressive', 'New', 'Modern', 'Integrated', 
+  'Advanced', 'Metro', 'Global', 'Pacific', 'Philippine',
+  'East', 'West', 'North', 'South', 'Central',
+  'Golden', 'Silver', 'Platinum', 'Royal', 'Premium',
+  'Elite', 'Prime', 'Superior', 'Pioneer', 'Innovative'
+];
+
+// List of organization types
+const orgTypes = [
+  'Cooperative', 'Association', 'Group', 'Organization', 'Development Council',
+  'Foundation', 'Industries', 'Enterprises', 'Solutions', 'Services',
+  'Corporation', 'Company', 'Partners', 'Consultants', 'Professionals',
+  'Network', 'Alliance', 'Ventures', 'Builders', 'Community'
 ];
 
 /**
- * Generate a random barangay-based organization name
+ * Generates a random organization name based on Philippine barangay naming patterns
+ * Format: [Prefix] [Barangay Name] [Type]
+ * Examples: "United Poblacion Cooperative", "Progressive San Jose Enterprises"
  */
 export function generateRandomBarangayOrgName(): string {
+  const randomPrefix = orgPrefixes[Math.floor(Math.random() * orgPrefixes.length)];
   const randomBarangay = barangayNames[Math.floor(Math.random() * barangayNames.length)];
-  const randomNumber = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+  const randomType = orgTypes[Math.floor(Math.random() * orgTypes.length)];
   
-  return `Barangay ${randomBarangay} ${randomNumber}`;
+  return `${randomPrefix} ${randomBarangay} ${randomType}`;
 }
