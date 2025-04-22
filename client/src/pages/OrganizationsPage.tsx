@@ -1,45 +1,27 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Search, 
-  Building, 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  AlertCircle, 
-  Users, 
-  Briefcase 
-} from 'lucide-react';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Loader2, Plus, Pencil, Trash2, Building2, Users, Briefcase } from 'lucide-react';
 import { z } from 'zod';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-// Define types for Organization
+// Define the Organization interface
 interface Organization {
   id: number;
   name: string;
   description?: string;
-  logo?: string;
+  logoUrl?: string;
   address?: string;
   phone?: string;
   email?: string;
@@ -50,508 +32,504 @@ interface Organization {
   projectCount?: number;
 }
 
-// Form validation schema for organization
+// Define the form schema
 const organizationFormSchema = z.object({
-  name: z.string().min(3, 'Organization name must be at least 3 characters'),
+  name: z.string().min(2, "Name must be at least 2 characters"),
   description: z.string().optional(),
+  logoUrl: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email('Please enter a valid email').optional().or(z.literal('')),
-  website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  email: z.string().email("Must be a valid email").optional(),
+  website: z.string().url("Must be a valid URL").optional().or(z.literal(''))
 });
 
 type OrganizationFormValues = z.infer<typeof organizationFormSchema>;
 
 export default function OrganizationsPage() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
-  
-  // Form setup
-  const form = useForm<OrganizationFormValues>({
+
+  // Fetch organizations
+  const { data: organizations, isLoading } = useQuery<Organization[]>({
+    queryKey: ['/api/organizations'],
+    refetchOnWindowFocus: false,
+  });
+
+  // Create form
+  const createForm = useForm<OrganizationFormValues>({
     resolver: zodResolver(organizationFormSchema),
     defaultValues: {
       name: '',
       description: '',
+      logoUrl: '',
       address: '',
       phone: '',
       email: '',
       website: '',
-    }
+    },
   });
-  
-  // Load organizations
-  const { data: organizations = [], isLoading, error } = useQuery<Organization[]>({
-    queryKey: ['/api/organizations'],
+
+  // Edit form
+  const editForm = useForm<OrganizationFormValues>({
+    resolver: zodResolver(organizationFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      logoUrl: '',
+      address: '',
+      phone: '',
+      email: '',
+      website: '',
+    },
   });
-  
-  // Filter organizations by search
-  const filteredOrganizations = organizations.filter(org => 
-    org.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (org.description && org.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-  
-  // Create organization mutation
+
+  // Create mutation
   const createMutation = useMutation({
     mutationFn: async (orgData: OrganizationFormValues) => {
-      const res = await apiRequest('POST', '/api/organizations', orgData);
-      return res.json();
+      const res = await apiRequest("POST", "/api/organizations", orgData);
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      setCreateDialogOpen(false);
+      createForm.reset();
       toast({
-        title: 'Success',
-        description: 'Organization created successfully',
+        title: "Organization created",
+        description: "The organization has been successfully created.",
       });
-      setIsAddDialogOpen(false);
-      form.reset();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create organization',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to create organization: ${error.message}`,
+        variant: "destructive",
       });
-    }
+    },
   });
-  
-  // Update organization mutation
+
+  // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, orgData }: { id: number, orgData: Partial<OrganizationFormValues> }) => {
-      const res = await apiRequest('PUT', `/api/organizations/${id}`, orgData);
-      return res.json();
+    mutationFn: async (orgData: OrganizationFormValues & { id: number }) => {
+      const { id, ...data } = orgData;
+      const res = await apiRequest("PUT", `/api/organizations/${id}`, data);
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      setEditDialogOpen(false);
+      editForm.reset();
       toast({
-        title: 'Success',
-        description: 'Organization updated successfully',
+        title: "Organization updated",
+        description: "The organization has been successfully updated.",
       });
-      setIsEditDialogOpen(false);
-      setSelectedOrganization(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update organization',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to update organization: ${error.message}`,
+        variant: "destructive",
       });
-    }
+    },
   });
-  
-  // Delete organization mutation
+
+  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest('DELETE', `/api/organizations/${id}`, {});
+      await apiRequest("DELETE", `/api/organizations/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+      setDeleteDialogOpen(false);
       toast({
-        title: 'Success',
-        description: 'Organization deleted successfully',
+        title: "Organization deleted",
+        description: "The organization has been successfully deleted.",
       });
-      setIsDeleteDialogOpen(false);
-      setSelectedOrganization(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete organization. Make sure there are no users or projects associated with this organization.',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to delete organization: ${error.message}`,
+        variant: "destructive",
       });
-    }
+    },
   });
-  
-  // Handle form submission
+
+  // Handle form submissions
   const handleCreateOrganization = (data: OrganizationFormValues) => {
     createMutation.mutate(data);
   };
-  
+
   const handleUpdateOrganization = (data: OrganizationFormValues) => {
-    if (!selectedOrganization) return;
-    updateMutation.mutate({ id: selectedOrganization.id, orgData: data });
+    if (selectedOrganization) {
+      updateMutation.mutate({ ...data, id: selectedOrganization.id });
+    }
   };
-  
+
   const handleDeleteOrganization = () => {
-    if (!selectedOrganization) return;
-    deleteMutation.mutate(selectedOrganization.id);
+    if (selectedOrganization) {
+      deleteMutation.mutate(selectedOrganization.id);
+    }
   };
-  
-  // Open edit dialog and populate form
+
+  // Open edit dialog with organization data
   const openEditDialog = (organization: Organization) => {
     setSelectedOrganization(organization);
-    form.reset({
+    editForm.reset({
       name: organization.name,
       description: organization.description || '',
+      logoUrl: organization.logoUrl || '',
       address: organization.address || '',
       phone: organization.phone || '',
       email: organization.email || '',
       website: organization.website || '',
     });
-    setIsEditDialogOpen(true);
+    setEditDialogOpen(true);
   };
-  
+
   // Open delete dialog
   const openDeleteDialog = (organization: Organization) => {
     setSelectedOrganization(organization);
-    setIsDeleteDialogOpen(true);
+    setDeleteDialogOpen(true);
   };
-  
-  // Reset form when opening add dialog
-  const openAddDialog = () => {
-    form.reset({
-      name: '',
-      description: '',
-      address: '',
-      phone: '',
-      email: '',
-      website: '',
-    });
-    setIsAddDialogOpen(true);
-  };
-  
-  // Check if the current user can perform actions
-  const canManageOrgs = user?.role === 'super_admin' || user?.role === 'supervisor';
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-semibold mb-4 md:mb-0">Organizations</h1>
-        
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Search */}
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Search organizations..."
-              className="pl-10 pr-4 py-2"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-          </div>
-          
-          {/* Add Organization Button */}
-          {canManageOrgs && (
-            <Button 
-              onClick={openAddDialog}
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Organization
-            </Button>
-          )}
-        </div>
+    <div className="container p-4 mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Organizations</h1>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Organization
+        </Button>
       </div>
-      
-      {/* Organization List */}
-      {isLoading ? (
+
+      {organizations && organizations.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-[220px] w-full" />
-          ))}
-        </div>
-      ) : error ? (
-        <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
-          <p className="text-red-400">Error loading organizations. Please try again.</p>
-        </div>
-      ) : filteredOrganizations.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredOrganizations.map((org) => (
-            <Card key={org.id} className="bg-dark-surface border border-dark-border">
+          {organizations.map((org) => (
+            <Card key={org.id} className="overflow-hidden">
               <CardHeader className="pb-2">
-                <div className="flex items-center mb-2">
-                  <Building className="h-5 w-5 text-primary mr-2" />
-                  <CardTitle className="text-lg">{org.name}</CardTitle>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{org.name}</CardTitle>
+                    {org.website && (
+                      <CardDescription>
+                        <a 
+                          href={org.website.startsWith('http') ? org.website : `https://${org.website}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline"
+                        >
+                          {org.website}
+                        </a>
+                      </CardDescription>
+                    )}
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="icon" onClick={() => openEditDialog(org)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => openDeleteDialog(org)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                {org.description && (
-                  <CardDescription>{org.description}</CardDescription>
-                )}
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-gray-400">
+              <CardContent className="pb-2">
+                {org.description && <p className="text-sm text-muted-foreground mb-4">{org.description}</p>}
+                
+                <div className="flex flex-col space-y-2 text-sm">
                   {org.address && (
-                    <p>Address: {org.address}</p>
+                    <div className="flex items-center">
+                      <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{org.address}</span>
+                    </div>
                   )}
                   {org.phone && (
-                    <p>Phone: {org.phone}</p>
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <span>{org.phone}</span>
+                    </div>
                   )}
                   {org.email && (
-                    <p>Email: {org.email}</p>
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span>{org.email}</span>
+                    </div>
                   )}
-                  {org.website && (
-                    <p>Website: <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{org.website}</a></p>
-                  )}
-                </div>
-                <div className="flex items-center justify-between mt-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{org.userCount || 0} Users</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" />
-                    <span>{org.projectCount || 0} Projects</span>
-                  </div>
                 </div>
               </CardContent>
-              <CardFooter className="pt-0 flex justify-end gap-2">
-                {canManageOrgs && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openEditDialog(org)}
-                    >
-                      <Pencil className="w-4 h-4 mr-1" />
-                      Edit
-                    </Button>
-                    {user?.role === 'super_admin' && (
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => openDeleteDialog(org)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </Button>
-                    )}
-                  </>
-                )}
+              <CardFooter className="pt-2">
+                <div className="flex items-center space-x-4 w-full">
+                  <Badge variant="outline" className="flex items-center">
+                    <Users className="h-3 w-3 mr-1" />
+                    {org.userCount ?? 0} {org.userCount === 1 ? 'User' : 'Users'}
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center">
+                    <Briefcase className="h-3 w-3 mr-1" />
+                    {org.projectCount ?? 0} {org.projectCount === 1 ? 'Project' : 'Projects'}
+                  </Badge>
+                </div>
               </CardFooter>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
-          <p className="text-gray-400">No organizations found. {canManageOrgs ? 'Create a new organization to get started.' : ''}</p>
-        </div>
+        <Alert>
+          <AlertTitle>No organizations found</AlertTitle>
+          <AlertDescription>
+            You haven&apos;t created any organizations yet. 
+            Click the &quot;Add Organization&quot; button to create your first one.
+          </AlertDescription>
+        </Alert>
       )}
-      
-      {/* Add Organization Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="bg-dark-surface border border-dark-border">
+
+      {/* Create Organization Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>New Organization</DialogTitle>
-            <DialogDescription>Create a new organization for managing users and projects.</DialogDescription>
+            <DialogTitle>Create Organization</DialogTitle>
+            <DialogDescription>
+              Create a new organization to manage projects and users.
+            </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={form.handleSubmit(handleCreateOrganization)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Organization Name*</Label>
-              <Input 
-                id="name" 
-                {...form.register('name')}
-                className="bg-dark-bg"
-              />
-              {form.formState.errors.name && (
-                <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea 
-                id="description" 
-                {...form.register('description')}
-                className="bg-dark-bg"
-                rows={2}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input 
-                id="address" 
-                {...form.register('address')}
-                className="bg-dark-bg"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input 
-                  id="phone" 
-                  {...form.register('phone')}
-                  className="bg-dark-bg"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email"
-                  {...form.register('email')}
-                  className="bg-dark-bg"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-red-500 text-xs">{form.formState.errors.email.message}</p>
+          <Form {...createForm}>
+            <form onSubmit={createForm.handleSubmit(handleCreateOrganization)} className="space-y-4">
+              <FormField
+                control={createForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter organization name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input 
-                id="website" 
-                {...form.register('website')}
-                className="bg-dark-bg"
-                placeholder="https://example.com"
               />
-              {form.formState.errors.website && (
-                <p className="text-red-500 text-xs">{form.formState.errors.website.message}</p>
-              )}
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="secondary" 
-                onClick={() => setIsAddDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-primary hover:bg-primary/90"
-                disabled={createMutation.isPending}
-              >
-                {createMutation.isPending ? 'Creating...' : 'Create Organization'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <FormField
+                control={createForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Brief description of your organization" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={createForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Organization address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={createForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Contact phone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Contact email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={createForm.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the full URL including http:// or https://
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button variant="outline" type="button" onClick={() => setCreateDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createMutation.isPending}>
+                  {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Create
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Organization Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-dark-surface border border-dark-border">
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Organization</DialogTitle>
-            <DialogDescription>Update organization details.</DialogDescription>
+            <DialogDescription>
+              Update the organization details.
+            </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={form.handleSubmit(handleUpdateOrganization)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Organization Name*</Label>
-              <Input 
-                id="name" 
-                {...form.register('name')}
-                className="bg-dark-bg"
-              />
-              {form.formState.errors.name && (
-                <p className="text-red-500 text-xs">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea 
-                id="description" 
-                {...form.register('description')}
-                className="bg-dark-bg"
-                rows={2}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input 
-                id="address" 
-                {...form.register('address')}
-                className="bg-dark-bg"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input 
-                  id="phone" 
-                  {...form.register('phone')}
-                  className="bg-dark-bg"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email"
-                  {...form.register('email')}
-                  className="bg-dark-bg"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-red-500 text-xs">{form.formState.errors.email.message}</p>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleUpdateOrganization)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter organization name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input 
-                id="website" 
-                {...form.register('website')}
-                className="bg-dark-bg"
-                placeholder="https://example.com"
               />
-              {form.formState.errors.website && (
-                <p className="text-red-500 text-xs">{form.formState.errors.website.message}</p>
-              )}
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="secondary" 
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-primary hover:bg-primary/90"
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending ? 'Updating...' : 'Update Organization'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <FormField
+                control={editForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Brief description of your organization" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Organization address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Contact phone" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Contact email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={editForm.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the full URL including http:// or https://
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Update
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
-      
-      {/* Delete Organization Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-dark-surface border border-dark-border">
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <div className="flex items-center mb-2">
-              <AlertCircle className="h-6 w-6 text-red-500 mr-2" />
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-gray-300">
-              Are you sure you want to delete the organization "{selectedOrganization?.name}"? This action cannot be undone.
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the organization
+              {selectedOrganization?.name && ` "${selectedOrganization.name}"`}.
               <br /><br />
-              <strong className="text-yellow-400">Note:</strong> You cannot delete an organization that has users or projects associated with it. Remove or reassign all users and projects first.
+              <strong>Note:</strong> You can only delete organizations with no users or projects.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel asChild>
-              <Button variant="secondary">Cancel</Button>
-            </AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteOrganization}
-                disabled={deleteMutation.isPending}
-              >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-              </Button>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteOrganization} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
