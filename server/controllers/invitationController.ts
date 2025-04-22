@@ -72,7 +72,15 @@ export const createInvitationLink = async (req: Request, res: Response) => {
  */
 export const getOrganizationInvitationLinks = async (req: Request, res: Response) => {
   try {
-    const organizationId = parseInt(req.params.organizationId);
+    // The route parameter is 'id', not 'organizationId'
+    const organizationId = parseInt(req.params.id);
+    
+    if (isNaN(organizationId)) {
+      console.error(`Invalid organization ID: ${req.params.id}`);
+      return res.status(400).json({ message: 'Invalid organization ID' });
+    }
+    
+    console.log(`Getting invitation links for organization ID: ${organizationId}`);
     
     // Check if the user has permission to view invitation links for this organization
     const user = req.user;

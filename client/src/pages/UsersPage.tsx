@@ -140,8 +140,16 @@ export default function UsersPage() {
     queryKey: ['/api/organizations', user?.currentOrganizationId, 'invitations'],
     queryFn: async () => {
       if (!user?.currentOrganizationId) return [];
-      const res = await apiRequest('GET', `/api/organizations/${user.currentOrganizationId}/invitations`);
-      return res.json();
+      console.log(`Fetching invitations for organization: ${user.currentOrganizationId}`);
+      try {
+        const res = await apiRequest('GET', `/api/organizations/${user.currentOrganizationId}/invitations`);
+        const data = await res.json();
+        console.log('Invitation data:', data);
+        return data;
+      } catch (error) {
+        console.error('Error fetching invitations:', error);
+        return [];
+      }
     },
     enabled: !!user && (user.role === 'super_admin' || user.role === 'supervisor') && !!user.currentOrganizationId,
   });
