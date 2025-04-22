@@ -227,10 +227,23 @@ export default function UsersPage() {
   // Create invitation link mutation
   const createInvitationMutation = useMutation({
     mutationFn: async (data: z.infer<typeof invitationLinkSchema>) => {
-      const res = await apiRequest('POST', '/api/invitations', data);
-      return res.json();
+      try {
+        console.log('Making API request with data:', data);
+        const res = await apiRequest('POST', '/api/invitations', data);
+        console.log('API response status:', res.status);
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error('API error:', errorData);
+          throw new Error(errorData.message || 'Failed to create invitation link');
+        }
+        return res.json();
+      } catch (error) {
+        console.error('Invitation creation error:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Invitation created successfully:', data);
       queryClient.invalidateQueries({ 
         queryKey: ['/api/organizations', user?.currentOrganizationId, 'invitations'] 
       });
@@ -248,6 +261,7 @@ export default function UsersPage() {
       });
     },
     onError: (error: any) => {
+      console.error('Mutation error handler:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to create invitation link',
@@ -286,6 +300,7 @@ export default function UsersPage() {
 
   // Handle invitation link creation
   const handleCreateInvitation = (data: z.infer<typeof invitationLinkSchema>) => {
+    console.log('Submitting invitation data:', data);
     createInvitationMutation.mutate(data);
   };
 
