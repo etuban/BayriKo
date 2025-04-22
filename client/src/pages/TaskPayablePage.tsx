@@ -144,7 +144,7 @@ export default function TaskPayablePage() {
         <div class="container">
           ${contentToPrint.innerHTML}
           <div class="footer">
-            <p>This PDF Invoice is generated through <a href="https://bayadmn.pawn.media" style="color: blue; text-decoration: underline;">BayadMn</a></p>
+            <p>This PDF Invoice is generated through <a href="https://bayadmn.pawn.media" style="color: blue; text-decoration: underline;">BayriKo</a></p>
             <div style="margin-top: 5px;">
               <a href="https://bayadmn.pawn.media">
                 <div className="bg-primary p-2 rounded-md">
@@ -439,7 +439,7 @@ export default function TaskPayablePage() {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     // Add footer text with URL below the icon
-    const footerText = "This PDF Invoice is generated through BayadMn";
+    const footerText = "This PDF Invoice is generated through BayriKo";
     const textWidth = doc.getTextWidth(footerText);
     const textX = (pageWidth - textWidth) / 2.05;
     doc.setTextColor(0, 0, 0); // Black text

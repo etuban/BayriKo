@@ -272,7 +272,7 @@ export function PayableTaskTable({
             href="https://bayadmn.pawn.media"
             style={{ color: "blue", textDecoration: "underline" }}
           >
-            BayadMn
+            BayriKo
           </a>
         </p>
       </div>

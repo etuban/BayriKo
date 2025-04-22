@@ -246,7 +246,7 @@ export default function LoginPage() {
             />
           </div>
           <CardTitle className="text-2xl font-bold text-center">
-            BayadMin
+            BayriKo
           </CardTitle>
           <CardDescription className="text-center">
             Your Task to Invoice tool

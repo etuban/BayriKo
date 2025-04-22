@@ -129,7 +129,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
         <div className="bg-primary p-2 rounded-md">
           <GiReceiveMoney className="w-6 h-6 text-white" />
         </div>
-        {(!collapsed || mobile) && <h1 className="ml-3 text-xl font-semibold">BayadMin</h1>}
+        {(!collapsed || mobile) && <h1 className="ml-3 text-xl font-semibold">BayriKo</h1>}
       </div>
       
       {/* Navigation Items */}

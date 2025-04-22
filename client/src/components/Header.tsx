@@ -52,7 +52,7 @@ export function Header() {
       case '/settings':
         return 'Settings';
       default:
-        return 'BayadMin';
+        return 'BayriKo';
     }
   };
   
