@@ -12,30 +12,47 @@ export const authenticateUser = async (
   done: (error: any, user?: any, options?: { message: string }) => void
 ) => {
   try {
+    console.log(`[AUTH] Login attempt for email: ${email}`);
     const user = await storage.validateUserPassword(email, password);
     
     if (!user) {
+      console.log(`[AUTH] Invalid credentials for email: ${email}`);
       return done(null, false, { message: 'Invalid email or password' });
     }
+    
+    console.log(`[AUTH] Successful authentication for user: ${user.username} (${user.id})`);
     
     // Remove password from user object before serialization
     const { password: _, ...userWithoutPassword } = user;
     
     return done(null, userWithoutPassword);
   } catch (error) {
+    console.error('[AUTH] Error during authentication:', error);
     return done(error);
   }
 };
 
 export const login = (req: Request, res: Response) => {
-  // Passport.authenticate already validated the user
-  // Return the user without password
-  const { password, ...userWithoutPassword } = req.user as User;
+  // Log the authentication state
+  console.log(`[LOGIN] Authentication state: ${req.isAuthenticated()}`);
+  console.log(`[LOGIN] Session ID: ${req.sessionID}`);
   
-  res.status(200).json({
-    message: 'Login successful',
-    user: userWithoutPassword
-  });
+  // Check if req.user exists and log details
+  if (req.user) {
+    console.log(`[LOGIN] User successfully authenticated: ${(req.user as User).username} (${(req.user as User).id})`);
+    // Return the user without password
+    const { password, ...userWithoutPassword } = req.user as User;
+    
+    res.status(200).json({
+      message: 'Login successful',
+      user: userWithoutPassword
+    });
+  } else {
+    console.error('[LOGIN] req.user is undefined after passport.authenticate');
+    res.status(500).json({
+      message: 'Authentication failure: User data missing after login'
+    });
+  }
 };
 
 export const register = async (req: Request, res: Response) => {
@@ -203,10 +220,15 @@ export const logout = (req: Request, res: Response) => {
 };
 
 export const getSession = (req: Request, res: Response) => {
+  console.log(`[SESSION] Session ID: ${req.sessionID}`);
+  console.log(`[SESSION] Is authenticated: ${req.isAuthenticated()}`);
+  
   if (!req.isAuthenticated()) {
+    console.log('[SESSION] User not authenticated, returning 401');
     return res.status(401).json({ authenticated: false });
   }
   
+  console.log(`[SESSION] User authenticated: ${(req.user as any).username} (${(req.user as any).id})`);
   res.status(200).json({
     authenticated: true,
     user: req.user
