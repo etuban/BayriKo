@@ -7,6 +7,7 @@ import {
   formatStatus,
   getStatusColor,
   formatPricing,
+  formatHours,
 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,7 +85,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
         className="task-row hover:bg-dark-border/30 cursor-pointer border-b border-dark-border last:border-b-0"
         onClick={() => openDrawer("view", task.id)}
       >
-        <td className="px-6 py-4 whitespace-nowrap" colspan="2">
+        <td className="px-6 py-4 whitespace-nowrap" colSpan={2}>
           <div className="flex items-center">
             <div className="ml-4">
               <div className="text-sm font-medium">{task.title}</div>
@@ -132,7 +133,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
           </span>
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm">
-          {formatPricing(task)}
+          {formatHours(task)}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
           {canEdit(task) && (
@@ -203,7 +204,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
                 <thead>
                   <tr className="border-t border-b border-dark-border bg-dark-surface/80">
                     <th
-                      colspan="2"
+                      colSpan={2}
                       className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
                     >
                       Task
@@ -218,7 +219,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Price
+                      Hours
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Actions

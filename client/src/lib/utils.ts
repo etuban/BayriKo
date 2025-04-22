@@ -120,6 +120,31 @@ export function formatPricing(task: { pricingType: string, hourlyRate?: number, 
   return 'N/A';
 }
 
+// Format hours display
+export function formatHours(task: { 
+  startDate?: string | Date, 
+  endDate?: string | Date,
+  startTime?: string,
+  endTime?: string,
+  pricingType?: string
+}): string {
+  if (!task.startDate || !task.endDate) {
+    return 'N/A';
+  }
+  
+  if (task.pricingType === 'fixed') {
+    return 'Fixed Price';
+  }
+  
+  const hours = calculateHours(task.startDate, task.endDate, task.startTime, task.endTime);
+  
+  if (hours <= 0) {
+    return 'N/A';
+  }
+  
+  return `${hours} hr${hours !== 1 ? 's' : ''}`;
+}
+
 // Status color mapping
 export function getStatusColor(status: string): { bg: string, text: string } {
   switch (status) {
