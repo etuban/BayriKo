@@ -91,7 +91,7 @@ export interface IStorage {
   getTaskById(id: number): Promise<Task | undefined>;
   updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
-  getAllTasks(filters?: { projectId?: number, assignedToId?: number, status?: string, search?: string }): Promise<Task[]>;
+  getAllTasks(filters?: { projectId?: number, projectIds?: number[], assignedToId?: number, status?: string, search?: string }): Promise<Task[]>;
   getTasksForPayable(startDate?: Date, endDate?: Date, projectId?: number, userId?: number, userRole?: string): Promise<Task[]>;
 
   // Task comments methods
@@ -606,7 +606,7 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  async getAllTasks(filters?: { projectId?: number, assignedToId?: number, status?: string, search?: string }): Promise<Task[]> {
+  async getAllTasks(filters?: { projectId?: number, projectIds?: number[], assignedToId?: number, status?: string, search?: string }): Promise<Task[]> {
     // Build query conditions
     const conditions = [];
     

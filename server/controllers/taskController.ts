@@ -616,3 +616,54 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+/**
+ * Get tasks for project comparison
+ */
+export const getTasksForComparison = async (req: Request, res: Response) => {
+  try {
+    // Get the user's organization ID
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    const userOrgs = await storage.getUserOrganizations(user.id);
+    if (!userOrgs || userOrgs.length === 0) {
+      return res.status(403).json({ message: 'User does not belong to any organization' });
+    }
+    
+    const organizationId = userOrgs[0].organizationId;
+    
+    // Get project IDs from query params
+    const projectIds = req.query.projectIds as string[];
+    
+    if (!projectIds || projectIds.length === 0) {
+      return res.status(400).json({ message: 'No project IDs provided' });
+    }
+    
+    // Convert project IDs to numbers
+    const projectIdNumbers = projectIds.map(id => parseInt(id));
+    
+    // Validate that all projects belong to the user's organization
+    const projects = await storage.getProjectsForOrganization(organizationId);
+    const validProjectIds = projects.map(p => p.id);
+    
+    const invalidProjectIds = projectIdNumbers.filter(id => !validProjectIds.includes(id));
+    if (invalidProjectIds.length > 0) {
+      return res.status(403).json({ 
+        message: 'Some projects do not belong to your organization',
+        invalidProjectIds
+      });
+    }
+    
+    // Get tasks for all projects
+    const tasks = await storage.getAllTasks({ projectIds: projectIdNumbers });
+    
+    // Return tasks
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error('Error getting tasks for comparison:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
