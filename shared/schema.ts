@@ -117,6 +117,7 @@ export const invitationLinks = pgTable("invitation_links", {
   createdById: integer("created_by_id").notNull().references(() => users.id),
   token: text("token").notNull().unique(),
   role: text("role", { enum: userRoles }).notNull().default("staff"),
+  message: text("message").notNull().default("You've been invited to join our organization."),
   expires: timestamp("expires"),
   maxUses: integer("max_uses"),
   usedCount: integer("used_count").notNull().default(0),
