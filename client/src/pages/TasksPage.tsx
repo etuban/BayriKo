@@ -19,7 +19,7 @@ export default function TasksPage() {
 
   // Load user's organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
-    queryKey: ['/api/users/organizations'],
+    queryKey: ['/api/users/organizations/current'],
     enabled: !!user,
   });
   

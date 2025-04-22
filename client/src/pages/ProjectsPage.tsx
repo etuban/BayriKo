@@ -47,7 +47,7 @@ export default function ProjectsPage() {
   
   // Load user's organizations
   const { data: organizations = [], isLoading: orgsLoading } = useQuery<Organization[]>({
-    queryKey: ['/api/users/organizations'],
+    queryKey: ['/api/users/organizations/current'],
   });
   
   // Set default organization based on user's current organization if available

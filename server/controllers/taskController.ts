@@ -45,7 +45,7 @@ export const getAllTasks = async (req: Request, res: Response) => {
     // Specific organization ID was provided in the query
     const requestedOrgId = organizationId 
       ? parseInt(organizationId as string)
-      : null;
+      : undefined;
     
     // Get all projects to filter tasks by organization
     const allProjects = await storage.getAllProjects();
