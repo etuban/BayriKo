@@ -13,6 +13,9 @@ export default {
       '2xl': '1536px',
     },
     extend: {
+      fontFamily: {
+        specialGothic: ['"Special Gothic Expanded One"', 'sans-serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

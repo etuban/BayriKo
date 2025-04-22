@@ -235,20 +235,23 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-xl bg-background border-border">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          <CardTitle className="text-4xl font-bold text-center mb-8">
-            BayRiko
+          <CardTitle className="text-4xl font-bold text-center mt-4">
+            BAYRIKO
           </CardTitle>
-          <CardDescription className="text-center mt-8">
+          <CardDescription className="text-center text-2xl mb-4">
             Your Bay That Pays.
           </CardDescription>
-          <div className="flex items-center justify-center m-8 mb-8 overflow-hidden rounded-lg">
+          <p>&nbsp;</p>
+          <div className="flex items-center justify-center m-8 mb-8 overflow-hidden rounded-xl">
             <img
               src="https://pawn.media/bayriko/kyawil.jpg"
               alt="Koya Wel"
               width="100%"
             />
           </div>
-          <p>"Magbabayad ka ba or papapulis kita?"</p>
+          <div className="text-center text-lg mt-8 mb-8">
+            "Magbabayad ka ba or papapulis kita?"
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs
