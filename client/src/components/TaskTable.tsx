@@ -36,13 +36,16 @@ export function TaskTable({ tasks }: TaskTableProps) {
 
   // Check if user can edit/delete based on role and ownership
   const canEdit = (task: Task) => {
-    if (user?.role === "supervisor" || user?.role === "team_lead") return true;
-    return user?.role === "staff" && task.assignedToId === user?.id;
+    if (!user) return false;
+    if (user.role === "super_admin" || user.role === "supervisor" || user.role === "team_lead") return true;
+    return user.role === "staff" && task.assignedToId === user.id;
   };
 
   const canDelete = (task: Task) => {
-    if (user?.role === "supervisor") return true;
-    return user?.role === "staff" && task.assignedToId === user?.id;
+    if (!user) return false;
+    if (user.role === "super_admin" || user.role === "supervisor") return true;
+    if (user.role === "team_lead" && task.createdById === user.id) return true;
+    return user.role === "staff" && task.assignedToId === user.id;
   };
 
   // Group tasks by project
