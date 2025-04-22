@@ -1,147 +1,157 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
-export type Option = {
+export interface Option {
   value: string;
   label: string;
-};
+}
 
-type MultiSelectProps = {
+interface MultiSelectProps {
   options: Option[];
   value: string[];
-  onChange: (value: string[]) => void;
+  onChange: (selectedValues: string[]) => void;
   placeholder?: string;
   className?: string;
   maxItems?: number;
-  disabled?: boolean;
-};
+}
 
 export function MultiSelect({
   options,
   value,
   onChange,
-  placeholder = "Select options...",
-  className = "",
+  placeholder = "Select items...",
+  className,
   maxItems,
-  disabled = false
 }: MultiSelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const commandRef = useRef<HTMLDivElement>(null);
 
+  // Handler for clicking on an option
+  const handleSelect = (selectedValue: string) => {
+    const newValues = value.includes(selectedValue)
+      ? value.filter(v => v !== selectedValue)
+      : [...value, selectedValue];
+    
+    // Check if we're under the maxItems limit or if we're removing an item
+    if (!maxItems || newValues.length <= maxItems || newValues.length < value.length) {
+      onChange(newValues);
+    }
+  };
+
+  // Handler for removing a selected item via the badge's X button
+  const handleRemove = (selectedValue: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(value.filter(v => v !== selectedValue));
+  };
+
+  // Get labels for the selected values
+  const selectedLabels = value.map(v => {
+    const option = options.find(opt => opt.value === v);
+    return option ? option.label : v;
+  });
+
+  // Filter options based on search value
   const filteredOptions = options.filter(option => 
-    option.label.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !value.includes(option.value)
+    option.label.toLowerCase().includes(searchValue.toLowerCase())
   );
 
-  const selectedOptions = value
-    .map(v => options.find(option => option.value === v))
-    .filter(Boolean) as Option[];
-
-  const hasReachedMaxItems = maxItems ? value.length >= maxItems : false;
-
+  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+      if (
+        open && 
+        buttonRef.current && 
+        !buttonRef.current.contains(e.target as Node) &&
+        commandRef.current && 
+        !commandRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
-
-  const toggleOption = (option: Option) => {
-    if (value.includes(option.value)) {
-      onChange(value.filter(v => v !== option.value));
-    } else {
-      if (maxItems && value.length >= maxItems) return;
-      onChange([...value, option.value]);
-    }
-  };
-
-  const removeOption = (option: Option, e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange(value.filter(v => v !== option.value));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !searchTerm && selectedOptions.length > 0) {
-      onChange(value.slice(0, -1));
-    }
-  };
+  }, [open]);
 
   return (
-    <div 
-      ref={containerRef}
-      className={`relative w-full ${className}`}
-      onClick={() => !disabled && setIsOpen(true)}
-    >
-      <div 
-        className={`border rounded-md p-1.5 min-h-10 flex flex-wrap gap-1 ${
-          isOpen ? 'ring-2 ring-primary/50 border-primary' : 'border-input'
-        } ${disabled ? 'bg-muted cursor-not-allowed' : 'cursor-pointer'}`}
-      >
-        {selectedOptions.length === 0 && !searchTerm && (
-          <div className="text-muted-foreground py-0.5 px-1.5">
-            {placeholder}
-          </div>
-        )}
-        
-        {selectedOptions.map(option => (
-          <div 
-            key={option.value}
-            className="bg-primary/10 border border-primary/20 text-primary rounded-md px-2 py-0.5 flex items-center gap-1"
-          >
-            <span>{option.label}</span>
-            {!disabled && (
-              <X 
-                className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground cursor-pointer" 
-                onClick={(e) => removeOption(option, e)}
-              />
-            )}
-          </div>
-        ))}
-        
-        {isOpen && !hasReachedMaxItems && (
-          <input
-            type="text"
-            className="flex-1 outline-none bg-transparent min-w-[80px] py-0.5 px-1.5"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-          />
-        )}
-      </div>
-      
-      {isOpen && (
-        <div className="absolute z-50 mt-1 w-full bg-background border rounded-md shadow-md max-h-60 overflow-auto">
-          {filteredOptions.length === 0 ? (
-            <div className="p-2 text-center text-muted-foreground">
-              No options available
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          ref={buttonRef}
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn("w-full justify-between", className)}
+          onClick={() => setOpen(!open)}
+        >
+          {value.length > 0 ? (
+            <div className="flex flex-wrap gap-1 overflow-hidden">
+              {selectedLabels.map((label, i) => (
+                <Badge 
+                  key={i} 
+                  variant="secondary"
+                  className="flex items-center justify-between px-3 py-1"
+                >
+                  <span className="truncate max-w-[100px]">{label}</span>
+                  <button
+                    onClick={(e) => handleRemove(value[i], e)}
+                    className="ml-1 hover:bg-accent hover:text-accent-foreground rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
             </div>
           ) : (
-            filteredOptions.map(option => (
-              <div
-                key={option.value}
-                className="px-3 py-2 hover:bg-accent cursor-pointer flex items-center justify-between"
-                onClick={() => toggleOption(option)}
-              >
-                {option.label}
-                <div className="h-4 w-4 rounded-sm border flex items-center justify-center">
-                  {value.includes(option.value) && <Check className="h-3 w-3" />}
-                </div>
-              </div>
-            ))
+            <span className="text-muted-foreground">{placeholder}</span>
           )}
-        </div>
-      )}
-    </div>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0" align="start">
+        <Command ref={commandRef} filter={(value, search) => {
+          // We're handling the filtering ourselves
+          if (value.includes(search.toLowerCase())) return 1;
+          return 0;
+        }}>
+          <CommandInput 
+            placeholder="Search..." 
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
+          <CommandEmpty>No item found.</CommandEmpty>
+          <CommandGroup className="max-h-64 overflow-y-auto">
+            {filteredOptions.map((option) => (
+              <CommandItem
+                key={option.value}
+                value={option.label.toLowerCase()}
+                onSelect={() => handleSelect(option.value)}
+                disabled={maxItems ? value.length >= maxItems && !value.includes(option.value) : false}
+                className={cn(
+                  maxItems && value.length >= maxItems && !value.includes(option.value) ? 'opacity-50 cursor-not-allowed' : '',
+                )}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    value.includes(option.value) ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                {option.label}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

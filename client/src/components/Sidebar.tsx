@@ -78,6 +78,12 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       display: user?.role !== 'staff',
     },
     {
+      title: 'Project Comparison',
+      icon: <BarChart2 className="w-5 h-5 mr-3" />,
+      path: '/project-comparison',
+      display: user?.role !== 'staff',
+    },
+    {
       title: 'Organizations',
       icon: <Building className="w-5 h-5 mr-3" />,
       path: '/organizations',
