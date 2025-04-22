@@ -13,16 +13,24 @@ import * as invitationController from './controllers/invitationController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
+import connectPgSimple from 'connect-pg-simple';
+import { pool } from './db';
 
-// Create memory store for sessions
-const MemoryStoreSession = MemoryStore(session);
+// Create PostgreSQL session store
+const PgStore = connectPgSimple(session);
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Session setup
+  // Session setup with PostgreSQL store
   app.use(session({
-    cookie: { maxAge: 86400000 }, // 24 hours
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
+    cookie: { 
+      maxAge: 86400000, // 24 hours
+      secure: false,    // set to true in production with HTTPS
+      sameSite: 'lax'
+    },
+    store: new PgStore({
+      pool,
+      createTableIfMissing: true, // Create session table if it doesn't exist
+      tableName: 'session'        // Default table name
     }),
     resave: false,
     saveUninitialized: false,

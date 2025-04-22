@@ -193,12 +193,14 @@ export const createTask = async (req: Request, res: Response) => {
     const newTask = await storage.createTask(taskData);
     
     // Create task history for creation
-    await storage.createTaskHistory({
-      taskId: newTask.id,
-      userId: req.user.id,
-      action: 'created',
-      details: { task: newTask }
-    });
+    if (req.user) {
+      await storage.createTaskHistory({
+        taskId: newTask.id,
+        userId: req.user.id,
+        action: 'created',
+        details: { task: newTask }
+      });
+    }
     
     // Create notification for assigned user if any
     if (newTask.assignedToId) {
@@ -260,7 +262,7 @@ export const updateTask = async (req: Request, res: Response) => {
     }
     
     // Create task history entry for update
-    if (Object.keys(changes).length > 0) {
+    if (Object.keys(changes).length > 0 && req.user) {
       await storage.createTaskHistory({
         taskId,
         userId: req.user.id,
@@ -390,12 +392,14 @@ export const addTaskComment = async (req: Request, res: Response) => {
     const newComment = await storage.createTaskComment(commentData);
     
     // Create task history entry for comment
-    await storage.createTaskHistory({
-      taskId,
-      userId: req.user.id,
-      action: 'commented',
-      details: { commentId: newComment.id }
-    });
+    if (req.user) {
+      await storage.createTaskHistory({
+        taskId,
+        userId: req.user.id,
+        action: 'commented',
+        details: { commentId: newComment.id }
+      });
+    }
     
     // Create notification for task assignee if the commenter is not the assignee
     if (task.assignedToId && task.assignedToId !== req.user?.id) {
@@ -469,16 +473,17 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
     const orgId = organizationId ? parseInt(organizationId as string) : undefined;
     
     // Pass user role and id for staff permissions
-    let userId = null;
+    let userId: number | undefined = undefined;
     if (req.user && req.user.id) {
       try {
-        userId = typeof req.user.id === 'number' 
+        const parsedId = typeof req.user.id === 'number' 
           ? req.user.id 
           : parseInt(String(req.user.id), 10);
         
-        if (isNaN(userId)) {
+        if (!isNaN(parsedId)) {
+          userId = parsedId;
+        } else {
           console.error('Invalid user ID format in getTaskPayableReport');
-          userId = null;
         }
       } catch (error) {
         console.error('Error parsing user ID in getTaskPayableReport:', error);
