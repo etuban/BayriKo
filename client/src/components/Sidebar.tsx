@@ -80,7 +80,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: 'Organizations',
       icon: <Building className="w-5 h-5 mr-3" />,
       path: '/organizations',
-      display: user?.role === 'super_admin' || user?.role === 'supervisor',
+      display: user?.role === 'super_admin',
     },
     {
       title: 'Users',

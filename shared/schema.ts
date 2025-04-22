@@ -110,17 +110,37 @@ export const userProjects = pgTable("user_projects", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Invitation links for organization-specific registrations
+export const invitationLinks = pgTable("invitation_links", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  createdById: integer("created_by_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  role: text("role", { enum: userRoles }).notNull().default("staff"),
+  expires: timestamp("expires"),
+  maxUses: integer("max_uses"),
+  usedCount: integer("used_count").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  active: boolean("active").notNull().default(true),
+});
+
 // Define relations
 export const organizationsRelations = {
   projects: projects,
   users: {
     relation: organizationUsers,
   },
+  invitationLinks: invitationLinks,
   createdBy: {
     relationName: "createdBy",
     columns: [organizations.createdById],
     references: [users.id],
   }
+};
+
+export const invitationLinksRelations = {
+  organization: organizations,
+  createdBy: users,
 };
 
 export const usersRelations = {
@@ -186,6 +206,7 @@ export const insertTaskCommentSchema = createInsertSchema(taskComments).omit({ i
 export const insertTaskHistorySchema = createInsertSchema(taskHistory).omit({ id: true, createdAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, createdAt: true });
+export const insertInvitationLinkSchema = createInsertSchema(invitationLinks).omit({ id: true, createdAt: true, usedCount: true });
 
 // Types
 export type Organization = typeof organizations.$inferSelect;
@@ -214,3 +235,6 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type UserProject = typeof userProjects.$inferSelect;
 export type InsertUserProject = z.infer<typeof insertUserProjectSchema>;
+
+export type InvitationLink = typeof invitationLinks.$inferSelect;
+export type InsertInvitationLink = z.infer<typeof insertInvitationLinkSchema>;

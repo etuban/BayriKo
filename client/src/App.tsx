@@ -68,7 +68,13 @@ function Router() {
         {() => <ProtectedRoute component={UsersPage} />}
       </Route>
       <Route path="/organizations">
-        {() => <ProtectedRoute component={OrganizationsPage} />}
+        {() => {
+          const { user } = useAuth();
+          if (user?.role !== 'super_admin') {
+            return <NotFound />;
+          }
+          return <ProtectedRoute component={OrganizationsPage} />;
+        }}
       </Route>
       <Route path="/settings">
         {() => <ProtectedRoute component={SettingsPage} />}

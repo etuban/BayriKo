@@ -161,6 +161,28 @@ export async function runDatabaseMigration() {
     } else {
       console.log('organization_id column already exists in projects table.');
     }
+    
+    // Check if invitation_links table exists
+    const invitationLinksTableExists = await checkTableExists('invitation_links');
+    if (!invitationLinksTableExists) {
+      console.log('Creating invitation_links table...');
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS "invitation_links" (
+          "id" SERIAL PRIMARY KEY,
+          "organization_id" INTEGER NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+          "created_by_id" INTEGER NOT NULL REFERENCES "users"("id"),
+          "token" TEXT NOT NULL UNIQUE,
+          "role" TEXT NOT NULL DEFAULT 'staff',
+          "expires" TIMESTAMP,
+          "max_uses" INTEGER,
+          "used_count" INTEGER NOT NULL DEFAULT 0,
+          "created_at" TIMESTAMP NOT NULL DEFAULT NOW(),
+          "active" BOOLEAN NOT NULL DEFAULT TRUE
+        );
+      `);
+    } else {
+      console.log('invitation_links table already exists.');
+    }
 
     console.log('Database migration completed successfully!');
   } catch (error) {
