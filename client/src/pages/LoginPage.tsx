@@ -244,10 +244,10 @@ export default function LoginPage() {
               />
             </div>
             <CardHeader className="space-y-2">
-              <CardTitle className="text-3xl font-bold text-center">
+              <CardTitle className="text-3xl font-bold text-center font-specialGothic">
                 BAYRIKO
               </CardTitle>
-              <CardDescription className="text-center text-lg">
+              <CardDescription className="text-center text-lg font-specialGothic">
                 Your Bay That Pays
               </CardDescription>
             </CardHeader>
@@ -553,7 +553,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="text-center mb-4">
-                <p className="text-center text-md italic">
+                <p className="text-center text-md italic font-specialGothic">
                   "Magbabayad ka ba or papapulis kita?"
                 </p>
               </div>
