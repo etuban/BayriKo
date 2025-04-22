@@ -173,6 +173,7 @@ export async function runDatabaseMigration() {
           "created_by_id" INTEGER NOT NULL REFERENCES "users"("id"),
           "token" TEXT NOT NULL UNIQUE,
           "role" TEXT NOT NULL DEFAULT 'staff',
+          "message" TEXT NOT NULL DEFAULT 'You''ve been invited to join our organization.',
           "expires" TIMESTAMP,
           "max_uses" INTEGER,
           "used_count" INTEGER NOT NULL DEFAULT 0,
@@ -182,6 +183,16 @@ export async function runDatabaseMigration() {
       `);
     } else {
       console.log('invitation_links table already exists.');
+      
+      // Check if message column exists in invitation_links table
+      const messageColumnExists = await checkColumnExists('invitation_links', 'message');
+      if (!messageColumnExists) {
+        console.log('Adding message column to invitation_links table...');
+        await db.execute(sql`
+          ALTER TABLE "invitation_links" 
+          ADD COLUMN IF NOT EXISTS "message" TEXT NOT NULL DEFAULT 'You''ve been invited to join our organization.';
+        `);
+      }
     }
 
     console.log('Database migration completed successfully!');
