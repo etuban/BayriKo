@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { TaskTable } from '@/components/TaskTable';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, FolderKanban, CheckCircle, Building } from 'lucide-react';
+import { Search, FolderKanban, CheckCircle, Building, Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Task, Organization, Project } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useTask } from '@/context/TaskContext';
+import { Button } from '@/components/ui/button';
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -77,10 +79,21 @@ export default function TasksPage() {
     (!projectFilter || projectFilter === 'all') && organizationProjectIds.includes(task.projectId)
   );
 
+  // Access task context
+  const { openDrawer } = useTask();
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-semibold mb-4 md:mb-0">My Tasks</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-semibold mb-4 md:mb-0">My Tasks</h1>
+          <Button 
+            onClick={() => openDrawer('new')}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
+            <Plus className="mr-2 h-4 w-4" /> New Task
+          </Button>
+        </div>
         
         {/* Filters */}
         <div className="flex flex-wrap gap-3 items-center">
