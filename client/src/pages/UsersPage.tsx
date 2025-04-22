@@ -172,8 +172,8 @@ export default function UsersPage() {
       }
     });
     
-    // If user is staff and supervisor is making changes, also update project assignments
-    if (user?.role === 'supervisor' && userData.role === 'staff') {
+    // If user is staff and supervisor or super_admin is making changes, also update project assignments
+    if ((user?.role === 'supervisor' || user?.role === 'super_admin') && userData.role === 'staff') {
       assignProjectsMutation.mutate({
         userId: selectedUser.id,
         projectIds: selectedProjects
@@ -223,7 +223,7 @@ export default function UsersPage() {
 
   // Fetch user projects
   const fetchUserProjects = async (userId: number) => {
-    if (user?.role === 'supervisor') {
+    if (user?.role === 'supervisor' || user?.role === 'super_admin') {
       setProjectsLoading(true);
       try {
         const res = await apiRequest('GET', `/api/users/${userId}/projects`);
@@ -387,7 +387,7 @@ export default function UsersPage() {
                 </div>
               </CardContent>
               <CardFooter className="pt-0 flex justify-end gap-2">
-                {!user.isApproved && user?.role === 'supervisor' && (
+                {!user.isApproved && (user?.role === 'supervisor' || user?.role === 'super_admin') && (
                   <Button 
                     size="sm"
                     onClick={() => openApproveDialog(user)}
@@ -615,7 +615,7 @@ export default function UsersPage() {
                 <Select 
                   value={form.watch('role')} 
                   onValueChange={(value) => form.setValue('role', value as any)}
-                  disabled={user?.role !== 'supervisor'}
+                  disabled={user?.role !== 'supervisor' && user?.role !== 'super_admin'}
                 >
                   <SelectTrigger className="bg-dark-bg">
                     <SelectValue />
@@ -650,7 +650,7 @@ export default function UsersPage() {
               )}
             </div>
             
-            {user?.role === 'supervisor' && (
+            {(user?.role === 'supervisor' || user?.role === 'super_admin') && (
               <>
                 <div className="flex items-center space-x-2">
                   <Checkbox 
