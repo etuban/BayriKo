@@ -109,7 +109,10 @@ export const register = async (req: Request, res: Response) => {
       // Set organization and role from invitation
       organizationId = invitationLink.organizationId;
       assignedRole = invitationLink.role;
-      isApproved = true; // Users who register with invitation links are auto-approved
+      
+      // Only staff role is auto-approved when using invitation links
+      // Supervisor and Team Lead roles need approval
+      isApproved = assignedRole === 'staff';
     }
     
     // Create new user
@@ -265,9 +268,13 @@ export const createUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Username already in use' });
     }
     
-    // Automatically approve users added by supervisors
+    // Automatically approve only staff users added by supervisors
+    // Team leads and supervisors still need approval
     const currentUser = req.user;
-    if (currentUser && currentUser.role === 'supervisor') {
+    if (currentUser && currentUser.role === 'supervisor' && userData.role === 'staff') {
+      userData.isApproved = true;
+    } else if (currentUser && currentUser.role === 'super_admin') {
+      // Super admin can auto-approve any user
       userData.isApproved = true;
     }
     

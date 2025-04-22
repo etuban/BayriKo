@@ -24,9 +24,8 @@ export const authenticateUser = (req: Request, res: Response, next: NextFunction
     return res.status(401).json({ message: 'Unauthorized' });
   }
   
-  // Check if user is approved (supervisors and super_admins are auto-approved)
+  // Check if user is approved (only super_admins are auto-approved)
   if (req.user && !req.user.isApproved && 
-      req.user.role !== 'supervisor' && 
       req.user.role !== 'super_admin' && 
       !req.user.isSuperAdmin) {
     return res.status(403).json({ message: 'Account pending approval. Please contact an administrator.' });

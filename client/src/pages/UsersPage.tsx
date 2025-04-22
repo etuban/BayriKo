@@ -677,7 +677,7 @@ export default function UsersPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="pt-0 flex justify-end gap-2">
-                    {!user.isApproved && (user?.role === 'supervisor' || user?.role === 'super_admin') && (
+                    {!user.isApproved && (
                       <Button 
                         size="sm"
                         onClick={() => openApproveDialog(user)}
