@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { User, Organization } from '@shared/schema';
 
 // This is a simple email service using Gmail
 let transporter: nodemailer.Transporter | null = null;
@@ -126,6 +127,184 @@ export async function sendFeedbackEmail(feedbackData: {
     ${feedbackData.improvements ? `Suggested Improvements:\n${feedbackData.improvements}` : ''}
     
     This email was sent from the BayriKo application feedback form.
+  `;
+  
+  return sendEmail({
+    to,
+    from,
+    subject,
+    text,
+    html
+  });
+}
+
+/**
+ * Send account approval notification email to a user
+ */
+export async function sendAccountApprovalEmail(user: User, organization?: Organization): Promise<boolean> {
+  if (!user.email) {
+    console.error('Cannot send approval email: User has no email');
+    return false;
+  }
+
+  const to = user.email;
+  const from = 'pawnmedia.ph@gmail.com';
+  const subject = 'Your BayriKo Account Has Been Approved';
+  
+  // Get organization info if available
+  const orgInfo = organization ? 
+    `<p>You've been assigned to the following organization: <strong>${organization.name}</strong></p>` : 
+    '<p>Please contact your supervisor for organization assignment details.</p>';
+  
+  const loginLink = `https://bayri-ko-app.replit.app`;
+  
+  // Construct the HTML content
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background-color: #4CAF50; padding: 20px; text-align: center; color: white;">
+        <h1 style="margin: 0;">BayriKo</h1>
+        <p style="margin: 5px 0 0 0;">Task Management System</p>
+      </div>
+      
+      <div style="padding: 20px; border: 1px solid #e9e9e9; border-top: none;">
+        <h2>Account Approved</h2>
+        <p>Hello ${user.fullName || user.username},</p>
+        <p>Your BayriKo account has been approved and is now ready to use!</p>
+        
+        <p><strong>Account Details:</strong></p>
+        <ul>
+          <li>Username: ${user.username}</li>
+          <li>Role: ${user.role}</li>
+        </ul>
+        
+        ${orgInfo}
+        
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${loginLink}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Log In to BayriKo
+          </a>
+        </div>
+        
+        <p>If you have any questions, please contact your organization administrator.</p>
+        <p>Thank you for using BayriKo!</p>
+      </div>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+        <p>&copy; ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  // Plain text version
+  const text = `
+    BayriKo - Account Approved
+    
+    Hello ${user.fullName || user.username},
+    
+    Your BayriKo account has been approved and is now ready to use!
+    
+    Account Details:
+    - Username: ${user.username}
+    - Role: ${user.role}
+    
+    ${organization ? `You've been assigned to organization: ${organization.name}` : 'Please contact your supervisor for organization assignment details.'}
+    
+    Log in at: ${loginLink}
+    
+    If you have any questions, please contact your organization administrator.
+    
+    Thank you for using BayriKo!
+    
+    © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
+  `;
+  
+  return sendEmail({
+    to,
+    from,
+    subject,
+    text,
+    html
+  });
+}
+
+/**
+ * Send welcome email to a new user who has automatically been approved (staff role)
+ */
+export async function sendWelcomeEmail(user: User, organization?: Organization): Promise<boolean> {
+  if (!user.email) {
+    console.error('Cannot send welcome email: User has no email');
+    return false;
+  }
+
+  const to = user.email;
+  const from = 'pawnmedia.ph@gmail.com';
+  const subject = 'Welcome to BayriKo';
+  
+  // Get organization info if available
+  const orgInfo = organization ? 
+    `<p>You've been assigned to the following organization: <strong>${organization.name}</strong></p>` : 
+    '<p>You will need to be assigned to an organization by an administrator.</p>';
+  
+  const loginLink = `https://bayri-ko-app.replit.app`;
+  
+  // Construct the HTML content
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background-color: #4CAF50; padding: 20px; text-align: center; color: white;">
+        <h1 style="margin: 0;">BayriKo</h1>
+        <p style="margin: 5px 0 0 0;">Task Management System</p>
+      </div>
+      
+      <div style="padding: 20px; border: 1px solid #e9e9e9; border-top: none;">
+        <h2>Welcome to BayriKo!</h2>
+        <p>Hello ${user.fullName || user.username},</p>
+        <p>Your BayriKo account has been created and is ready to use!</p>
+        
+        <p><strong>Account Details:</strong></p>
+        <ul>
+          <li>Username: ${user.username}</li>
+          <li>Role: ${user.role}</li>
+        </ul>
+        
+        ${orgInfo}
+        
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${loginLink}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Log In to BayriKo
+          </a>
+        </div>
+        
+        <p>If you have any questions, please contact your organization administrator.</p>
+        <p>Thank you for joining BayriKo!</p>
+      </div>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+        <p>&copy; ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  // Plain text version
+  const text = `
+    BayriKo - Welcome!
+    
+    Hello ${user.fullName || user.username},
+    
+    Your BayriKo account has been created and is ready to use!
+    
+    Account Details:
+    - Username: ${user.username}
+    - Role: ${user.role}
+    
+    ${organization ? `You've been assigned to organization: ${organization.name}` : 'You will need to be assigned to an organization by an administrator.'}
+    
+    Log in at: ${loginLink}
+    
+    If you have any questions, please contact your organization administrator.
+    
+    Thank you for joining BayriKo!
+    
+    © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
   
   return sendEmail({
