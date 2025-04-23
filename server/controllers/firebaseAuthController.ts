@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { UsersDto } from '../utils/dto.js';
 import { randomBytes } from 'crypto';
+import { createRandomOrganizationForUser } from '../utils/organizationGenerator';
 
 /**
  * Handle Firebase Google sign-in
@@ -63,17 +64,8 @@ export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) =>
 
       // Create a new organization for the user with Firebase/Google sign-in
       try {
-        // Import the organization generator
+        // Now directly using the imported function
         console.log(`[FIREBASE-AUTH] Preparing to create a new organization for user ${username} with ID ${newUser.id}`);
-        
-        // Ensure the organization generator module is loaded
-        const organizationGenerator = require('../utils/organizationGenerator');
-        if (!organizationGenerator || !organizationGenerator.createRandomOrganizationForUser) {
-          console.error('[FIREBASE-AUTH] Failed to load organization generator module');
-          throw new Error('Organization generator module not available');
-        }
-        
-        const { createRandomOrganizationForUser } = organizationGenerator;
         
         // Create a new random organization and assign the user as staff
         const newOrgId = await createRandomOrganizationForUser(newUser.id, 'staff');
