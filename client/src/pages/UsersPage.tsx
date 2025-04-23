@@ -65,12 +65,12 @@ const invitationLinkSchema = z.object({
   expires: z.string().optional().nullable(),
   maxUses: z.coerce.number().optional().nullable(),
   message: z.string().min(1, 'Message is required'),
+  sendEmail: z.boolean().default(false),
+  recipientEmail: z.string().email("Invalid email address").optional().or(z.literal('')),
   organizationId: z.number({
     required_error: "Organization ID is required",
     invalid_type_error: "Organization ID must be a number",
   }),
-  sendEmail: z.boolean().default(false),
-  recipientEmail: z.string().email('Please enter a valid email').optional(),
 }).refine(
   (data) => {
     // If sendEmail is true, email must be provided

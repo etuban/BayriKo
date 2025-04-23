@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { formatZodError } from '../utils';
 import { insertInvitationLinkSchema } from '@shared/schema';
 import { randomBytes } from 'crypto';
+import { sendInvitationEmail } from '../utils/emailService';
 
 /**
  * Generate a unique token for invitation links
@@ -77,6 +78,29 @@ export const createInvitationLink = async (req: Request, res: Response) => {
     // Create the invitation link
     const invitationLink = await storage.createInvitationLink(parsedData);
     console.log('Invitation link created:', JSON.stringify(invitationLink));
+    
+    // Send email if sendEmail is true and recipientEmail is provided
+    if (req.body.sendEmail && req.body.recipientEmail) {
+      try {
+        // Get the organization details
+        const organization = await storage.getOrganizationById(organizationId);
+        if (!organization) {
+          console.error('Organization not found for sending invitation email');
+        } else {
+          console.log(`Sending invitation email to: ${req.body.recipientEmail}`);
+          const emailSent = await sendInvitationEmail(
+            req.body.recipientEmail,
+            invitationLink,
+            organization,
+            user // Pass the sender details
+          );
+          console.log('Invitation email sent:', emailSent);
+        }
+      } catch (emailError) {
+        console.error('Error sending invitation email:', emailError);
+        // Don't fail the request if email sending fails
+      }
+    }
     
     // Return the invitation link
     res.status(201).json(invitationLink);

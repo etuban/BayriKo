@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { User, Organization } from '@shared/schema';
+import { User, Organization, InvitationLink } from '@shared/schema';
 
 // This is a simple email service using Gmail
 let transporter: nodemailer.Transporter | null = null;
@@ -303,6 +303,117 @@ export async function sendWelcomeEmail(user: User, organization?: Organization):
     If you have any questions, please contact your organization administrator.
     
     Thank you for joining BayriKo!
+    
+    © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
+  `;
+  
+  return sendEmail({
+    to,
+    from,
+    subject,
+    text,
+    html
+  });
+}
+
+/**
+ * Send invitation link to a recipient's email
+ */
+export async function sendInvitationEmail(
+  recipientEmail: string, 
+  invitationLink: InvitationLink, 
+  organization: Organization, 
+  sender?: User
+): Promise<boolean> {
+  if (!recipientEmail) {
+    console.error('Cannot send invitation email: No recipient email provided');
+    return false;
+  }
+
+  const to = recipientEmail;
+  const from = 'pawnmedia.ph@gmail.com';
+  const subject = `You've Been Invited to Join BayriKo`;
+  
+  // Create the invitation URL
+  const baseUrl = process.env.APP_URL || 'https://bayri-ko-app.replit.app';
+  const invitationUrl = `${baseUrl}/register?token=${invitationLink.token}`;
+  
+  // Expiration information
+  let expirationInfo = '';
+  if (invitationLink.expires) {
+    const expDate = new Date(invitationLink.expires);
+    expirationInfo = `<p><strong>Invitation expires:</strong> ${expDate.toLocaleDateString()} at ${expDate.toLocaleTimeString()}</p>`;
+  }
+  
+  // Usage limit information
+  let usageInfo = '';
+  if (invitationLink.maxUses) {
+    usageInfo = `<p><strong>This invitation link can be used:</strong> ${invitationLink.maxUses - invitationLink.usedCount} more times</p>`;
+  }
+  
+  // Custom message from the sender
+  const customMessage = invitationLink.message ? 
+    `<div style="padding: 15px; border-left: 4px solid #4CAF50; background-color: #f9f9f9; margin: 20px 0;">
+      <p style="font-style: italic;">"${invitationLink.message}"</p>
+      ${sender ? `<p style="text-align: right; margin-bottom: 0;">- ${sender.fullName || sender.username}</p>` : ''}
+    </div>` : '';
+  
+  // Construct the HTML content
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background-color: #4CAF50; padding: 20px; text-align: center; color: white;">
+        <h1 style="margin: 0;">BayriKo</h1>
+        <p style="margin: 5px 0 0 0;">Task Management System</p>
+      </div>
+      
+      <div style="padding: 20px; border: 1px solid #e9e9e9; border-top: none;">
+        <h2>You've Been Invited!</h2>
+        <p>Hello,</p>
+        <p>You've been invited to join <strong>${organization.name}</strong> on BayriKo as a <strong>${invitationLink.role}</strong>.</p>
+        
+        ${customMessage}
+        
+        <p><strong>Organization:</strong> ${organization.name}</p>
+        <p><strong>Role:</strong> ${invitationLink.role}</p>
+        ${expirationInfo}
+        ${usageInfo}
+        
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${invitationUrl}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Accept Invitation
+          </a>
+        </div>
+        
+        <p>If you have any questions, please contact the sender of this invitation.</p>
+        <p>Thank you!</p>
+      </div>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+        <p>&copy; ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  // Plain text version
+  const text = `
+    BayriKo - Invitation to Join
+
+    Hello,
+    
+    You've been invited to join ${organization.name} on BayriKo as a ${invitationLink.role}.
+    
+    ${invitationLink.message ? `Message: "${invitationLink.message}"` : ''}
+    
+    Organization: ${organization.name}
+    Role: ${invitationLink.role}
+    ${invitationLink.expires ? `Invitation expires: ${new Date(invitationLink.expires).toLocaleString()}` : ''}
+    ${invitationLink.maxUses ? `This invitation link can be used: ${invitationLink.maxUses - invitationLink.usedCount} more times` : ''}
+    
+    Accept the invitation at: ${invitationUrl}
+    
+    If you have any questions, please contact the sender of this invitation.
+    
+    Thank you!
     
     © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
