@@ -114,8 +114,9 @@ export const register = async (req: Request, res: Response) => {
       // Supervisor and Team Lead roles need approval
       isApproved = assignedRole === 'staff';
     } else if (role === 'staff') {
-      // Auto-approve staff users (new feature)
+      // Auto-approve staff users
       isApproved = true;
+      console.log('[REGISTRATION] Auto-approving staff user');
     }
     
     // Create new user
