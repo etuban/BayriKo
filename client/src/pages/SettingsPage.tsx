@@ -172,7 +172,7 @@ export default function SettingsPage() {
           userEmail: user?.email,
           userName: user?.fullName,
           userRole: user?.role,
-          organization: user?.organizations?.[0]?.organizationId,
+          organizationId: user?.organizations?.[0]?.organizationId,
         }),
       });
       
@@ -418,6 +418,82 @@ export default function SettingsPage() {
                 <CurrencySelector />
               </div>
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Feedback Form */}
+        <TabsContent value="feedback">
+          <Card className="bg-dark-surface border border-dark-border">
+            <CardHeader>
+              <CardTitle>Feedback</CardTitle>
+              <CardDescription>
+                We value your feedback! Help us improve BayriKo by sharing your thoughts and suggestions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <form onSubmit={feedbackForm.handleSubmit(handleFeedbackSubmit)} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="feedback">General Feedback</Label>
+                  <textarea 
+                    id="feedback"
+                    {...feedbackForm.register('feedback')}
+                    className="w-full h-32 rounded-md border border-input bg-dark-bg px-3 py-2 text-sm ring-offset-background 
+                    placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 
+                    focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="Share your overall experience with the application..."
+                  ></textarea>
+                  {feedbackForm.formState.errors.feedback && (
+                    <p className="text-red-500 text-xs">{feedbackForm.formState.errors.feedback.message}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="featureRequests">Feature Requests</Label>
+                  <textarea 
+                    id="featureRequests"
+                    {...feedbackForm.register('featureRequests')}
+                    className="w-full h-24 rounded-md border border-input bg-dark-bg px-3 py-2 text-sm ring-offset-background 
+                    placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 
+                    focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="What new features would you like to see?"
+                  ></textarea>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="improvements">Areas for Improvement</Label>
+                  <textarea 
+                    id="improvements"
+                    {...feedbackForm.register('improvements')}
+                    className="w-full h-24 rounded-md border border-input bg-dark-bg px-3 py-2 text-sm ring-offset-background 
+                    placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 
+                    focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder="What aspects of the application could be improved?"
+                  ></textarea>
+                </div>
+                
+                <div className="pt-4">
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary/90 w-full md:w-auto flex items-center gap-2"
+                    disabled={feedbackSubmitting}
+                  >
+                    {feedbackSubmitting ? (
+                      <>Submitting Feedback...</>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        Submit Feedback
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+            <CardFooter className="flex flex-col items-start">
+              <p className="text-sm text-muted-foreground">
+                Your feedback will be sent to our development team at pawnmedia.ph@gmail.com
+              </p>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
