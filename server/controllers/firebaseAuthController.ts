@@ -73,7 +73,9 @@ export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) =>
           console.log(`[FIREBASE-AUTH] Assigning new staff user ${username} to random organization: ${randomOrg.name}`);
           
           // Add user to the random organization
+          console.log(`[FIREBASE-AUTH] Adding user ${newUser.id} to organization ${randomOrg.id}`);
           await storage.addUserToOrganization(newUser.id, randomOrg.id, 'staff');
+          console.log(`[FIREBASE-AUTH] User successfully added to organization`);
           
           // Notify user about assigned organization
           await storage.createNotification({

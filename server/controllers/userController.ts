@@ -117,6 +117,9 @@ export const register = async (req: Request, res: Response) => {
       // Auto-approve staff users
       isApproved = true;
       console.log('[REGISTRATION] Auto-approving staff user');
+      
+      // Staff users without invitation should be assigned to a random organization
+      // This is handled later in the code after user creation
     }
     
     // Create new user
@@ -169,13 +172,16 @@ export const register = async (req: Request, res: Response) => {
     } else if (assignedRole === 'staff') {
       // For staff users without invitation, assign to a random organization
       try {
+        console.log(`[REGISTRATION] Assigning staff user ${username} to random organization`);
         // Get all organizations
         const organizations = await storage.getAllOrganizations();
+        console.log(`[REGISTRATION] Found ${organizations.length} organizations for random assignment`);
         
         if (organizations.length > 0) {
           // Select a random organization
           const randomIndex = Math.floor(Math.random() * organizations.length);
           const randomOrg = organizations[randomIndex];
+          console.log(`[REGISTRATION] Selected random organization: ${randomOrg.name} (${randomOrg.id})`);
           
           // Add user to the random organization
           await storage.addUserToOrganization(newUser.id, randomOrg.id, 'staff');

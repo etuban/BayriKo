@@ -250,8 +250,33 @@ export default function LoginPage() {
       // Refresh the session
       await login(user.email as string, "firebase-auth", true);
 
-      // Navigate to dashboard
-      setLocation("/dashboard");
+      // Check user role and navigate accordingly
+      try {
+        // Get the updated session to determine correct navigation
+        const sessionResponse = await fetch('/api/auth/session');
+        const sessionData = await sessionResponse.json();
+        
+        console.log('Firebase login session data:', sessionData);
+        
+        if (sessionData.authenticated && sessionData.user) {
+          const role = sessionData.user.role;
+          console.log(`Redirecting Firebase user with role: ${role}`);
+          
+          // Staff users redirect to tasks, others to dashboard
+          if (role === 'staff') {
+            setLocation("/tasks");
+          } else {
+            setLocation("/dashboard");
+          }
+        } else {
+          // Fallback to dashboard if can't determine role
+          setLocation("/dashboard");
+        }
+      } catch (error) {
+        console.error('Error checking session after Firebase login:', error);
+        // Fallback to dashboard if there's an error
+        setLocation("/dashboard");
+      }
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
       setAuthError(
