@@ -66,8 +66,8 @@ const sliderItems = [
     caption: "\"Make it rain with BayriKo!\"",
   },
   {
-    image: "https://pawn.media/bayriko/pay.jpg",
-    caption: "\"Your tasks, your payments, your way.\"",
+    image: "https://pawn.media/bayriko/kyawil.jpg",
+    caption: "\"Magbabayad ka ba o ipapapulis kita?\"",
   }
 ];
 
