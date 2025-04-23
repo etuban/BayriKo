@@ -642,19 +642,19 @@ export default function TaskPayablePage() {
     
     // Add the logo image from URL
     try {
-      // Logo URL as requested
-      const logoUrl = "https://pawn.media/bayriko/logo-1.webp";
+      // Logo URL as requested (now using PNG instead of WEBP)
+      const logoUrl = "https://pawn.media/bayriko/logo.png";
       
       // Add logo image with proportional sizing
       doc.addImage(
         logoUrl,
-        "WEBP", // Format of the image
+        "PNG", // Format of the image (changed from WEBP to PNG)
         logoX,
         logoY,
         logoSize,
-        logoSize, // We'll use a square area but the image will maintain its proportions
+        logoSize * 0.6, // Adjusted height to maintain proper aspect ratio
         "BayriKoLogo", // Alias for the image
-        "NONE", // Compression (NONE, FAST, MEDIUM, SLOW)
+        "FAST", // Compression (using FAST for better compatibility)
         0 // Rotation (0 degrees)
       );
     } catch (error) {
@@ -662,6 +662,12 @@ export default function TaskPayablePage() {
       // Fallback to a simple rectangle if image loading fails
       doc.setFillColor(0, 128, 0); // Green background
       doc.rect(logoX, logoY, logoSize, logoSize / 2, "F");
+      
+      // Add text as an additional fallback
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("BayriKo", logoX + logoSize/2, logoY + logoSize/4, { align: "center" });
     }
 
     // Add link annotation for the logo area
