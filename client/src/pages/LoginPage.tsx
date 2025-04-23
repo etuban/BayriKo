@@ -295,13 +295,53 @@ export default function LoginPage() {
                 </svg>
               </div>
 
-              {/* Main Content */}
+              {/* Main Content with Carousel */}
               <div className="my-auto">
-                <h1 className="text-5xl font-bold text-white mb-6 font-Kanit">
+                <h1 className="text-5xl font-bold text-white mb-4 font-Kanit">
                   Hello
                   <br />
                   BAYRIKO!<span className="ml-2">👋</span>
                 </h1>
+                
+                {/* Image Carousel */}
+                <div className="mb-6 mt-8">
+                  <div className="overflow-hidden rounded-lg" ref={emblaRef}>
+                    <div className="flex">
+                      {sliderItems.map((item, index) => (
+                        <div key={index} className="relative flex-[0_0_100%] min-w-0">
+                          <div className="flex flex-col items-center justify-center">
+                            <img
+                              src={item.image}
+                              alt={`Slide ${index + 1}`}
+                              className="w-full rounded-lg shadow-md object-cover h-48"
+                            />
+                            <p className="text-center text-md italic text-white/90 mt-4">
+                              {item.caption}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Dot indicators */}
+                  <div className="flex justify-center mt-4">
+                    {sliderItems.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
+                          index === selectedIndex
+                            ? "bg-white scale-125"
+                            : "bg-white/40 hover:bg-white/60"
+                        }`}
+                        type="button"
+                        onClick={() => emblaApi?.scrollTo(index)}
+                        aria-label={`Go to slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
                 <p className="text-white/80 text-lg max-w-md">
                   Skip repetitive and manual task management. Get highly
                   productive through automation and save tons of time!
