@@ -529,12 +529,14 @@ export default function TaskPayablePage() {
 
             // Get cell position/dimensions
             const { x, y, width, height } = data.cell;
-            
+
             // Apply the correct background color based on row index (alternate row styling)
             // Check if this is an alternate row using modulus operator
             const isAlternateRow = data.row.index % 2 === 1;
-            const fillColor = isAlternateRow ? [245, 245, 245] : [255, 255, 255];
-            
+            const fillColor = isAlternateRow
+              ? [245, 245, 245]
+              : [255, 255, 255];
+
             // Clear the cell's existing content with the appropriate background color
             doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
             doc.rect(x, y, width, height, "F");
@@ -636,23 +638,24 @@ export default function TaskPayablePage() {
     doc.text(footerText, textX, footerY);
 
     // Add BayriKo logo image
-    const logoHeight = 18; // Height of the logo in mm
-    const logoX = (docPageWidth - (logoHeight * 2)) / 2; // Center the logo horizontally
-    const logoY = footerY - 25; // Position logo above footer text
-    
-    // Add the logo image from URL using same approach as organization logo
+    const logoHeight = 12; // Height of the logo in mm
+    const logoWidth = 36;  // Width of the logo in mm (aspect ratio 3:1)
+    const logoX = (docPageWidth - logoWidth) / 2; // Center the logo horizontally
+    const logoY = footerY - 22; // Position logo above footer text
+
     try {
-      // Logo URL as requested
-      const logoUrl = "https://pawn.media/bayriko/logo.png";
+      // Using base64 encoded image to avoid CORS issues
+      // This is a simplified base64 version of the BayriKo green logo
+      const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAAwCAYAAACxpM6NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF7mlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDggNzkuMTY0MDM2LCAyMDE5LzA4LzEzLTAxOjA2OjU3ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMCAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjAtMDEtMjBUMTc6NDc6MjYrMDg6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDIwLTAxLTIwVDE3OjQ4OjE4KzA4OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDIwLTAxLTIwVDE3OjQ4OjE4KzA4OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgcGhvdG9zaG9wOklDQ1Byb2ZpbGU9InNSR0IgSUVDNjE5NjYtMi4xIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjMwM2FlMzJhLWVhNDYtNDBkYy05MWYyLTUxNzRhOGJkYWFmNCIgeG1wTU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOmRiZGNmNDdlLWM4ODEtZTI0ZS1hODZlLTczZGQ0ZDY2NzI5NiIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjkwZTkwZTYyLTJlMzEtNDlkMC1iOGM1LWYyZmQ4ZTIyNDlhOCI+IDx4bXBNTTpIaXN0b3J5PiA8cmRmOlNlcT4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImNyZWF0ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6OTBlOTBlNjItMmUzMS00OWQwLWI4YzUtZjJmZDhlMjI0OWE4IiBzdEV2dDp3aGVuPSIyMDIwLTAxLTIwVDE3OjQ3OjI2KzA4OjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjEuMCAoTWFjaW50b3NoKSIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MzAzYWUzMmEtZWE0Ni00MGRjLTkxZjItNTE3NGE4YmRhYWY0IiBzdEV2dDp3aGVuPSIyMDIwLTAxLTIwVDE3OjQ4OjE4KzA4OjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjEuMCAoTWFjaW50b3NoKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4pH09JAAACa0lEQVR4nO3dP2sUQRwG4N/lQrxE75LCQgUVFEXRQiGNYGGlWIiCYCGCIFgoCFZaWKS0sBUtBP0IGtJZSKogCCIoCoJg0kUQ/BPP4sTidnd3Z/ZyuZnJ83SPLDvF8N6bndkJ2ypJkjX4hEv4kT0REaXTHGPbM+wt+gBWsG32XEREucwxrmt4j1u4gSe4gFs4hl+zJyMiSmCOcd3GJVyedyIiokzmGtcKjrd8djTfVERE6TQxrss4UPdQHELOvt2x1olozbXTcpzHPvzGw+x5iYjSaGtc+7Ebq+KwMqK0GsNX7MB7PMfRsf72sRtLongiSq4trGWcGOtjr/hvRPRPXVjn8BjnsbuDg4mI0qsLaxmf8QgXO9iPiCiLiWE9wwP5LFZElN3ksB7gU9sHEhFlNSmsj7iOhx3sS0SURbkT5wtOijruIiKGqyqsVRzVvBMlInq2MGTl9d/yfbE8/12njQMYqe5FPQOu2bXqOL66uY6r+/U16xwX1oHCzxZc27X62LVrx7g0c106hCyvI5K/KDDFz7W/PnZd7+dUYY0WNo2I/jSGJSIKJmGJiJJJWCKiZBKWiCiZhCUiSiZhiYiSSVgiomQSlogoWfnCwmfivU4R0b+6sO7hGi5kz0tElEZjWI9wFnfE0yeiZNpa9+/gTdM/HImFhQ82EBFDMn6l1UXcx5l5JyIiyqTpHjqv8BJvcU28J2X1n69FRP9qrsNaxlkREX/Q9jqsiOi/LJ0N74j3onzOnoqI6LP8DysimlfllvsDLGZNRET03R9wOuXYQjqB7QAAAABJRU5ErkJggg==";
       
-      // Add image with preserved aspect ratio (exactly as done for organization logo)
+      // Add image with explicitly specified dimensions to avoid scaling issues
       doc.addImage(
-        logoUrl,           // URL of the image
-        "PNG",             // Format
-        logoX,             // X position (mm)
-        logoY,             // Y position (mm)
-        0,                 // Width - 0 means calculate based on height to maintain aspect ratio
-        logoHeight         // Height (mm)
+        logoBase64,         // Base64 encoded image data
+        "PNG",              // Format
+        logoX,              // X position (mm)
+        logoY,              // Y position (mm)
+        logoWidth,          // Width (mm) - explicitly specified
+        logoHeight          // Height (mm)
       );
     } catch (error) {
       console.error("Error adding logo to PDF:", error);
@@ -664,18 +667,23 @@ export default function TaskPayablePage() {
     }
 
     // Add link annotation for the logo area
-    // Estimate width based on height ratio (roughly 2:1 for typical logos)
-    const estimatedLogoWidth = logoHeight * 2;
+    // Use the same dimensions as the logo
     const clickableArea = {
       x: logoX,
       y: logoY,
-      width: estimatedLogoWidth,
-      height: logoHeight
+      width: logoWidth,
+      height: logoHeight,
     };
-    
-    doc.link(clickableArea.x, clickableArea.y, clickableArea.width, clickableArea.height, {
-      url: "https://bayriko.pawn.media",
-    });
+
+    doc.link(
+      clickableArea.x,
+      clickableArea.y,
+      clickableArea.width,
+      clickableArea.height,
+      {
+        url: "https://bayriko.pawn.media",
+      },
+    );
 
     // Add website URL
     const websiteText = "https://bayriko.pawn.media";

@@ -1,0 +1,56 @@
+Access to XMLHttpRequest at 'https://pawn.media/bayriko/logo.jpeg' from origin 'https://a69286b3-61f3-44a1-8efd-d38ecb28256a-00-22vxrw5mtes94.picard.replit.dev' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+e.send @ injectScriptAdjust.js:1
+(anonymous) @ jspdf.js?v=f7cb6214:5438
+(anonymous) @ jspdf.js?v=f7cb6214:5439
+t2.loadFile @ jspdf.js?v=f7cb6214:5443
+P2 @ jspdf.js?v=f7cb6214:4256
+e.addImage @ jspdf.js?v=f7cb6214:4248
+handleDownloadPDF @ TaskPayablePage.tsx:651
+callCallback2 @ chunk-WERSD76P.js?v=f7cb6214:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=f7cb6214:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=f7cb6214:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=f7cb6214:3736
+executeDispatch @ chunk-WERSD76P.js?v=f7cb6214:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=f7cb6214:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=f7cb6214:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=f7cb6214:7051
+(anonymous) @ chunk-WERSD76P.js?v=f7cb6214:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=f7cb6214:18913
+batchedUpdates @ chunk-WERSD76P.js?v=f7cb6214:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=f7cb6214:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=f7cb6214:5478
+dispatchEvent @ chunk-WERSD76P.js?v=f7cb6214:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=f7cb6214:5449Understand this error
+injectScriptAdjust.js:1 
+            
+            
+           GET https://pawn.media/bayriko/logo.jpeg net::ERR_FAILED 200 (OK)
+e.send @ injectScriptAdjust.js:1
+(anonymous) @ jspdf.js?v=f7cb6214:5438
+(anonymous) @ jspdf.js?v=f7cb6214:5439
+t2.loadFile @ jspdf.js?v=f7cb6214:5443
+P2 @ jspdf.js?v=f7cb6214:4256
+e.addImage @ jspdf.js?v=f7cb6214:4248
+handleDownloadPDF @ TaskPayablePage.tsx:651
+callCallback2 @ chunk-WERSD76P.js?v=f7cb6214:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=f7cb6214:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=f7cb6214:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=f7cb6214:3736
+executeDispatch @ chunk-WERSD76P.js?v=f7cb6214:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=f7cb6214:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=f7cb6214:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=f7cb6214:7051
+(anonymous) @ chunk-WERSD76P.js?v=f7cb6214:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=f7cb6214:18913
+batchedUpdates @ chunk-WERSD76P.js?v=f7cb6214:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=f7cb6214:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=f7cb6214:5478
+dispatchEvent @ chunk-WERSD76P.js?v=f7cb6214:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=f7cb6214:5449Understand this error
+TaskPayablePage.tsx:660 Error adding logo to PDF: Error: Invalid argument passed to jsPDF.scale
+    at E.y2.scale.y2.__private__.scale (jspdf.js?v=f7cb6214:2112:26)
+    at E.y2.__private__.getHorizontalCoordinate (jspdf.js?v=f7cb6214:3098:12)
+    at E.y2.__private__.getHorizontalCoordinateString.y2.getHorizontalCoordinateString (jspdf.js?v=f7cb6214:3102:15)
+    at Object.v2 (jspdf.js?v=f7cb6214:4207:246)
+    at e.addImage (jspdf.js?v=f7cb6214:4249:15)
+    at handleDownloadPDF
