@@ -798,8 +798,46 @@ export default function LoginPage() {
         {/* Mobile Only */}
         <div className="md:block left-0 top-0 bg-[#033902]">
           <div className="h-full flex flex-col justify-between p-4 pt-8">
-            <div className="image-carousel-2">
-              {/* Image Carousel */}
+            <div className="image-carousel-2 mb-4 mt-2">
+              {/* Mobile Image Carousel */}
+              <div className="overflow-hidden rounded-lg" ref={emblaRef2}>
+                <div className="flex">
+                  {sliderItems.map((item, index) => (
+                    <div
+                      key={index}
+                      className="relative flex-[0_0_100%] min-w-0"
+                    >
+                      <div className="flex flex-col items-center justify-center mx-4">
+                        <img
+                          src={item.image}
+                          alt={`Slide ${index + 1}`}
+                          className="w-full rounded-lg shadow-md object-cover h-64"
+                        />
+                        <p className="text-center text-lg text-white/120 mt-4">
+                          {item.caption}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dot indicators for mobile carousel */}
+              <div className="flex justify-center mt-4">
+                {sliderItems.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
+                      index === selectedIndex2
+                        ? "bg-white scale-125"
+                        : "bg-white/40 hover:bg-white/60"
+                    }`}
+                    type="button"
+                    onClick={() => emblaApi2?.scrollTo(index)}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Footer Copyright */}
