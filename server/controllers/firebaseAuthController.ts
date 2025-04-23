@@ -9,6 +9,7 @@ import { randomBytes } from 'crypto';
  * and either creates a new user or logs in an existing one
  */
 export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) => {
+  console.log('[FIREBASE-AUTH] Starting Firebase Google sign-in process');
   try {
     const { email, displayName, uid } = req.body;
 
@@ -63,24 +64,38 @@ export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) =>
       // Create a new organization for the user with Firebase/Google sign-in
       try {
         // Import the organization generator
-        const { createRandomOrganizationForUser } = require('../utils/organizationGenerator');
+        console.log(`[FIREBASE-AUTH] Preparing to create a new organization for user ${username} with ID ${newUser.id}`);
         
-        console.log(`[FIREBASE-AUTH] Creating a new organization for user ${username}`);
+        // Ensure the organization generator module is loaded
+        const organizationGenerator = require('../utils/organizationGenerator');
+        if (!organizationGenerator || !organizationGenerator.createRandomOrganizationForUser) {
+          console.error('[FIREBASE-AUTH] Failed to load organization generator module');
+          throw new Error('Organization generator module not available');
+        }
+        
+        const { createRandomOrganizationForUser } = organizationGenerator;
         
         // Create a new random organization and assign the user as staff
         const newOrgId = await createRandomOrganizationForUser(newUser.id, 'staff');
         
-        console.log(`[FIREBASE-AUTH] Created new organization ID: ${newOrgId} for user ID: ${newUser.id}`);
+        if (!newOrgId) {
+          console.error('[FIREBASE-AUTH] Organization creation failed - no organization ID returned');
+          throw new Error('Failed to create organization');
+        }
         
-        // Notify the new user about their new organization
+        console.log(`[FIREBASE-AUTH] Successfully created new organization ID: ${newOrgId} for user ID: ${newUser.id}`);
+        
+        // Notify the user about their new organization
         await storage.createNotification({
           userId: newUser.id,
           type: 'new_organization',
           message: `A new organization has been created for your account.`,
           read: false
         });
+        
+        console.log(`[FIREBASE-AUTH] Notification created for user ${newUser.id} about new organization`);
       } catch (orgError) {
-        console.error('[FIREBASE-AUTH] Error assigning user to organization:', orgError);
+        console.error('[FIREBASE-AUTH] Error creating/assigning organization:', orgError);
         // Continue with login even if organization assignment fails
       }
 

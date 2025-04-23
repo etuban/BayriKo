@@ -208,7 +208,7 @@ export default function ProjectsPage() {
   };
   
   // Check if the current user can perform actions
-  const canDelete = user?.role === 'supervisor';
+  const canDelete = user?.role === 'supervisor' || user?.role === 'super_admin';
   const canEdit = user?.role === 'supervisor' || user?.role === 'team_lead';
   // Allow staff users to create projects
   const canCreate = user?.role === 'supervisor' || user?.role === 'team_lead' || user?.role === 'staff';
