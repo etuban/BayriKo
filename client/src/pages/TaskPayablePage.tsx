@@ -587,6 +587,13 @@ export default function TaskPayablePage() {
         .substring(0, 20); // Limit to 20 characters
       filename = projectName + "-" + filename;
     }
+    // If no project is selected but organization data is available, use organization name
+    else if (currentOrganization?.name) {
+      const orgName = currentOrganization.name
+        .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
+        .substring(0, 20); // Limit to 20 characters
+      filename = orgName + "-" + filename;
+    }
 
     doc.save(filename);
   };
