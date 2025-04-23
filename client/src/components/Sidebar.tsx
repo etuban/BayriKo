@@ -139,7 +139,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
       {/* Logo and App Name */}
       <div className="flex items-center p-4 border-b border-border">
-        <div className="bg-primary p-2 rounded-md">
+        <div className="bg-primary p-2 rounded-full">
           <GiReceiveMoney className="w-6 h-6 text-white" />
         </div>
         {(!collapsed || mobile) && (

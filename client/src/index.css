@@ -23,20 +23,13 @@
 
   @media only screen and (min-width:767px) {
     .mobile-only {
-      display: none;
+      display: none !important;
       justify-content: center;
     }
   }
 
   .login-screen {
     align-content: center;
-    position: relative;
-  }
-  
-  @media (min-width: 768px) {
-    .login-form-panel {
-      margin-left: 60%; /* 3/5 of screen width for left panel */
-    }
   }
 
   /* Print styles for pagination */

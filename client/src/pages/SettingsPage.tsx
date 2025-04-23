@@ -14,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials, currencyOptions, getUserCurrency, setUserCurrency } from '@/lib/utils';
-import { User, Moon, Sun, Key, UserSquare, Shield, DollarSign } from 'lucide-react';
+import { User, Moon, Sun, Key, UserSquare, Shield, DollarSign, MessageSquare, Send } from 'lucide-react';
 
 // Form validation schema
 const profileFormSchema = z.object({
@@ -32,6 +32,12 @@ const passwordFormSchema = z.object({
 }).refine(data => data.newPassword === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
+});
+
+const feedbackFormSchema = z.object({
+  feedback: z.string().min(5, 'Feedback must be at least 5 characters').max(2000, 'Feedback must be less than 2000 characters'),
+  featureRequests: z.string().optional(),
+  improvements: z.string().optional(),
 });
 
 // CurrencySelector component
@@ -81,6 +87,7 @@ export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   
   // Profile form setup
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
@@ -101,6 +108,16 @@ export default function SettingsPage() {
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
+    }
+  });
+
+  // Feedback form setup
+  const feedbackForm = useForm<z.infer<typeof feedbackFormSchema>>({
+    resolver: zodResolver(feedbackFormSchema),
+    defaultValues: {
+      feedback: '',
+      featureRequests: '',
+      improvements: ''
     }
   });
   
@@ -124,7 +141,7 @@ export default function SettingsPage() {
   // Update password
   const handlePasswordUpdate = async (data: z.infer<typeof passwordFormSchema>) => {
     try {
-      await updateProfile({ password: data.newPassword });
+      await updateProfile({ password: data.newPassword } as any);
       toast({
         title: 'Password updated',
         description: 'Your password has been updated successfully.'
@@ -139,6 +156,50 @@ export default function SettingsPage() {
     }
   };
   
+  // Submit feedback
+  const handleFeedbackSubmit = async (data: z.infer<typeof feedbackFormSchema>) => {
+    try {
+      setFeedbackSubmitting(true);
+      
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          // Include user details for the email
+          userEmail: user?.email,
+          userName: user?.fullName,
+          userRole: user?.role,
+          organization: user?.organizations?.[0]?.organizationId,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit feedback');
+      }
+      
+      toast({
+        title: 'Feedback submitted',
+        description: 'Thank you for your feedback! We appreciate your input.',
+      });
+      
+      // Reset the form
+      feedbackForm.reset();
+      
+    } catch (error: any) {
+      toast({
+        title: 'Submission failed',
+        description: error.message || 'Failed to submit feedback. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -146,7 +207,7 @@ export default function SettingsPage() {
       </div>
       
       <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-3 md:w-[400px]">
+        <TabsList className="grid grid-cols-4 md:w-[500px]">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <UserSquare className="h-4 w-4" />
             Profile
@@ -158,6 +219,10 @@ export default function SettingsPage() {
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             Appearance
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Feedback
           </TabsTrigger>
         </TabsList>
         

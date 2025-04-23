@@ -60,16 +60,24 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 // Define slider images and captions
 const sliderItems = [
   {
-    image: "https://pawn.media/bayriko/kyawil.jpg",
-    caption: '"Magbabayad ka ba o ipapapulis kita?"',
+    image: "https://pawn.media/bayriko/steps/Bayriko-Task-Page.gif",
+    caption: "Assign tasks conveniently to your team.",
   },
   {
-    image: "https://pawn.media/bayriko/money.jpg",
-    caption: '"Make it rain with BayriKo!"',
+    image: "https://pawn.media/bayriko/steps/Bayriko-PDF-Invoice.gif",
+    caption: "Easy PDF invoice generation of your tasks.",
   },
   {
-    image: "https://pawn.media/bayriko/kyawil.jpg",
-    caption: '"Magbabayad ka ba o ipapapulis kita?"',
+    image: "https://pawn.media/bayriko/steps/Bayriko-Users.gif",
+    caption: "Supervisor can manage users and their roles.",
+  },
+  {
+    image: "https://pawn.media/bayriko/steps/Bayriko-Users.gif",
+    caption: "Create and manage projects for your team.",
+  },
+  {
+    image: "https://pawn.media/bayriko/steps/Bayriko-Dashboard.gif",
+    caption: "Measure your productivity using key metrics.",
   },
 ];
 
@@ -84,7 +92,7 @@ export default function LoginPage() {
 
   // Setup carousel with autoplay
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 5000, stopOnInteraction: false }),
+    Autoplay({ delay: 15000, stopOnInteraction: true }),
   ]);
 
   // For dots navigation
@@ -323,10 +331,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen login-screen bg-background">
-      <div className="flex flex-col md:flex-row min-h-screen">
+      <div className="flex flex-col md:flex-row lg:min-h-screen">
         {/* Left side - Fixed brand panel */}
         <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-[#033902] h-screen">
-          <div className="h-full flex flex-col justify-between p-8">
+          <div className="h-full flex flex-col justify-between p-4">
             {/* Top Logo */}
             <div className="top-logo flex items-center justify-center">
               <div className="flex items-center">
@@ -347,7 +355,7 @@ export default function LoginPage() {
             {/* Main Content with Carousel */}
             <div className="my-auto">
               {/* Image Carousel */}
-              <div className="mb-6 mt-8">
+              <div className="mb-4 mt-2">
                 <div className="overflow-hidden rounded-lg" ref={emblaRef}>
                   <div className="flex">
                     {sliderItems.map((item, index) => (
@@ -355,13 +363,13 @@ export default function LoginPage() {
                         key={index}
                         className="relative flex-[0_0_100%] min-w-0"
                       >
-                        <div className="flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center justify-center ml-14 mr-14">
                           <img
                             src={item.image}
                             alt={`Slide ${index + 1}`}
-                            className="w-full rounded-lg shadow-md object-cover h-48"
+                            className="w-full rounded-lg shadow-md object-cover h-96"
                           />
-                          <p className="text-center text-md italic text-white/90 mt-4">
+                          <p className="text-center text-xl text-white/120 mt-4">
                             {item.caption}
                           </p>
                         </div>
@@ -390,7 +398,7 @@ export default function LoginPage() {
             </div>
 
             {/* Footer Copyright */}
-            <div className="text-white/60 text-sm">
+            <div className="text-white/60 text-[9px] text-center">
               © {new Date().getFullYear()} BAYRIKO.{" "}
               <a href="https://pawn.media" className="font-bold underline">
                 Pawn Media
@@ -401,13 +409,29 @@ export default function LoginPage() {
         </div>
 
         {/* Right side - Login Form (scrollable) */}
-        <div className="w-full md:w-2/5 md:ml-auto p-8 login-form-panel">
-          <div className="w-full max-w-md mx-auto my-8">
+        <div className="w-full md:w-2/5 md:ml-auto p-4 login-form-panel">
+          <div className="w-full max-w-md mx-auto my-4">
             {/* Brand */}
+            {/* Top Logo */}
+            <div className="flex items-center justify-center mobile-only mb-8">
+              <div className="flex items-center">
+                <div className="border border-white-8 w-20 h-20 bg-white rounded-full mt-2">
+                  <GiReceiveMoney className="w-12 h-12 text-primary mt-4 ml-4" />
+                </div>
+                <div className="ml-4">
+                  <h1 className="text-6xl font-bold text-white mb-1 font-Kanit">
+                    BAYRIKO
+                  </h1>
+                  <p className="text-white/80 text-sm max-w-md">
+                    Task to Invoice Management System
+                  </p>
+                </div>
+              </div>
+            </div>
             <div>
               {activeTab === "login" ? (
                 <>
-                  <h2 className="text-3xl font-bold mb-2">Login</h2>
+                  <h2 className="text-2xl font-bold mb-2 lg:mt-24">Login</h2>
                   <p className="text-muted-foreground mb-8">
                     Don't have an account?{" "}
                     <button
@@ -421,7 +445,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <h2 className="text-3xl font-bold mb-2">Create Account</h2>
+                  <h2 className="text-2xl font-bold mb-2">Create Account</h2>
                   <p className="text-muted-foreground mb-8">
                     Already have an account?{" "}
                     <button
@@ -562,8 +586,8 @@ export default function LoginPage() {
                       </AlertTitle>
                       <AlertDescription>
                         You've been invited to join{" "}
-                        <strong>{invitationInfo.organizationName}</strong> as
-                        a <strong>{invitationInfo.role}</strong>. Complete
+                        <strong>{invitationInfo.organizationName}</strong> as a{" "}
+                        <strong>{invitationInfo.role}</strong>. Complete
                         registration to accept.
                       </AlertDescription>
                     </Alert>
@@ -735,7 +759,7 @@ export default function LoginPage() {
 
                     <Button
                       type="submit"
-                      className="w-full py-6 text-lg bg-black hover:bg-black/90 text-white"
+                      className="w-full py-6 text-lg bg-primary text-white"
                       disabled={registering}
                     >
                       {registering ? "Creating Account..." : "Create Account"}
@@ -743,6 +767,65 @@ export default function LoginPage() {
                   </form>
                 </TabsContent>
               </Tabs>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row mobile-only">
+        {/* Mobile Only */}
+        <div className="md:block left-0 top-0 bg-[#033902]">
+          <div className="h-full flex flex-col justify-between p-4 pt-8">
+            <div className="my-auto">
+              {/* Image Carousel */}
+              <div className="mb-4 mt-2">
+                <div className="overflow-hidden rounded-lg" ref={emblaRef}>
+                  <div className="flex">
+                    {sliderItems.map((item, index) => (
+                      <div
+                        key={index}
+                        className="relative flex-[0_0_100%] min-w-0"
+                      >
+                        <div className="flex flex-col items-center justify-center ml-2 mr-2">
+                          <img
+                            src={item.image}
+                            alt={`Slide ${index + 1}`}
+                            className="w-full rounded-lg shadow-md object-cover h-48"
+                          />
+                          <p className="text-center text-md text-white/120 mt-4">
+                            {item.caption}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dot indicators */}
+                <div className="flex justify-center mt-4">
+                  {sliderItems.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
+                        index === selectedIndex
+                          ? "bg-white scale-125"
+                          : "bg-white/40 hover:bg-white/60"
+                      }`}
+                      type="button"
+                      onClick={() => emblaApi?.scrollTo(index)}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Copyright */}
+            <div className="text-white/60 text-[9px] text-center">
+              © {new Date().getFullYear()} BAYRIKO.{" "}
+              <a href="https://pawn.media" className="font-bold underline">
+                Pawn Media
+              </a>
+              .
             </div>
           </div>
         </div>

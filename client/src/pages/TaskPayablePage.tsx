@@ -315,21 +315,21 @@ export default function TaskPayablePage() {
     });
 
     // Add billing info
-    doc.setFontSize(9);
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text("Bill From:", 14, 64);
+    doc.text("Bill From:", 14, 62);
     const billFromLines = invoiceDetails.billFrom.split("\n");
     doc.setFontSize(9);
     billFromLines.forEach((line, index) => {
-      doc.text(line, 14, 60 + index * 4);
+      doc.text(line, 16, 67 + index * 4);
     });
 
-    doc.setFontSize(9);
-    doc.text("Bill To:", 100, 64);
+    doc.setFontSize(10);
+    doc.text("Bill To:", 100, 62);
     const billToLines = invoiceDetails.billTo.split("\n");
     doc.setFontSize(9);
     billToLines.forEach((line, index) => {
-      doc.text(line, 120, 60 + index * 4);
+      doc.text(line, 102, 67 + index * 4);
     });
 
     // Add filter info
@@ -636,7 +636,6 @@ export default function TaskPayablePage() {
     doc.setFontSize(9);
     doc.setFont("Helvetica", "normal"); // Helvetica is closest to Inter among standard fonts
     doc.text(footerText, textX, footerY);
-
 
     // No logo will be used in PDF footer (simplified approach)
 
