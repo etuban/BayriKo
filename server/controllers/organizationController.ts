@@ -32,6 +32,12 @@ export const getAllOrganizations = async (req: Request, res: Response) => {
     
     if (req.user?.role === 'super_admin') {
       organizations = await storage.getAllOrganizations();
+      
+      // Log all organizations for debugging
+      console.log(`[DEBUG] All organizations for Super Admin: ${organizations.length} organizations`);
+      organizations.forEach(org => {
+        console.log(`[DEBUG] Org ID: ${org.id}, Name: ${org.name}`);
+      });
     } else {
       // Get organizations the user belongs to
       organizations = await storage.getOrganizationsForUser(req.user?.id || 0);
