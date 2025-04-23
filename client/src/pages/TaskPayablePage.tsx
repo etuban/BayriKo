@@ -636,42 +636,44 @@ export default function TaskPayablePage() {
     doc.text(footerText, textX, footerY);
 
     // Add BayriKo logo image
-    const logoSize = 20; // Size of the logo in mm
-    const logoX = (docPageWidth - logoSize) / 2;
+    const logoHeight = 18; // Height of the logo in mm
+    const logoX = (docPageWidth - (logoHeight * 2)) / 2; // Center the logo horizontally
     const logoY = footerY - 25; // Position logo above footer text
     
-    // Add the logo image from URL
+    // Add the logo image from URL using same approach as organization logo
     try {
-      // Logo URL as requested (now using PNG instead of WEBP)
+      // Logo URL as requested
       const logoUrl = "https://pawn.media/bayriko/logo.png";
       
-      // Add logo image with proportional sizing
+      // Add image with preserved aspect ratio (exactly as done for organization logo)
       doc.addImage(
-        logoUrl,
-        "PNG", // Format of the image (changed from WEBP to PNG)
-        logoX,
-        logoY,
-        logoSize,
-        logoSize * 0.6, // Adjusted height to maintain proper aspect ratio
-        "BayriKoLogo", // Alias for the image
-        "FAST", // Compression (using FAST for better compatibility)
-        0 // Rotation (0 degrees)
+        logoUrl,           // URL of the image
+        "PNG",             // Format
+        logoX,             // X position (mm)
+        logoY,             // Y position (mm)
+        0,                 // Width - 0 means calculate based on height to maintain aspect ratio
+        logoHeight         // Height (mm)
       );
     } catch (error) {
       console.error("Error adding logo to PDF:", error);
-      // Fallback to a simple rectangle if image loading fails
-      doc.setFillColor(0, 128, 0); // Green background
-      doc.rect(logoX, logoY, logoSize, logoSize / 2, "F");
-      
-      // Add text as an additional fallback
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8);
+      // Fallback to a text alternative if image loading fails
+      doc.setTextColor(0, 128, 0); // Green text
+      doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.text("BayriKo", logoX + logoSize/2, logoY + logoSize/4, { align: "center" });
+      doc.text("BayriKo", docPageWidth / 2, logoY + 8, { align: "center" });
     }
 
     // Add link annotation for the logo area
-    doc.link(logoX, logoY, logoSize, logoSize, {
+    // Estimate width based on height ratio (roughly 2:1 for typical logos)
+    const estimatedLogoWidth = logoHeight * 2;
+    const clickableArea = {
+      x: logoX,
+      y: logoY,
+      width: estimatedLogoWidth,
+      height: logoHeight
+    };
+    
+    doc.link(clickableArea.x, clickableArea.y, clickableArea.width, clickableArea.height, {
       url: "https://bayriko.pawn.media",
     });
 
