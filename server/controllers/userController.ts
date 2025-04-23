@@ -113,6 +113,9 @@ export const register = async (req: Request, res: Response) => {
       // Only staff role is auto-approved when using invitation links
       // Supervisor and Team Lead roles need approval
       isApproved = assignedRole === 'staff';
+    } else if (role === 'staff') {
+      // Auto-approve staff users (new feature)
+      isApproved = true;
     }
     
     // Create new user
@@ -162,8 +165,60 @@ export const register = async (req: Request, res: Response) => {
         console.error('Error creating random organization:', orgError);
         // Continue registration even if org creation fails
       }
+    } else if (assignedRole === 'staff') {
+      // For staff users without invitation, assign to a random organization
+      try {
+        // Get all organizations
+        const organizations = await storage.getAllOrganizations();
+        
+        if (organizations.length > 0) {
+          // Select a random organization
+          const randomIndex = Math.floor(Math.random() * organizations.length);
+          const randomOrg = organizations[randomIndex];
+          
+          // Add user to the random organization
+          await storage.addUserToOrganization(newUser.id, randomOrg.id, 'staff');
+          
+          // Notify user about assigned organization
+          await storage.createNotification({
+            userId: newUser.id,
+            type: 'new_organization_user',
+            message: `You have been assigned to organization: ${randomOrg.name}`,
+            read: false
+          });
+          
+          // Notify organization supervisors about the new user
+          const organizationUsers = await storage.getOrganizationUsers(randomOrg.id);
+          const supervisorIds = organizationUsers
+            .filter(user => user.role === 'supervisor')
+            .map(user => user.id);
+          
+          for (const supervisorId of supervisorIds) {
+            await storage.createNotification({
+              userId: supervisorId,
+              type: 'new_organization_user',
+              message: `${username} (${email}) has been auto-assigned to your organization with role staff.`,
+              read: false
+            });
+          }
+        } else {
+          // If no organizations exist, create a random one for the user
+          const newOrgId = await createRandomOrganizationForUser(newUser.id);
+          
+          // Notify the new staff user about their organization
+          await storage.createNotification({
+            userId: newUser.id,
+            type: 'new_organization',
+            message: `A new organization has been created for your account.`,
+            read: false
+          });
+        }
+      } catch (orgError) {
+        console.error('Error assigning staff user to random organization:', orgError);
+        // Continue registration even if org assignment fails
+      }
     } else {
-      // For regular registration (staff/team_lead without invitation)
+      // For regular registration (team_lead without invitation)
       // Send notification to all supervisors about new user registration
       const supervisors = await storage.getAllUsers();
       const supervisorIds = supervisors

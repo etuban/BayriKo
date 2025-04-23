@@ -346,7 +346,18 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
-          <p className="text-gray-400">No projects found. {canCreate ? 'Create a new project to get started.' : ''}</p>
+          <p className="text-gray-400 mb-4">No projects found. {canCreate ? 'Create a new project to get started.' : ''}</p>
+          
+          {/* Add a "Create New Project" button in the empty state */}
+          {canCreate && (
+            <Button 
+              onClick={openAddDialog}
+              className="bg-primary hover:bg-primary/90 text-white mx-auto"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create New Project
+            </Button>
+          )}
         </div>
       )}
       
