@@ -274,53 +274,63 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen login-screen bg-background">
-      <div className="flex h-screen">
-        <div className="w-full max-w-7xl mx-auto flex flex-col md:flex-row">
-          {/* Left side - Brand/Marketing Panel with background color */}
-          <div className="w-full md:w-1/2 bg-primary relative overflow-hidden hidden md:flex">
-            <div className="absolute inset-0 flex flex-col justify-between p-12">
+      <div className="flex min-h-screen">
+        <div className="w-full mx-auto flex flex-col md:flex-row">
+          {/* Left side - Brand/Marketing Panel with background color (sticky) */}
+          <div className="w-full md:w-1/2 bg-primary hidden md:block">
+            <div className="sticky top-0 h-screen flex flex-col justify-between p-12">
               {/* Top Logo */}
               <div className="text-white">
-                <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="40"
+                  height="40"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
               </div>
-              
+
               {/* Main Content */}
               <div className="my-auto">
                 <h1 className="text-5xl font-bold text-white mb-6 font-Kanit">
-                  Hello<br/>
+                  Hello
+                  <br />
                   BAYRIKO!<span className="ml-2">👋</span>
                 </h1>
                 <p className="text-white/80 text-lg max-w-md">
-                  Skip repetitive and manual task management.
-                  Get highly productive through automation
-                  and save tons of time!
+                  Skip repetitive and manual task management. Get highly
+                  productive through automation and save tons of time!
                 </p>
               </div>
-              
+
               {/* Footer Copyright */}
               <div className="text-white/60 text-sm">
                 © {new Date().getFullYear()} BAYRIKO. All rights reserved.
               </div>
             </div>
           </div>
-          
-          {/* Right side - Login Form */}
-          <div className="w-full md:w-1/2 flex items-center justify-center p-8">
-            <div className="w-full max-w-md">
+
+          {/* Right side - Login Form (scrollable) */}
+          <div className="w-full md:w-1/2 overflow-y-auto max-h-screen p-8">
+            <div className="w-full max-w-md mx-auto my-8">
               {/* Brand */}
               <div className="mb-10">
                 <h2 className="text-2xl font-bold">BAYRIKO</h2>
               </div>
-              
+
               <div>
                 {activeTab === "login" ? (
                   <>
                     <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
                     <p className="text-muted-foreground mb-8">
-                      Don't have an account? <button 
-                        type="button" 
+                      Don't have an account?{" "}
+                      <button
+                        type="button"
                         className="text-primary hover:underline font-medium"
                         onClick={() => setActiveTab("register")}
                       >
@@ -332,8 +342,9 @@ export default function LoginPage() {
                   <>
                     <h2 className="text-3xl font-bold mb-2">Create Account</h2>
                     <p className="text-muted-foreground mb-8">
-                      Already have an account? <button 
-                        type="button" 
+                      Already have an account?{" "}
+                      <button
+                        type="button"
                         className="text-primary hover:underline font-medium"
                         onClick={() => setActiveTab("login")}
                       >
@@ -342,7 +353,7 @@ export default function LoginPage() {
                     </p>
                   </>
                 )}
-                
+
                 <Tabs
                   value={activeTab}
                   onValueChange={setActiveTab}
@@ -377,7 +388,10 @@ export default function LoginPage() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="login-password">Password</Label>
-                          <a href="#" className="text-xs text-primary hover:underline">
+                          <a
+                            href="#"
+                            className="text-xs text-primary hover:underline"
+                          >
                             Forgot password?
                           </a>
                         </div>
@@ -409,22 +423,42 @@ export default function LoginPage() {
                         {isLoading ? "Signing in..." : "Login Now"}
                       </Button>
                     </form>
-                    
+
                     <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-border"></div>
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                        <span className="bg-background px-2 text-muted-foreground">
+                          Or continue with
+                        </span>
                       </div>
                     </div>
-                    
+
                     <Button variant="outline" className="w-full py-6 relative">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" className="absolute left-4" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        className="absolute left-4"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          fill="#4285F4"
+                        />
+                        <path
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          fill="#34A853"
+                        />
+                        <path
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          fill="#FBBC05"
+                        />
+                        <path
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          fill="#EA4335"
+                        />
                       </svg>
                       Login with Google
                     </Button>
@@ -617,7 +651,7 @@ export default function LoginPage() {
                   </TabsContent>
                 </Tabs>
               </div>
-              
+
               <div className="mt-8 text-center text-sm text-muted-foreground">
                 &copy; {new Date().getFullYear()} BAYRIKO. All rights reserved.
               </div>
