@@ -31,6 +31,18 @@
   .login-screen {
     align-content: center;
   }
+  
+  /* Fix for scrollbar issues on login page */
+  html, body {
+    overflow: hidden;
+    height: 100%;
+  }
+  
+  /* Ensure only right panel can scroll */
+  .login-form-panel {
+    overflow-y: auto;
+    height: 100vh;
+  }
 
   /* Print styles for pagination */
   @media print {

@@ -356,7 +356,7 @@ export default function LoginPage() {
           </div>
 
           {/* Right side - Login Form (scrollable) */}
-          <div className="w-full md:w-1/2 overflow-y-auto max-h-screen p-8">
+          <div className="w-full md:w-1/2 p-8 login-form-panel">
             <div className="w-full max-w-md mx-auto my-8">
               {/* Brand */}
               <div className="mb-10">
