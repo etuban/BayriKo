@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail';
+import { MailDataRequired } from '@sendgrid/mail';
 
 // Initialize SendGrid with API key
 if (!process.env.SENDGRID_API_KEY) {
@@ -25,7 +26,24 @@ export async function sendEmail(emailData: EmailData): Promise<boolean> {
       return false;
     }
 
-    await sgMail.send(emailData);
+    // Convert our EmailData to SendGrid's MailDataRequired format
+    const message: MailDataRequired = {
+      to: emailData.to,
+      from: emailData.from,
+      subject: emailData.subject,
+      content: [
+        {
+          type: 'text/plain',
+          value: emailData.text || '',
+        },
+        {
+          type: 'text/html',
+          value: emailData.html || '',
+        },
+      ],
+    };
+
+    await sgMail.send(message);
     console.log(`Email sent successfully to ${emailData.to}`);
     return true;
   } catch (error: any) {

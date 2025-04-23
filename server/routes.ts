@@ -11,6 +11,7 @@ import * as notificationController from './controllers/notificationController';
 import * as organizationController from './controllers/organizationController';
 import * as invitationController from './controllers/invitationController';
 import * as firebaseAuthController from './controllers/firebaseAuthController';
+import * as feedbackController from './controllers/feedbackController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
@@ -159,6 +160,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public invitation validation routes (no auth required)
   app.get('/api/invitations/validate/:token', invitationController.validateInvitationToken);
   app.post('/api/invitations/use/:token', invitationController.useInvitationLink);
+  
+  // Feedback route
+  app.post('/api/feedback', authenticateUser, feedbackController.submitFeedback);
 
   // Run database migrations
   try {
