@@ -90,13 +90,19 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const { toast } = useToast();
 
-  // Setup carousel with autoplay
+  // Setup carousels with autoplay
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
+    Autoplay({ delay: 15000, stopOnInteraction: true }),
+  ]);
+  
+  // Second carousel for mobile view
+  const [emblaRef2, emblaApi2] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 15000, stopOnInteraction: true }),
   ]);
 
   // For dots navigation
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex2, setSelectedIndex2] = useState(0);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -113,6 +119,23 @@ export default function LoginPage() {
       emblaApi.off("select", onSelect);
     };
   }, [emblaApi]);
+  
+  // Effect for second carousel
+  useEffect(() => {
+    if (!emblaApi2) return;
+
+    const onSelect = () => {
+      setSelectedIndex2(emblaApi2.selectedScrollSnap());
+    };
+
+    emblaApi2.on("select", onSelect);
+    // Initial call to set selectedIndex correctly
+    onSelect();
+
+    return () => {
+      emblaApi2.off("select", onSelect);
+    };
+  }, [emblaApi2]);
 
   // Invitation state
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
@@ -250,33 +273,8 @@ export default function LoginPage() {
       // Refresh the session
       await login(user.email as string, "firebase-auth", true);
 
-      // Check user role and navigate accordingly
-      try {
-        // Get the updated session to determine correct navigation
-        const sessionResponse = await fetch('/api/auth/session');
-        const sessionData = await sessionResponse.json();
-        
-        console.log('Firebase login session data:', sessionData);
-        
-        if (sessionData.authenticated && sessionData.user) {
-          const role = sessionData.user.role;
-          console.log(`Redirecting Firebase user with role: ${role}`);
-          
-          // Staff users redirect to tasks, others to dashboard
-          if (role === 'staff') {
-            setLocation("/tasks");
-          } else {
-            setLocation("/dashboard");
-          }
-        } else {
-          // Fallback to dashboard if can't determine role
-          setLocation("/dashboard");
-        }
-      } catch (error) {
-        console.error('Error checking session after Firebase login:', error);
-        // Fallback to dashboard if there's an error
-        setLocation("/dashboard");
-      }
+      // Navigate to dashboard
+      setLocation("/dashboard");
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
       setAuthError(
@@ -800,48 +798,8 @@ export default function LoginPage() {
         {/* Mobile Only */}
         <div className="md:block left-0 top-0 bg-[#033902]">
           <div className="h-full flex flex-col justify-between p-4 pt-8">
-            <div className="my-auto">
+            <div className="image-carousel-2">
               {/* Image Carousel */}
-              <div className="mb-4 mt-2">
-                <div className="overflow-hidden rounded-lg" ref={emblaRef}>
-                  <div className="flex">
-                    {sliderItems.map((item, index) => (
-                      <div
-                        key={index}
-                        className="relative flex-[0_0_100%] min-w-0"
-                      >
-                        <div className="flex flex-col items-center justify-center ml-2 mr-2">
-                          <img
-                            src={item.image}
-                            alt={`Slide ${index + 1}`}
-                            className="w-full rounded-lg shadow-md object-cover h-48"
-                          />
-                          <p className="text-center text-md text-white/120 mt-4">
-                            {item.caption}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Dot indicators */}
-                <div className="flex justify-center mt-4">
-                  {sliderItems.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
-                        index === selectedIndex
-                          ? "bg-white scale-125"
-                          : "bg-white/40 hover:bg-white/60"
-                      }`}
-                      type="button"
-                      onClick={() => emblaApi?.scrollTo(index)}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Footer Copyright */}
