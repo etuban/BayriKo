@@ -1,5 +1,5 @@
 /* Font Imports */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Special+Gothic+Expanded+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,10 +15,11 @@
   }
 
   /* Special Gothic Expanded One font class */
-  .font-specialGothic {
-    font-family: 'Special Gothic Expanded One', serif;
+  .font-Kanit {
+    font-family: 'Kanit', serif;
     letter-spacing: 0.5px;
   }
+
 
   @media only screen and (min-width:767px) {
     .mobile-only {
@@ -30,7 +31,7 @@
   .login-screen {
     align-content: center;
   }
-  
+
   /* Print styles for pagination */
   @media print {
     body {
@@ -39,21 +40,26 @@
       color-adjust: exact !important;
       background-color: white;
     }
-    
+
     /* Improve print pagination */
     table {
       page-break-inside: auto;
     }
+
     tr {
       page-break-inside: avoid;
       page-break-after: auto;
     }
-    td, th {
+
+    td,
+    th {
       page-break-inside: avoid;
     }
+
     thead {
       display: table-header-group;
     }
+
     tfoot {
       display: table-footer-group;
     }
