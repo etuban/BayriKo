@@ -184,11 +184,16 @@ export const getTaskById = async (req: Request, res: Response) => {
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    // Staff and Team Leads can create tasks
-    const taskData = insertTaskSchema.parse({
-      ...req.body,
-      createdById: req.user?.id
-    });
+    // If the user is staff, automatically assign the task to them
+    let taskDataObj = { ...req.body, createdById: req.user?.id };
+    
+    // Auto-assign tasks to staff users who create them
+    if (req.user?.role === 'staff' && !taskDataObj.assignedToId) {
+      taskDataObj.assignedToId = req.user.id;
+    }
+    
+    // Validate and parse the task data
+    const taskData = insertTaskSchema.parse(taskDataObj);
     
     const newTask = await storage.createTask(taskData);
     

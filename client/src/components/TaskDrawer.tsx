@@ -106,12 +106,18 @@ export function TaskDrawer() {
       // Get preselected user ID if available
       const preselectedUserId = form.getValues('assignedToId');
       
+      // Staff users are automatically assigned to their own tasks
+      let assignee = preselectedUserId;
+      if (user?.role === 'staff') {
+        assignee = user.id;
+      }
+      
       form.reset({
         title: '',
         description: '',
         projectId: undefined,
-        // Keep preselected user if it exists
-        assignedToId: preselectedUserId,
+        // Set assignee - for staff it's themselves, for others it's preselected or undefined
+        assignedToId: assignee,
         tags: '',
         startDate: '',
         startTime: '',
@@ -269,28 +275,40 @@ export function TaskDrawer() {
               )}
             </div>
             
-            {/* Assigned User */}
-            <div>
-              <Label htmlFor="assignedToId" className="text-sm font-medium mb-1">
-                Assigned To
-              </Label>
-              <Select
-                value={form.watch('assignedToId')?.toString() || ''}
-                onValueChange={(value) => form.setValue('assignedToId', parseInt(value))}
-                disabled={drawer.mode === 'view'}
-              >
-                <SelectTrigger className="w-full bg-dark-bg border border-dark-border">
-                  <SelectValue placeholder="Select user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user: any) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.fullName} ({user.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Assigned User - Hidden for staff users who are automatically assigned */}
+            {user?.role !== 'staff' && (
+              <div>
+                <Label htmlFor="assignedToId" className="text-sm font-medium mb-1">
+                  Assigned To
+                </Label>
+                <Select
+                  value={form.watch('assignedToId')?.toString() || ''}
+                  onValueChange={(value) => form.setValue('assignedToId', parseInt(value))}
+                  disabled={drawer.mode === 'view'}
+                >
+                  <SelectTrigger className="w-full bg-dark-bg border border-dark-border">
+                    <SelectValue placeholder="Select user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users.map((user: any) => (
+                      <SelectItem key={user.id} value={user.id.toString()}>
+                        {user.fullName} ({user.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {user?.role === 'staff' && drawer.mode === 'new' && (
+              <div>
+                <Label className="text-sm font-medium mb-1">
+                  Assigned To
+                </Label>
+                <div className="p-2 rounded-md bg-muted text-muted-foreground">
+                  Tasks you create are automatically assigned to you
+                </div>
+              </div>
+            )}
             
             {/* Tags */}
             <div>
