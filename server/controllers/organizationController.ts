@@ -4,6 +4,26 @@ import { insertOrganizationSchema, Organization } from '@shared/schema';
 import { ZodError } from 'zod';
 import { formatZodError } from '../utils';
 
+export const getCurrentOrganization = async (req: Request, res: Response) => {
+  try {
+    // User must be logged in and have a current organization
+    if (!req.user?.currentOrganizationId) {
+      return res.status(404).json({ message: 'No current organization set' });
+    }
+    
+    const organization = await storage.getOrganizationById(req.user.currentOrganizationId);
+    
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+    
+    res.status(200).json(organization);
+  } catch (error) {
+    console.error('Error getting current organization:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 export const getAllOrganizations = async (req: Request, res: Response) => {
   try {
     // Super admins can see all organizations

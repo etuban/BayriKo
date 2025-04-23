@@ -140,9 +140,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Organization routes
   app.get('/api/organizations', authenticateUser, organizationController.getAllOrganizations);
+  app.get('/api/organizations/current', authenticateUser, organizationController.getCurrentOrganization);
   app.get('/api/organizations/:id', authenticateUser, organizationController.getOrganizationById);
   app.post('/api/organizations', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.createOrganization);
   app.put('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.updateOrganization);
+  app.patch('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), organizationController.updateOrganization);
   app.delete('/api/organizations/:id', authenticateUser, authorizeRole(['super_admin']), organizationController.deleteOrganization);
   
   // Invitation link routes

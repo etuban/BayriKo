@@ -90,6 +90,12 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       display: user?.role === 'super_admin',
     },
     {
+      title: 'Organization Settings',
+      icon: <Building className="w-5 h-5 mr-3" />,
+      path: '/organization-settings',
+      display: user?.role === 'super_admin' || user?.role === 'supervisor',
+    },
+    {
       title: 'Users',
       icon: <Users className="w-5 h-5 mr-3" />,
       path: '/users',

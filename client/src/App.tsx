@@ -13,6 +13,7 @@ import ProjectComparisonPage from "@/pages/ProjectComparisonPage";
 import UsersPage from "@/pages/UsersPage";
 import SettingsPage from "@/pages/SettingsPage";
 import OrganizationsPage from "@/pages/OrganizationsPage";
+import OrganizationSettingsPage from "@/pages/OrganizationSettingsPage";
 import { Layout } from "@/components/Layout";
 import { ThemeProvider } from "next-themes";
 import { TaskProvider } from "./context/TaskContext";
@@ -82,6 +83,16 @@ function Router() {
       </Route>
       <Route path="/settings">
         {() => <ProtectedRoute component={SettingsPage} />}
+      </Route>
+      <Route path="/organization-settings">
+        {() => {
+          const { user } = useAuth();
+          // Only Super Admin and Supervisor can access organization settings
+          if (user?.role !== 'super_admin' && user?.role !== 'supervisor') {
+            return <NotFound />;
+          }
+          return <ProtectedRoute component={OrganizationSettingsPage} />;
+        }}
       </Route>
       <Route path="/tasks">
         {() => <ProtectedRoute component={TasksPage} />}
