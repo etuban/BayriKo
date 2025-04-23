@@ -299,7 +299,9 @@ export default function UsersPage() {
         message: "You've been invited to join our organization.",
         expires: null,
         maxUses: null,
-        organizationId: user?.currentOrganizationId || organizations[0]?.id || 0
+        organizationId: user?.currentOrganizationId || organizations[0]?.id || 0,
+        sendEmail: false,
+        recipientEmail: ''
       });
     },
     onError: (error: any) => {
@@ -1121,6 +1123,51 @@ export default function UsersPage() {
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={invitationForm.control}
+                name="sendEmail"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded-md border">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Send Invitation via Email</FormLabel>
+                      <FormDescription>
+                        Send this invitation link directly to a recipient via email
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {invitationForm.watch('sendEmail') && (
+                <FormField
+                  control={invitationForm.control}
+                  name="recipientEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recipient Email</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter recipient email address"
+                          {...field}
+                          className="bg-dark-bg"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        The email address to send the invitation link to
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               
               <DialogFooter>
                 <Button 
