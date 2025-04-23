@@ -210,7 +210,8 @@ export default function ProjectsPage() {
   // Check if the current user can perform actions
   const canDelete = user?.role === 'supervisor';
   const canEdit = user?.role === 'supervisor' || user?.role === 'team_lead';
-  const canCreate = user?.role === 'supervisor' || user?.role === 'team_lead';
+  // Allow staff users to create projects
+  const canCreate = user?.role === 'supervisor' || user?.role === 'team_lead' || user?.role === 'staff';
 
   return (
     <div className="space-y-6">
