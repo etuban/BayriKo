@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { ZodError } from 'zod';
 import { formatZodError } from '../utils';
-import { insertInvitationLinkSchema } from '@shared/schema';
+import { insertInvitationLinkSchema, User } from '@shared/schema';
 import { randomBytes } from 'crypto';
 import { sendInvitationEmail } from '../utils/emailService';
 
@@ -297,6 +297,79 @@ export const useInvitationLink = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Invitation link used successfully' });
   } catch (error) {
     console.error('Error using invitation link:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Send invitation email for an existing invitation link
+ */
+export const sendExistingInvitationEmail = async (req: Request, res: Response) => {
+  try {
+    const { token, recipientEmail, organizationId } = req.body;
+    
+    if (!token || !recipientEmail || !organizationId) {
+      return res.status(400).json({ message: 'Missing required fields: token, recipientEmail, or organizationId' });
+    }
+    
+    // Get the invitation link
+    const invitationLink = await storage.getInvitationLinkByToken(token);
+    if (!invitationLink) {
+      return res.status(404).json({ message: 'Invitation link not found' });
+    }
+    
+    // Validate if the user has permission to send email for this organization
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    // For non-super-admins, check if they are part of the organization
+    if (user.role !== 'super_admin') {
+      const userRole = await storage.getUserRoleInOrganization(user.id, organizationId);
+      if (!userRole || (userRole !== 'supervisor' && userRole !== 'team_lead')) {
+        return res.status(403).json({ message: 'Forbidden: You do not have permission to send invitation emails for this organization' });
+      }
+    }
+    
+    // Get the organization details
+    const organization = await storage.getOrganizationById(organizationId);
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+    
+    // Extract only the necessary user fields to avoid type errors
+    const senderInfo = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName || '',
+      role: user.role,
+      password: '', // Add required fields with empty values
+      createdAt: new Date(),
+      avatarUrl: null,
+      position: null,
+      isApproved: true,
+      isSuperAdmin: user.role === 'super_admin',
+      firebaseUid: null
+    };
+    
+    // Send the invitation email
+    const emailSent = await sendInvitationEmail(
+      recipientEmail,
+      invitationLink,
+      organization,
+      senderInfo as User
+    );
+    
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Failed to send invitation email' });
+    }
+    
+    // Return success
+    res.status(200).json({ message: 'Invitation email sent successfully' });
+  } catch (error) {
+    console.error('Error sending invitation email:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
