@@ -172,7 +172,7 @@ export default function SettingsPage() {
           userEmail: user?.email,
           userName: user?.fullName,
           userRole: user?.role,
-          organizationId: user?.organizations?.[0]?.organizationId || user?.currentOrganizationId,
+          organizationId: user?.organizations?.[0]?.id || user?.currentOrganizationId,
         }),
       });
       

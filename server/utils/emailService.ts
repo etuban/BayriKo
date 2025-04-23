@@ -68,7 +68,7 @@ export async function sendFeedbackEmail(feedbackData: {
   organizationId?: number;
 }): Promise<boolean> {
   const to = 'pawnmedia.ph@gmail.com';
-  const from = 'noreply@bayriko.app'; // Replace with your verified sender
+  const from = 'pawnmedia.ph@gmail.com'; // Using your verified sender email
   const subject = 'BayriKo Feedback Submission';
   
   // Construct the HTML content
