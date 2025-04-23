@@ -635,24 +635,36 @@ export default function TaskPayablePage() {
     doc.setFont("Helvetica", "normal"); // Helvetica is closest to Inter among standard fonts
     doc.text(footerText, textX, footerY);
 
-    // Create a green circular logo with GiReceiveMoney icon (simplified icon representation)
-    const logoSize = 12;
+    // Add BayriKo logo image
+    const logoSize = 20; // Size of the logo in mm
     const logoX = (docPageWidth - logoSize) / 2;
-    const logoY = footerY - 18; // Position icon above footer text
+    const logoY = footerY - 25; // Position logo above footer text
+    
+    // Add the logo image from URL
+    try {
+      // Logo URL as requested
+      const logoUrl = "https://pawn.media/bayriko/logo-1.webp";
+      
+      // Add logo image with proportional sizing
+      doc.addImage(
+        logoUrl,
+        "WEBP", // Format of the image
+        logoX,
+        logoY,
+        logoSize,
+        logoSize, // We'll use a square area but the image will maintain its proportions
+        "BayriKoLogo", // Alias for the image
+        "NONE", // Compression (NONE, FAST, MEDIUM, SLOW)
+        0 // Rotation (0 degrees)
+      );
+    } catch (error) {
+      console.error("Error adding logo to PDF:", error);
+      // Fallback to a simple rectangle if image loading fails
+      doc.setFillColor(0, 128, 0); // Green background
+      doc.rect(logoX, logoY, logoSize, logoSize / 2, "F");
+    }
 
-    // Draw green circular background
-    doc.setFillColor(0, 128, 0); // Green background
-    doc.circle(logoX + logoSize / 2, logoY + logoSize / 2, logoSize / 2, "F");
-
-    // Draw simplified money icon ($ symbol in white)
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text("$", logoX + logoSize / 2 - 1.5, logoY + logoSize / 2 + 2, {
-      align: "center",
-    });
-
-    // Add link annotation for the icon
+    // Add link annotation for the logo area
     doc.link(logoX, logoY, logoSize, logoSize, {
       url: "https://bayriko.pawn.media",
     });

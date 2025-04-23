@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
-import { UsersDto } from '../utils/dto';
+import { UsersDto } from '../utils/dto.js';
 import { randomBytes } from 'crypto';
 
 /**
