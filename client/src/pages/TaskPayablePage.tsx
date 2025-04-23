@@ -435,6 +435,8 @@ export default function TaskPayablePage() {
           fontSize: 8,
           lineColor: [220, 220, 220],
           lineWidth: 0.1,
+          overflow: 'linebreak', // Ensure text wraps within cell
+          cellWidth: 'wrap',     // Auto-size cells to fit content
         },
         headStyles: {
           fillColor: [0, 128, 0],
@@ -469,19 +471,54 @@ export default function TaskPayablePage() {
             doc.setTextColor(100, 100, 100);
             doc.text(str, pageWidth - 20, pageHeight - 10);
             
-            // Add small invoice title on subsequent pages
-            doc.setFontSize(10);
+            // Add header to continuation pages
+            doc.setFontSize(14);
             doc.setTextColor(0, 128, 0);
             doc.setFont("helvetica", "bold");
-            doc.text("Task Invoice", 14, 10);
+            doc.text("Task Invoice (continued)", 105, 15, { align: "center" });
             
             // Add organization name if available
             if (currentOrganization?.name) {
-              doc.setFontSize(8);
+              doc.setFontSize(9);
               doc.setTextColor(100, 100, 100);
               doc.setFont("helvetica", "normal");
-              doc.text(currentOrganization.name, 14, 15);
+              
+              // Add organization logo if available
+              if (currentOrganization?.logoUrl) {
+                try {
+                  // Logo position to the left of organization name
+                  const logoHeight = 8; // max height in mm
+                  const logoX = 14; // Position left aligned
+                  const logoY = 20; // Below the title
+                  
+                  // Add image with preserved aspect ratio
+                  doc.addImage(
+                    currentOrganization.logoUrl,  // URL or Base64 string
+                    'JPEG',                      // Format (JPEG/PNG/etc)
+                    logoX,                       // X position (mm) - left aligned
+                    logoY,                       // Y position (mm)
+                    0,                           // Width - 0 means calculate based on height
+                    logoHeight                   // Height (mm)
+                  );
+                  
+                  // Text next to logo
+                  doc.text(currentOrganization.name, 40, 25);
+                } catch (error) {
+                  // If logo fails, just show organization name
+                  doc.text(currentOrganization.name, 14, 25);
+                }
+              } else {
+                doc.text(currentOrganization.name, 14, 25);
+              }
             }
+          }
+        },
+        
+        // Force minimum row height to accommodate multi-line content
+        willDrawCell: function(data) {
+          // Increase minimum height for description cells
+          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
+            data.row.height = Math.max(data.row.height, 15); // Min height of 15mm for rows with descriptions
           }
         },
         
@@ -499,12 +536,20 @@ export default function TaskPayablePage() {
 
               // If there are multiple lines (description exists)
               if (data.cell.text.length > 1) {
-                // We need to handle this with a custom didDrawCell function
+                // Make sure we have space for the description
+                data.cell.styles.minCellHeight = 15; // Min height
+                data.cell.styles.overflow = 'linebreak';
                 data.cell.styles.lineWidth = 0.1;
               }
             }
           }
+          
+          // Make sure all text is properly linebroken
+          if (data.cell.text && Array.isArray(data.cell.text)) {
+            data.cell.styles.overflow = 'linebreak';
+          }
         },
+        
         // Custom draw cell function to handle title and description differently
         didDrawCell: function (data) {
           // Only process first column cells with multi-line text
@@ -527,13 +572,23 @@ export default function TaskPayablePage() {
             // Draw title with bold and larger font
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9);
-            doc.text(text[0], x + 2, y + 5);
+            
+            // Ensure text wrapping for long titles
+            const splitTitle = doc.splitTextToSize(text[0], width - 4);
+            doc.text(splitTitle, x + 2, y + 5);
+            
+            // Calculate offset for description based on title height
+            const titleHeight = splitTitle.length * 4;
 
             // Draw description with normal font and smaller size
             if (text.length > 1) {
               doc.setFont("helvetica", "normal");
               doc.setFontSize(7);
-              doc.text(text.slice(1).join("\n"), x + 2, y + 10);
+              
+              // Ensure description text wraps properly
+              const descriptionText = text.slice(1).join(" ");
+              const splitDescription = doc.splitTextToSize(descriptionText, width - 4);
+              doc.text(splitDescription, x + 2, y + 5 + titleHeight);
             }
 
             // Return true to indicate we've handled the cell drawing
@@ -542,14 +597,14 @@ export default function TaskPayablePage() {
           return false; // Let jsPDF-AutoTable handle other cells
         },
         columnStyles: {
-          0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
+          0: { cellWidth: 100, cellPadding: 3, overflow: 'linebreak' }, // Task title with increased padding for description
           1: { cellWidth: 18, halign: "right" }, // Date
           2: { cellWidth: 15, halign: "center" }, // Hours
           3: { cellWidth: 20, halign: "center" }, // Rate
           4: { cellWidth: 17, halign: "right" }, // Total
         },
-        margin: { left: 14, right: 14, top: 20 }, // Increased top margin for headers
-        tableWidth: 175,
+        margin: { left: 14, right: 14, top: 30 }, // Increased top margin for headers
+        tableWidth: 170, // Slightly narrower to allow for margins
       });
 
       // Update startY for next project
