@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, AlertCircle, Plus } from 'lucide-react';
+import { X, AlertCircle, Plus, Building } from 'lucide-react';
 import { cn, formatTags, parseTags } from '@/lib/utils';
 import { useTask } from '@/context/TaskContext';
 import { Task, TaskFormValues } from '@/types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,8 @@ import { TaskHistory } from './TaskHistory';
 import { TaskComments } from './TaskComments';
 import { useAuth } from '@/context/AuthContext';
 import { Link } from 'wouter';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 // Validation schema
 const taskSchema = z.object({
@@ -40,11 +42,31 @@ const taskSchema = z.object({
   status: z.enum(['todo', 'in_progress', 'completed']),
 });
 
+// Project creation form schema
+const projectSchema = z.object({
+  name: z.string().min(1, 'Project name is required'),
+  description: z.string().optional()
+});
+
 export function TaskDrawer() {
   const { drawer, closeDrawer, createTask, updateTask } = useTask();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  // Form
+  // State for project creation dialog
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  
+  // Project creation form
+  const projectForm = useForm<z.infer<typeof projectSchema>>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      name: '',
+      description: ''
+    }
+  });
+  
+  // Task form
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -82,6 +104,50 @@ export function TaskDrawer() {
   const { data: users = [] } = useQuery({
     queryKey: ['/api/users'],
     enabled: drawer.isOpen,
+  });
+  
+  // Create project mutation
+  const createProjectMutation = useMutation({
+    mutationFn: async (projectData: z.infer<typeof projectSchema>) => {
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectData)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create project');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Project created',
+        description: 'New project has been successfully created',
+        variant: 'default'
+      });
+      
+      // Close project dialog
+      setIsProjectDialogOpen(false);
+      
+      // Reset project form
+      projectForm.reset();
+      
+      // Invalidate projects query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      
+      // Set the newly created project as the selected project in the task form
+      form.setValue('projectId', data.id);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Project creation failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   });
   
   // Check for preselected user from sessionStorage
@@ -236,21 +302,41 @@ export function TaskDrawer() {
             
             {/* Project */}
             <div>
-              <Label htmlFor="projectId" className="text-sm font-medium mb-1">
-                Project <span className="text-red-500">*</span>
-              </Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label htmlFor="projectId" className="text-sm font-medium">
+                  Project <span className="text-red-500">*</span>
+                </Label>
+                
+                {/* Only show the "Create Project" button if the user can create projects */}
+                {drawer.mode !== 'view' && (user?.role === 'supervisor' || user?.role === 'team_lead' || user?.role === 'staff') && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setIsProjectDialogOpen(true)}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    New Project
+                  </Button>
+                )}
+              </div>
+              
               {projects.length === 0 ? (
                 <div className="mt-2 mb-2">
                   <div className="text-sm text-yellow-500 flex items-center mb-3">
                     <AlertCircle className="h-4 w-4 mr-2" />
                     No projects available. Please create a project first.
                   </div>
-                  <Link href="/projects">
-                    <Button type="button" variant="outline" className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Project
-                    </Button>
-                  </Link>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setIsProjectDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Project
+                  </Button>
                 </div>
               ) : (
                 <Select
@@ -522,6 +608,62 @@ export function TaskDrawer() {
           )}
         </div>
       </div>
+      
+      {/* Project Creation Dialog */}
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <DialogContent className="bg-dark-surface border border-dark-border">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Add a new project that you can use for organizing tasks.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={projectForm.handleSubmit((data) => createProjectMutation.mutate(data))} className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Project Name</Label>
+              <Input 
+                id="name" 
+                {...projectForm.register('name')}
+                className="bg-dark-bg"
+                placeholder="Enter project name"
+              />
+              {projectForm.formState.errors.name && (
+                <p className="text-red-500 text-xs">{projectForm.formState.errors.name.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea 
+                id="description" 
+                {...projectForm.register('description')}
+                className="bg-dark-bg"
+                placeholder="Enter project description (optional)"
+                rows={3}
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={() => setIsProjectDialogOpen(false)}
+                disabled={createProjectMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="bg-primary hover:bg-primary/90"
+                disabled={createProjectMutation.isPending}
+              >
+                {createProjectMutation.isPending ? 'Creating...' : 'Create Project'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
