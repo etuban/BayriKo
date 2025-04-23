@@ -55,7 +55,7 @@ export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) =>
         password, // Hashed in storage layer
         fullName,
         role: 'staff', // Default role for Google sign-ins
-        isApproved: false, // Require approval by default
+        isApproved: true, // Auto-approve for staff role
         // Store Firebase UID for reference in an object that will be spread into the user object
         ...(uid ? { firebaseUid: uid } : {})
       });
