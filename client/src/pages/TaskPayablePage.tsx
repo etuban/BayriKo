@@ -435,6 +435,7 @@ export default function TaskPayablePage() {
           fontSize: 8,
           lineColor: [220, 220, 220],
           lineWidth: 0.1,
+          overflow: 'linebreak', // Wrap text instead of truncating
         },
         headStyles: {
           fillColor: [0, 128, 0],
@@ -451,6 +452,9 @@ export default function TaskPayablePage() {
         // Setup pagination options
         pageBreak: 'auto', // Enable automatic pagination
         showFoot: 'lastPage', // Only show footer on the last page
+        bodyStyles: {
+          minCellHeight: 12, // Minimum height for cells
+        },
         
         // Add header and footer for each page
         didDrawPage: function(data) {
@@ -572,33 +576,44 @@ export default function TaskPayablePage() {
       align: "right",
     });
 
-    // Add payment terms (on the last page)
-    const currentPage = doc.getNumberOfPages();
-    doc.setPage(currentPage); // Move to the last page
+    // Check if we have enough space for payment terms and footer
+    // Get document dimensions
+    const docPageSize = doc.internal.pageSize;
+    const docPageHeight = docPageSize.height ? docPageSize.height : docPageSize.getHeight();
+    const docPageWidth = docPageSize.width ? docPageSize.width : docPageSize.getWidth();
     
+    // Calculate needed space for payment terms
+    const paymentTermsHeight = invoiceDetails.paymentTerms.split("\n").length * 4 + 30; // 30 for header + margins
+    
+    // If there's not enough space for payment terms + footer (35mm), add a new page
+    let updatedFinalY = finalY;
+    if (finalY + paymentTermsHeight + 35 > docPageHeight) {
+      doc.addPage();
+      updatedFinalY = 20; // Reset to top of page with margin
+    }
+    
+    // Get the current page after potential page addition
+    const currentPage = doc.getNumberOfPages();
+    doc.setPage(currentPage);
+    
+    // Add payment terms at the current position
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("Payment Terms:", 14, finalY + 20);
+    doc.text("Payment Terms:", 14, updatedFinalY + 20);
     const paymentTermsLines = invoiceDetails.paymentTerms.split("\n");
     doc.setFontSize(8);
     paymentTermsLines.forEach((line, index) => {
-      doc.text(line, 14, finalY + 25 + index * 4);
+      doc.text(line, 14, updatedFinalY + 25 + index * 4);
     });
-
-    // Add the footer only on the last page
-    // Get page size
-    const pageSize = doc.internal.pageSize;
-    const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-    const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
     
     // Add static footer with link text
-    const footerY = pageHeight - 15;
+    const footerY = docPageHeight - 15;
     doc.setFontSize(9);
 
     // Add footer text with URL below the icon
     const footerText = "This PDF Invoice is generated through BayriKo";
     const textWidth = doc.getTextWidth(footerText);
-    const textX = (pageWidth - textWidth) / 2.05;
+    const textX = (docPageWidth - textWidth) / 2.05;
     doc.setTextColor(0, 0, 0); // Black text
     doc.setFontSize(9);
     doc.setFont("Helvetica", "normal"); // Helvetica is closest to Inter among standard fonts
@@ -606,7 +621,7 @@ export default function TaskPayablePage() {
 
     // Create a green circular logo with GiReceiveMoney icon (simplified icon representation)
     const logoSize = 12;
-    const logoX = (pageWidth - logoSize) / 2;
+    const logoX = (docPageWidth - logoSize) / 2;
     const logoY = footerY - 18; // Position icon above footer text
 
     // Draw green circular background
@@ -632,7 +647,7 @@ export default function TaskPayablePage() {
     doc.setFontSize(8);
     doc.setTextColor(0, 128, 0); // Green color for URL
     const websiteWidth = doc.getTextWidth(websiteText);
-    const websiteX = (pageWidth - websiteWidth) / 2;
+    const websiteX = (docPageWidth - websiteWidth) / 2;
     doc.text(websiteText, websiteX, websiteY);
 
     // Add a link annotation for the URL text
