@@ -48,6 +48,12 @@ export default function TaskPayablePage() {
     queryKey: ["/api/users/organizations/current"],
     enabled: !!user,
   });
+  
+  // Fetch current organization details
+  const { data: currentOrganization } = useQuery<Organization>({
+    queryKey: ["/api/organizations/current"],
+    enabled: !!user?.currentOrganizationId,
+  });
 
   // Set default organization based on user's current organization if available
   useEffect(() => {
@@ -231,11 +237,35 @@ export default function TaskPayablePage() {
     // Set default font to Helvetica for the whole document
     doc.setFont("helvetica", "normal");
 
-    // Add title
+    // Add organization logo if available
+    if (currentOrganization?.logoUrl) {
+      try {
+        // Add image with max height of 15mm and positioned on the left
+        doc.addImage(
+          currentOrganization.logoUrl, // URL or Base64 string
+          'JPEG',                      // Format (JPEG/PNG/etc)
+          14,                          // X position (mm)
+          15,                          // Y position (mm)
+          40,                          // Width (mm)
+          15                           // Height (mm)
+        );
+      } catch (error) {
+        console.error("Error adding logo to PDF:", error);
+      }
+    }
+
+    // Add organization name (if available) or default title
     doc.setFontSize(24);
     doc.setTextColor(0, 128, 0); // Green color for the header
     doc.setFont("helvetica", "bold");
-    doc.text("Task Invoice", 105, 20, { align: "center" });
+    
+    if (currentOrganization?.name) {
+      doc.text(currentOrganization.name, 105, 20, { align: "center" });
+      doc.setFontSize(18);
+      doc.text("Task Invoice", 105, 30, { align: "center" });
+    } else {
+      doc.text("Task Invoice", 105, 20, { align: "center" });
+    }
 
     // Add invoice number and date
     doc.setFontSize(9);
@@ -664,8 +694,26 @@ export default function TaskPayablePage() {
         <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
           {/* Invoice Title - Only visible when printing */}
           <div className="hidden print:block mb-6">
+            {/* Organization Logo */}
+            {currentOrganization?.logoUrl && (
+              <div className="text-center mb-4">
+                <img 
+                  src={currentOrganization.logoUrl} 
+                  alt={currentOrganization.name || "Organization logo"} 
+                  className="max-h-16 mx-auto"
+                />
+              </div>
+            )}
+            
+            {/* Organization Name and Task Invoice Title */}
             <h1 className="text-xl font-bold text-center text-primary print-header">
-              Task Invoice
+              {currentOrganization?.name && (
+                <>
+                  {currentOrganization.name}
+                  <div className="text-lg mt-2">Task Invoice</div>
+                </>
+              )}
+              {!currentOrganization?.name && "Task Invoice"}
             </h1>
             <div className="flex justify-between mt-4">
               <div className="text-right">
