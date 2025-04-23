@@ -57,7 +57,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "Dashboard",
       icon: <LayoutDashboard className="w-5 h-5 mr-3" />,
       path: "/dashboard",
-      display: true,
+      display: user?.role !== "staff", // Hide Dashboard for staff users
     },
     {
       title: "Tasks",

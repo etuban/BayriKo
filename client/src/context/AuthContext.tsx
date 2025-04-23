@@ -35,9 +35,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(data.user);
           setIsAuthenticated(true);
           
-          // If at login page, redirect to dashboard
+          // If at login page, redirect based on user role
           if (window.location.pathname === '/login') {
-            navigate('/dashboard');
+            // Staff users go directly to Tasks page, others to dashboard
+            if (data.user.role === 'staff') {
+              navigate('/tasks');
+            } else {
+              navigate('/dashboard');
+            }
           }
         } else {
           setUser(null);
@@ -94,7 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
       
       // Use navigate instead of window.location to avoid page refresh
-      navigate('/dashboard');
+      // Staff users go directly to Tasks page, others to dashboard
+      if (data.user.role === 'staff') {
+        navigate('/tasks');
+      } else {
+        navigate('/dashboard');
+      }
     },
     onError: (error: any) => {
       toast({
