@@ -11,6 +11,7 @@ import { signInWithGoogle } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GiReceiveMoney } from "react-icons/gi";
 import {
   Card,
   CardContent,
@@ -203,50 +204,50 @@ export default function LoginPage() {
       );
     }
   };
-  
+
   // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
     try {
       setAuthError(null);
       // Call the Firebase Google Sign-In
       const result = await signInWithGoogle();
-      
+
       if (!result || !result.user) {
-        throw new Error('Google sign-in failed');
+        throw new Error("Google sign-in failed");
       }
-      
+
       // Get user data from the Firebase response
       const { user } = result;
-      
+
       // Send the user data to our backend
-      const response = await fetch('/api/auth/google', {
-        method: 'POST',
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: user.email,
-          displayName: user.displayName || user.email?.split('@')[0] || 'Unknown User',
+          displayName:
+            user.displayName || user.email?.split("@")[0] || "Unknown User",
           uid: user.uid,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to authenticate with Google');
+        throw new Error(data.message || "Failed to authenticate with Google");
       }
-      
+
       // Refresh the session
-      await login(user.email as string, 'firebase-auth', true);
-      
+      await login(user.email as string, "firebase-auth", true);
+
       // Navigate to dashboard
-      setLocation('/dashboard');
-      
+      setLocation("/dashboard");
     } catch (error: any) {
-      console.error('Google Sign-In Error:', error);
+      console.error("Google Sign-In Error:", error);
       setAuthError(
-        error.message || 'Failed to login with Google. Please try again.',
+        error.message || "Failed to login with Google. Please try again.",
       );
     }
   };
@@ -325,32 +326,27 @@ export default function LoginPage() {
       <div className="flex min-h-screen">
         <div className="w-full mx-auto flex flex-col md:flex-row overflow-hidden">
           {/* Left side - Brand/Marketing Panel with background color (sticky) */}
-          <div className="w-full md:w-3/5 bg-primary hidden md:block">
-            <div className="sticky top-0 h-screen flex flex-col justify-between p-12">
+          <div className="w-full md:w-3/5 bg-[#033902] hidden md:block sticky top-0 h-screen overflow-hidden">
+            <div className="h-full flex flex-col justify-between p-8">
               {/* Top Logo */}
-              <div className="text-white">
-                <svg
-                  viewBox="0 0 24 24"
-                  width="40"
-                  height="40"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                </svg>
+              <div className="top-logo flex items-center justify-center">
+                <div className="flex items-center">
+                  <div className="border border-white-8 w-24 h-24 bg-white rounded-full mt-2">
+                    <GiReceiveMoney className="w-12 h-12 text-primary mt-6 ml-6" />
+                  </div>
+                  <div className="ml-4">
+                    <h1 className="text-7xl font-bold text-white mb-1 font-Kanit">
+                      BAYRIKO
+                    </h1>
+                    <p className="text-white/80 text-lg max-w-md">
+                      Task to Invoice Management System
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Main Content with Carousel */}
               <div className="my-auto">
-                <h1 className="text-5xl font-bold text-white mb-4 font-Kanit">
-                  Hello
-                  <br />
-                  BAYRIKO!<span className="ml-2">👋</span>
-                </h1>
-
                 {/* Image Carousel */}
                 <div className="mb-6 mt-8">
                   <div className="overflow-hidden rounded-lg" ref={emblaRef}>
@@ -392,16 +388,15 @@ export default function LoginPage() {
                     ))}
                   </div>
                 </div>
-
-                <p className="text-white/80 text-lg max-w-md">
-                  Skip repetitive and manual task management. Get highly
-                  productive through automation and save tons of time!
-                </p>
               </div>
 
               {/* Footer Copyright */}
               <div className="text-white/60 text-sm">
-                © {new Date().getFullYear()} BAYRIKO. All rights reserved.
+                © {new Date().getFullYear()} BAYRIKO.{" "}
+                <a href="https://pawn.media" className="font-bold underline">
+                  Pawn Media
+                </a>
+                .
               </div>
             </div>
           </div>
@@ -410,14 +405,11 @@ export default function LoginPage() {
           <div className="w-full md:w-2/5 p-8 login-form-panel">
             <div className="w-full max-w-md mx-auto my-8">
               {/* Brand */}
-              <div className="mb-10">
-                <h2 className="text-2xl font-bold">BAYRIKO</h2>
-              </div>
 
               <div>
                 {activeTab === "login" ? (
                   <>
-                    <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
+                    <h2 className="text-3xl font-bold mb-2">Login</h2>
                     <p className="text-muted-foreground mb-8">
                       Don't have an account?{" "}
                       <button
@@ -465,7 +457,7 @@ export default function LoginPage() {
                         <Input
                           id="login-email"
                           type="email"
-                          placeholder="your.email@example.com"
+                          placeholder="email@example.com"
                           {...loginForm.register("email")}
                           className="w-full"
                         />
@@ -508,7 +500,7 @@ export default function LoginPage() {
 
                       <Button
                         type="submit"
-                        className="w-full py-6 text-lg bg-primary hover:bg-black/90 text-white"
+                        className="w-full py-6 text-lg bg-primary text-white"
                         disabled={isLoading}
                       >
                         {isLoading ? "Signing in..." : "Login Now"}
@@ -526,8 +518,8 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full py-6 relative"
                       onClick={handleGoogleSignIn}
                       type="button"
@@ -610,7 +602,7 @@ export default function LoginPage() {
                         <Input
                           id="register-email"
                           type="email"
-                          placeholder="your.email@example.com"
+                          placeholder="email@example.com"
                           {...registerForm.register("email")}
                           className="w-full"
                         />
@@ -749,10 +741,6 @@ export default function LoginPage() {
                     </form>
                   </TabsContent>
                 </Tabs>
-              </div>
-
-              <div className="mt-8 text-center text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} BAYRIKO. All rights reserved.
               </div>
             </div>
           </div>
