@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { storage } from '../storage';
 import { UsersDto } from '../utils/dto';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { randomBytes } from 'crypto';
 
 /**
@@ -57,7 +56,8 @@ export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) =>
         fullName,
         role: 'staff', // Default role for Google sign-ins
         isApproved: false, // Require approval by default
-        firebaseUid: uid, // Store Firebase UID for reference
+        // Store Firebase UID for reference in an object that will be spread into the user object
+        ...(uid ? { firebaseUid: uid } : {})
       });
 
       // Set the user in the session

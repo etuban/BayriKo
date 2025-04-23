@@ -2,6 +2,7 @@ import { db } from './db';
 import { organizations, organizationUsers, users, projects } from '@shared/schema';
 import { sql } from 'drizzle-orm';
 import { addTaskTimeColumns } from './migrations/addTaskTimeColumns';
+import { addFirebaseUidColumn } from './migrations/addFirebaseUidColumn';
 
 /**
  * This function creates the necessary tables for organization-based structure
@@ -198,6 +199,9 @@ export async function runDatabaseMigration() {
 
     // Run task time columns migration
     await addTaskTimeColumns();
+    
+    // Run Firebase UID column migration
+    await addFirebaseUidColumn();
     
     console.log('Database migration completed successfully!');
   } catch (error) {
