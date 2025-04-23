@@ -277,7 +277,7 @@ export default function LoginPage() {
       <div className="flex min-h-screen">
         <div className="w-full mx-auto flex flex-col md:flex-row overflow-hidden">
           {/* Left side - Brand/Marketing Panel with background color (sticky) */}
-          <div className="w-full md:w-1/2 bg-primary hidden md:block">
+          <div className="w-full md:w-3/5 bg-primary hidden md:block">
             <div className="sticky top-0 h-screen flex flex-col justify-between p-12">
               {/* Top Logo */}
               <div className="text-white">
@@ -302,13 +302,16 @@ export default function LoginPage() {
                   <br />
                   BAYRIKO!<span className="ml-2">👋</span>
                 </h1>
-                
+
                 {/* Image Carousel */}
                 <div className="mb-6 mt-8">
                   <div className="overflow-hidden rounded-lg" ref={emblaRef}>
                     <div className="flex">
                       {sliderItems.map((item, index) => (
-                        <div key={index} className="relative flex-[0_0_100%] min-w-0">
+                        <div
+                          key={index}
+                          className="relative flex-[0_0_100%] min-w-0"
+                        >
                           <div className="flex flex-col items-center justify-center">
                             <img
                               src={item.image}
@@ -323,7 +326,7 @@ export default function LoginPage() {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Dot indicators */}
                   <div className="flex justify-center mt-4">
                     {sliderItems.map((_, index) => (
@@ -341,7 +344,7 @@ export default function LoginPage() {
                     ))}
                   </div>
                 </div>
-                
+
                 <p className="text-white/80 text-lg max-w-md">
                   Skip repetitive and manual task management. Get highly
                   productive through automation and save tons of time!
@@ -356,7 +359,7 @@ export default function LoginPage() {
           </div>
 
           {/* Right side - Login Form (scrollable) */}
-          <div className="w-full md:w-1/2 p-8 login-form-panel">
+          <div className="w-full md:w-2/5 p-8 login-form-panel">
             <div className="w-full max-w-md mx-auto my-8">
               {/* Brand */}
               <div className="mb-10">
@@ -457,7 +460,7 @@ export default function LoginPage() {
 
                       <Button
                         type="submit"
-                        className="w-full py-6 text-lg bg-black hover:bg-black/90 text-white"
+                        className="w-full py-6 text-lg bg-primary hover:bg-black/90 text-white"
                         disabled={isLoading}
                       >
                         {isLoading ? "Signing in..." : "Login Now"}
