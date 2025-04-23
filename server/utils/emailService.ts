@@ -1,31 +1,25 @@
 import nodemailer from 'nodemailer';
 
-// Create a test account using Ethereal (for development)
-let testAccount: nodemailer.TestAccount | null = null;
+// This is a simple email service using Gmail
 let transporter: nodemailer.Transporter | null = null;
 
-// Initialize the transporter
-async function initializeTransporter() {
+// Initialize the transporter using Gmail
+function initializeTransporter() {
   if (transporter) return;
   
   try {
-    // Create test account for development environment
-    testAccount = await nodemailer.createTestAccount();
-    
-    // Create reusable transporter
+    // Create a Gmail transporter using App Password
     transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false, // true for 465, false for other ports
+      service: 'gmail',
       auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
+        user: 'pawnmedia.ph@gmail.com',
+        pass: process.env.GMAIL_APP_PASSWORD, // App Password from environment variables
+      }
     });
     
-    console.log('Nodemailer test account created:', testAccount.user);
+    console.log('Gmail transporter initialized');
   } catch (error) {
-    console.error('Failed to create test email account:', error);
+    console.error('Failed to create Gmail transporter:', error);
   }
 }
 
@@ -64,11 +58,6 @@ export async function sendEmail(emailData: EmailData): Promise<boolean> {
     });
 
     console.log(`Email sent successfully: ${info.messageId}`);
-    
-    // Log preview URL (for Ethereal emails)
-    if (testAccount) {
-      console.log(`Email preview URL: ${nodemailer.getTestMessageUrl(info)}`);
-    }
     
     return true;
   } catch (error) {
