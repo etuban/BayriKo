@@ -69,7 +69,18 @@ const invitationLinkSchema = z.object({
     required_error: "Organization ID is required",
     invalid_type_error: "Organization ID must be a number",
   }),
-});
+  sendEmail: z.boolean().default(false),
+  recipientEmail: z.string().email('Please enter a valid email').optional(),
+}).refine(
+  (data) => {
+    // If sendEmail is true, email must be provided
+    return !data.sendEmail || (data.sendEmail && !!data.recipientEmail);
+  },
+  {
+    message: 'Email is required when sending invitation by email',
+    path: ['recipientEmail']
+  }
+);
 
 export default function UsersPage() {
   const { user } = useAuth();
@@ -121,7 +132,9 @@ export default function UsersPage() {
       message: "You've been invited to join our organization.",
       expires: null,
       maxUses: null,
-      organizationId: user?.currentOrganizationId || 0
+      organizationId: user?.currentOrganizationId || 0,
+      sendEmail: false,
+      recipientEmail: ''
     }
   });
 
