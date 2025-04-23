@@ -2,13 +2,14 @@ import { storage } from '../storage';
 import { generateRandomBarangayOrgName } from './barangayNames';
 
 /**
- * Creates a random organization for a new supervisor user
- * This is used when a user registers with supervisor role without an invitation
+ * Creates a random organization for a new user
+ * This is used when a user registers without an invitation
  * 
  * @param userId The ID of the user to create the organization for
+ * @param role The role to assign to the user (defaults to 'supervisor')
  * @returns The ID of the newly created organization
  */
-export async function createRandomOrganizationForUser(userId: number): Promise<number> {
+export async function createRandomOrganizationForUser(userId: number, role: string = 'supervisor'): Promise<number> {
   try {
     // Get user details
     const user = await storage.getUserById(userId);
@@ -32,15 +33,15 @@ export async function createRandomOrganizationForUser(userId: number): Promise<n
     // Create organization with the random name and details
     const organization = await storage.createOrganization({
       name: orgName,
-      description: `Auto-generated organization for supervisor ${user.fullName || user.username}`,
+      description: `Auto-generated organization for ${role} ${user.fullName || user.username}`,
       address,
       phone: phoneNumber,
       email: user.email,
       logoUrl: null
     });
     
-    // Add the user as a supervisor in the organization
-    await storage.addUserToOrganization(userId, organization.id, 'supervisor');
+    // Add the user to the organization with the specified role
+    await storage.addUserToOrganization(userId, organization.id, role);
     
     // Get the super admin email and add them to the organization as well
     const superAdminEmail = await storage.getSuperAdminEmail();
