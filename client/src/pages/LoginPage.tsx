@@ -273,9 +273,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen login-screen bg-background">
+    <div className="min-h-screen login-screen bg-background overflow-hidden">
       <div className="flex min-h-screen">
-        <div className="w-full mx-auto flex flex-col md:flex-row">
+        <div className="w-full mx-auto flex flex-col md:flex-row overflow-hidden">
           {/* Left side - Brand/Marketing Panel with background color (sticky) */}
           <div className="w-full md:w-1/2 bg-primary hidden md:block">
             <div className="sticky top-0 h-screen flex flex-col justify-between p-12">
