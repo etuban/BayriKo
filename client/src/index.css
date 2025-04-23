@@ -30,4 +30,32 @@
   .login-screen {
     align-content: center;
   }
+  
+  /* Print styles for pagination */
+  @media print {
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      background-color: white;
+    }
+    
+    /* Improve print pagination */
+    table {
+      page-break-inside: auto;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    td, th {
+      page-break-inside: avoid;
+    }
+    thead {
+      display: table-header-group;
+    }
+    tfoot {
+      display: table-footer-group;
+    }
+  }
 }

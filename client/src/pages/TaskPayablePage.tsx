@@ -48,7 +48,7 @@ export default function TaskPayablePage() {
     queryKey: ["/api/users/organizations/current"],
     enabled: !!user,
   });
-  
+
   // Fetch current organization details
   const { data: currentOrganization } = useQuery<Organization>({
     queryKey: ["/api/organizations/current"],
@@ -238,47 +238,47 @@ export default function TaskPayablePage() {
     doc.setFont("helvetica", "normal");
 
     // Title position
-    const titleY = 20;
-    
+    const titleY = 15;
+
     // Add title first
     doc.setFontSize(24);
     doc.setTextColor(0, 128, 0); // Green color for the header
     doc.setFont("helvetica", "bold");
-    doc.text("Task Invoice", 105, titleY, { align: "center" });
-    
+    doc.text("Task Invoice", 108, titleY, { align: "center" });
+
     // Add organization name (left column) and invoice details (right column)
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
-    
+
     // Left side - Organization info with logo and name
     if (currentOrganization?.name) {
       // Position for organization info
       const orgLabelY = 30;
       const orgNameY = 35;
-      
+
       // Add organization logo on the left if available, maintaining proportions
       if (currentOrganization?.logoUrl) {
         try {
           // Logo position to the left of organization name
-          const logoHeight = 8; // max height in mm
+          const logoHeight = 16; // max height in mm
           const logoX = 14; // Position left aligned
-          const logoY = orgLabelY - 3; // Align with the organization label
-          
+          const logoY = orgLabelY - 9; // Align with the organization label
+
           // Add image with preserved aspect ratio
           doc.addImage(
-            currentOrganization.logoUrl,  // URL or Base64 string
-            'JPEG',                      // Format (JPEG/PNG/etc)
-            logoX,                       // X position (mm) - left aligned
-            logoY,                       // Y position (mm)
-            0,                           // Width - 0 means calculate based on height
-            logoHeight                   // Height (mm)
+            currentOrganization.logoUrl, // URL or Base64 string
+            "JPEG", // Format (JPEG/PNG/etc)
+            logoX, // X position (mm) - left aligned
+            logoY, // Y position (mm)
+            0, // Width - 0 means calculate based on height
+            logoHeight, // Height (mm)
           );
-          
+
           // Shift the organization text to the right to accommodate the logo
           // Assuming logo has a width of about 1.5x its height
           const logoWidth = logoHeight * 1.5;
-          const orgTextX = logoX + logoWidth + 5; // 5mm margin after logo
-          
+          const orgTextX = logoX + logoWidth - 5; // 5mm margin after logo
+
           // Draw organization label and name with the adjusted X position
           doc.setFont("helvetica", "bold");
           doc.text("Organization:", orgTextX, orgLabelY);
@@ -287,10 +287,10 @@ export default function TaskPayablePage() {
         } catch (error) {
           console.error("Error adding logo to PDF:", error);
           // Fallback to normal organization text without logo shift
-          doc.setFont("helvetica", "bold");
-          doc.text("Organization:", 14, orgLabelY);
           doc.setFont("helvetica", "normal");
-          doc.text(currentOrganization.name, 14, orgNameY);
+          doc.text("Organization:", 18, orgLabelY);
+          doc.setFont("helvetica", "bold");
+          doc.text(currentOrganization.name, 20, orgNameY);
         }
       } else {
         // No logo, just add organization name
@@ -300,7 +300,7 @@ export default function TaskPayablePage() {
         doc.text(currentOrganization.name, 14, orgNameY);
       }
     }
-    
+
     // Right side - Invoice number and date
     doc.text(
       `Invoice #: INV-${new Date().getTime().toString().slice(-6)}`,
@@ -448,6 +448,43 @@ export default function TaskPayablePage() {
         alternateRowStyles: {
           fillColor: [245, 245, 245],
         },
+        // Setup pagination options
+        pageBreak: 'auto', // Enable automatic pagination
+        showFoot: 'lastPage', // Only show footer on the last page
+        
+        // Add header and footer for each page
+        didDrawPage: function(data) {
+          // If not the first page, add a small header with invoice title
+          if (doc.getNumberOfPages() > 1) {
+            // Add page number
+            const pageNumber = doc.getNumberOfPages();
+            const str = "Page " + pageNumber;
+            
+            // Position in the bottom right corner of the page
+            const pageSize = doc.internal.pageSize;
+            const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+            const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+            
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text(str, pageWidth - 20, pageHeight - 10);
+            
+            // Add small invoice title on subsequent pages
+            doc.setFontSize(10);
+            doc.setTextColor(0, 128, 0);
+            doc.setFont("helvetica", "bold");
+            doc.text("Task Invoice", 14, 10);
+            
+            // Add organization name if available
+            if (currentOrganization?.name) {
+              doc.setFontSize(8);
+              doc.setTextColor(100, 100, 100);
+              doc.setFont("helvetica", "normal");
+              doc.text(currentOrganization.name, 14, 15);
+            }
+          }
+        },
+        
         // Add custom cell styling for titles and descriptions
         didParseCell: function (data) {
           // Only style cells in the first column (task title/description)
@@ -511,7 +548,7 @@ export default function TaskPayablePage() {
           3: { cellWidth: 20, halign: "center" }, // Rate
           4: { cellWidth: 17, halign: "right" }, // Total
         },
-        margin: { left: 14, right: 14 },
+        margin: { left: 14, right: 14, top: 20 }, // Increased top margin for headers
         tableWidth: 175,
       });
 
@@ -535,7 +572,10 @@ export default function TaskPayablePage() {
       align: "right",
     });
 
-    // Add payment terms
+    // Add payment terms (on the last page)
+    const currentPage = doc.getNumberOfPages();
+    doc.setPage(currentPage); // Move to the last page
+    
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(10);
     doc.text("Payment Terms:", 14, finalY + 20);
@@ -545,10 +585,15 @@ export default function TaskPayablePage() {
       doc.text(line, 14, finalY + 25 + index * 4);
     });
 
+    // Add the footer only on the last page
+    // Get page size
+    const pageSize = doc.internal.pageSize;
+    const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+    const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+    
     // Add static footer with link text
-    const footerY = doc.internal.pageSize.getHeight() - 15;
+    const footerY = pageHeight - 15;
     doc.setFontSize(9);
-    const pageWidth = doc.internal.pageSize.getWidth();
 
     // Add footer text with URL below the icon
     const footerText = "This PDF Invoice is generated through BayriKo";
@@ -737,7 +782,7 @@ export default function TaskPayablePage() {
             <h1 className="text-xl font-bold text-center text-primary print-header mb-4">
               Task Invoice
             </h1>
-            
+
             {/* Organization Name and Invoice Details */}
             <div className="flex justify-between mt-4">
               {/* Left side - Organization info with logo */}
@@ -746,23 +791,27 @@ export default function TaskPayablePage() {
                   {/* Organization Logo */}
                   {currentOrganization?.logoUrl && (
                     <div className="mr-3">
-                      <img 
-                        src={currentOrganization.logoUrl} 
-                        alt={currentOrganization.name || "Organization logo"} 
-                        className="max-h-7 max-w-16"
-                        style={{ objectFit: "contain" }} /* Preserve aspect ratio */
+                      <img
+                        src={currentOrganization.logoUrl}
+                        alt={currentOrganization.name || "Organization logo"}
+                        className="max-h-8 max-w-32"
+                        style={{
+                          objectFit: "contain",
+                        }} /* Preserve aspect ratio */
                       />
                     </div>
                   )}
-                  
+
                   {/* Organization Name */}
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Organization:</p>
-                    <p className="text-xs text-gray-700">{currentOrganization.name}</p>
+                    <p className="text-xs font-medium text-gray-500"></p>
+                    <p className="text-m text-gray-700">
+                      {currentOrganization.name}
+                    </p>
                   </div>
                 </div>
               )}
-              
+
               {/* Right side - Invoice details */}
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">
