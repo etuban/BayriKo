@@ -34,10 +34,19 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
       return;
     }
     
-    // If authenticated and at home route, redirect based on role
-    if (!isLoading && isAuthenticated && (location === '/' || location === '/dashboard')) {
-      // Only Super Admin and Supervisor can see Dashboard
-      if (user?.role !== 'super_admin' && user?.role !== 'supervisor') {
+    // If authenticated, apply role-based redirections
+    if (!isLoading && isAuthenticated) {
+      // Staff users should be redirected to tasks page if they try to access dashboard
+      if (user?.role === 'staff' && (location === '/' || location === '/dashboard')) {
+        setLocation('/tasks');
+        return;
+      }
+      
+      // Only Super Admin and Supervisor can access the Dashboard
+      // Team Lead and Staff should be redirected to tasks
+      if ((location === '/' || location === '/dashboard') && 
+          user?.role !== 'super_admin' && 
+          user?.role !== 'supervisor') {
         setLocation('/tasks');
       }
     }
@@ -51,11 +60,18 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function Router() {
+  // Get the user context for default route selection
+  const { user } = useAuth();
+  const isStaff = user?.role === 'staff';
+  
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
       <Route path="/">
-        {() => <ProtectedRoute component={DashboardPage} />}
+        {() => {
+          // Redirect Staff users to Tasks page automatically
+          return <ProtectedRoute component={isStaff ? TasksPage : DashboardPage} />;
+        }}
       </Route>
       <Route path="/dashboard">
         {() => <ProtectedRoute component={DashboardPage} />}
