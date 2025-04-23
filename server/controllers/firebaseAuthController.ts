@@ -1,6 +1,8 @@
-import { Request, Response } from "express";
-import { storage } from "../storage";
-import { UsersDto } from "../utils/dto";
+import { Request, Response } from 'express';
+import { storage } from '../storage';
+import { UsersDto } from '../utils/dto';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { randomBytes } from 'crypto';
 
 /**
  * Handle Firebase Google sign-in
@@ -11,52 +13,68 @@ export const handleFirebaseGoogleSignIn = async (req: Request, res: Response) =>
   try {
     const { email, displayName, uid } = req.body;
 
-    if (!email || !displayName || !uid) {
-      return res.status(400).json({ 
-        error: "Missing required fields",
-        message: "Email, display name and UID are required"
-      });
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
     }
 
-    // Check if the user already exists
+    // Check if user exists
     let user = await storage.getUserByEmail(email);
 
     if (user) {
       // User exists, log them in
-      req.login(UsersDto.toUserDto(user), (err) => {
+      if (!user.isApproved) {
+        return res.status(403).json({
+          message: 'Your account is pending approval. Please wait for administrator confirmation.'
+        });
+      }
+
+      // Set the user in the session
+      req.login(user, err => {
         if (err) {
-          console.error("Error in login:", err);
-          return res.status(500).json({ error: "Login error", message: err.message });
+          return res.status(500).json({ message: 'Login failed', error: err.message });
         }
+        
+        // Return user info
         return res.status(200).json(UsersDto.toUserDto(user));
       });
     } else {
-      // User doesn't exist, create a new user
-      const username = email.split('@')[0] + '-' + Math.floor(1000 + Math.random() * 9000); // Generate a unique username
+      // User doesn't exist, create a new account
+      // Generate a secure random password - they'll use Google auth and won't need this
+      const password = randomBytes(16).toString('hex');
       
+      // Username from email (remove special chars and use part before @)
+      const username = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + 
+        Math.floor(Math.random() * 1000); // Add random numbers to avoid collisions
+      
+      // Extract first and last name from displayName or use email as fallback
+      const fullName = displayName || email.split('@')[0];
+      
+      // Create the user in our database
       const newUser = await storage.createUser({
-        username,
         email,
-        password: `firebase-${uid}`, // Use Firebase UID as part of the password - they won't use this
-        fullName: displayName,
-        position: '',
-        role: 'staff', // Default role
-        isApproved: false, // Users need to be approved by admin
+        username,
+        password, // Hashed in storage layer
+        fullName,
+        role: 'staff', // Default role for Google sign-ins
+        isApproved: false, // Require approval by default
+        firebaseUid: uid, // Store Firebase UID for reference
       });
 
-      req.login(UsersDto.toUserDto(newUser), (err) => {
+      // Set the user in the session
+      req.login(newUser, err => {
         if (err) {
-          console.error("Error in login after registration:", err);
-          return res.status(500).json({ error: "Login error", message: err.message });
+          return res.status(500).json({ message: 'Account created but login failed', error: err.message });
         }
-        return res.status(201).json(UsersDto.toUserDto(newUser));
+        
+        // Return user info with message that admin approval is needed
+        return res.status(201).json({
+          ...UsersDto.toUserDto(newUser),
+          message: 'Account created successfully. Please wait for admin approval.'
+        });
       });
     }
-  } catch (error) {
-    console.error("Firebase auth error:", error);
-    res.status(500).json({ 
-      error: "Server error",
-      message: error instanceof Error ? error.message : "Unknown error occurred"
-    });
+  } catch (error: any) {
+    console.error('Firebase Auth Error:', error);
+    res.status(500).json({ message: 'Authentication failed', error: error.message });
   }
 };

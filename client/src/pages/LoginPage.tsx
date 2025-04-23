@@ -526,7 +526,13 @@ export default function LoginPage() {
                       </div>
                     </div>
 
-                    <Button variant="outline" className="w-full py-6 relative">
+                    <Button 
+                      variant="outline" 
+                      className="w-full py-6 relative"
+                      onClick={handleGoogleSignIn}
+                      type="button"
+                      disabled={isLoading}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
@@ -551,7 +557,9 @@ export default function LoginPage() {
                           fill="#EA4335"
                         />
                       </svg>
-                      Login with Google
+                      <span className="ml-2">
+                        {isLoading ? "Signing in..." : "Login with Google"}
+                      </span>
                     </Button>
                   </TabsContent>
 

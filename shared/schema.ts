@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   position: text("position"),
   isApproved: boolean("is_approved").notNull().default(false),
   isSuperAdmin: boolean("is_super_admin").notNull().default(false),
+  firebaseUid: text("firebase_uid"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

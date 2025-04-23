@@ -10,11 +10,8 @@ export class UsersDto {
    * Omits sensitive information like the password
    */
   static toUserDto(user: User) {
-    if (!user) return null;
-    
-    // Create a new object without the password
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userDto } = user;
-    
     return userDto;
   }
 }
