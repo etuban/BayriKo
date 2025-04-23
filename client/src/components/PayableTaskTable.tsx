@@ -159,8 +159,8 @@ export function PayableTaskTable({
                       <div className="flex-1">
                         <div className="text-sm font-bold">{task.title}</div>
                         {task.description && (
-                          <div className="text-xs font-normal text-muted-foreground mt-1 w-[33%] truncate" title={task.description}>
-                            {task.description}
+                          <div className="text-xs font-normal text-muted-foreground mt-1 w-[33%]" title={task.description}>
+                            {task.description.length > 50 ? `${task.description.substring(0, 50)}...` : task.description}
                           </div>
                         )}
                       </div>
@@ -186,8 +186,8 @@ export function PayableTaskTable({
                     <div className="hidden print:table-cell px-4 sm:px-6 py-3">
                       <div className="text-sm font-bold">{task.title}</div>
                       {task.description && (
-                        <div className="text-xs font-normal text-muted-foreground mt-1 w-[33%] truncate" title={task.description}>
-                          {task.description}
+                        <div className="text-xs font-normal text-muted-foreground mt-1 w-[33%]" title={task.description}>
+                          {task.description.length > 50 ? `${task.description.substring(0, 50)}...` : task.description}
                         </div>
                       )}
                     </div>

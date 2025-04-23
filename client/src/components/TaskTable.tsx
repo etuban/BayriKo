@@ -93,8 +93,8 @@ export function TaskTable({ tasks }: TaskTableProps) {
             <div className="ml-4">
               <div className="text-sm font-medium">{task.title}</div>
               {task.description && (
-                <div className="text-xs text-gray-400 w-[33%] truncate" title={task.description}>
-                  {task.description}
+                <div className="text-xs text-gray-400 w-[33%]" title={task.description}>
+                  {task.description.length > 50 ? `${task.description.substring(0, 50)}...` : task.description}
                 </div>
               )}
             </div>
