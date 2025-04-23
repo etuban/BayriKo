@@ -88,11 +88,27 @@ export const createInvitationLink = async (req: Request, res: Response) => {
           console.error('Organization not found for sending invitation email');
         } else {
           console.log(`Sending invitation email to: ${req.body.recipientEmail}`);
+          // Extract only the necessary user fields to avoid type errors
+          const senderInfo = {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            fullName: user.fullName || '',
+            role: user.role,
+            password: '', // Add required fields with empty values
+            createdAt: new Date(),
+            avatarUrl: null,
+            position: null,
+            isApproved: true,
+            isSuperAdmin: user.role === 'super_admin',
+            firebaseUid: null
+          };
+          
           const emailSent = await sendInvitationEmail(
             req.body.recipientEmail,
             invitationLink,
             organization,
-            user // Pass the sender details
+            senderInfo as User // Pass sender details with type cast
           );
           console.log('Invitation email sent:', emailSent);
         }
