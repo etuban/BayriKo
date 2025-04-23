@@ -277,7 +277,7 @@ export default function LoginPage() {
       <div className="flex h-screen">
         <div className="w-full mx-auto flex flex-col md:flex-row">
           {/* Left side - Carousel and Brand Panel */}
-          <div className="w-full md:w-1/2 bg-primary relative overflow-hidden hidden md:flex h-screen fixed">
+          <div className="w-full md:w-[70%] bg-primary relative overflow-hidden hidden md:flex h-screen fixed">
             <div className="absolute inset-0 flex flex-col justify-between p-12 z-10">
               {/* Top Logo */}
               <div className="text-white">
@@ -349,7 +349,7 @@ export default function LoginPage() {
           </div>
           
           {/* Right side - Login Form */}
-          <div className="w-full md:w-1/2 md:ml-[50%] flex items-center justify-center py-16 px-8">
+          <div className="w-full md:w-[30%] md:ml-[70%] flex items-center justify-center py-16 px-8">
             <div className="w-full max-w-md">
               {/* Brand */}
               <div className="mb-10">
