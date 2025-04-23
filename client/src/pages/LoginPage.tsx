@@ -274,11 +274,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen login-screen content-center justify-center bg-background p-4">
-      <div className="flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8 border-border">
+      <div className="flex items-center justify-center bg-background p-4 h-full min-h-screen">
+        <div className="w-full max-w-6xl flex flex-col md:flex-row gap-8 border-border h-full">
           {/* Form Section - Left Column */}
-          <div className="w-full md:w-1/2">
-            <Card className="w-full h-full bg-background">
+          <div className="w-full md:w-1/2 h-full">
+            <Card className="w-full h-full bg-background flex flex-col">
               <CardHeader className="space-y-2 mt-4">
                 <CardTitle className="text-4xl font-bold text-center font-specialGothic tracking-widest">
                   BAYRIKO
@@ -288,7 +288,7 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="flex-grow">
                 <Tabs
                   defaultValue="login"
                   value={activeTab}
@@ -576,9 +576,9 @@ export default function LoginPage() {
           </div>
 
           {/* Content Section - Right Column (only visible on md and larger screens) */}
-          <div className="w-full md:w-1/2 hidden md:block align-top">
+          <div className="w-full md:w-1/2 hidden md:block align-top h-full">
             <Card className="w-full h-full bg-background overflow-hidden flex flex-col align-top">
-              <CardContent className="p-8 flex flex-col items-center justify-center">
+              <CardContent className="p-8 flex-grow flex flex-col items-center justify-center">
                 <div className="relative w-full max-w-md overflow-hidden rounded-xl mb-4">
                   <div className="overflow-hidden" ref={emblaRef}>
                     <div className="flex">
