@@ -238,11 +238,11 @@ export default function TaskPayablePage() {
     doc.setFont("helvetica", "normal");
 
     // Title position
-    const titleY = 15;
+    const titleY = 17;
 
     // Add title first
     doc.setFontSize(24);
-    doc.setTextColor(0, 128, 0); // Green color for the header
+    doc.setTextColor(0, 0, 0); // Green color for the header
     doc.setFont("helvetica", "bold");
     doc.text("Task Invoice", 108, titleY, { align: "center" });
 
@@ -253,14 +253,14 @@ export default function TaskPayablePage() {
     // Left side - Organization info with logo and name
     if (currentOrganization?.name) {
       // Position for organization info
-      const orgLabelY = 30;
-      const orgNameY = 35;
+      const orgLabelY = 34;
+      const orgNameY = 54;
 
       // Add organization logo on the left if available, maintaining proportions
       if (currentOrganization?.logoUrl) {
         try {
           // Logo position to the left of organization name
-          const logoHeight = 16; // max height in mm
+          const logoHeight = 24; // max height in mm
           const logoX = 14; // Position left aligned
           const logoY = orgLabelY - 9; // Align with the organization label
 
@@ -277,25 +277,27 @@ export default function TaskPayablePage() {
           // Shift the organization text to the right to accommodate the logo
           // Assuming logo has a width of about 1.5x its height
           const logoWidth = logoHeight * 1.5;
-          const orgTextX = logoX + logoWidth - 5; // 5mm margin after logo
+          const orgTextX = 14;
+          //const orgTextX = logoX + logoWidth - 5; // 5mm margin after logo
 
           // Draw organization label and name with the adjusted X position
+          //  doc.setFont("helvetica", "bold");
+          //  doc.text("Organization:", orgTextX, orgLabelY);
           doc.setFont("helvetica", "bold");
-          doc.text("Organization:", orgTextX, orgLabelY);
-          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
           doc.text(currentOrganization.name, orgTextX, orgNameY);
         } catch (error) {
           console.error("Error adding logo to PDF:", error);
           // Fallback to normal organization text without logo shift
+          // doc.setFont("helvetica", "normal");
+          // doc.text("Organization:", 18, orgLabelY);
           doc.setFont("helvetica", "normal");
-          doc.text("Organization:", 18, orgLabelY);
-          doc.setFont("helvetica", "bold");
           doc.text(currentOrganization.name, 20, orgNameY);
         }
       } else {
         // No logo, just add organization name
-        doc.setFont("helvetica", "bold");
-        doc.text("Organization:", 14, orgLabelY);
+        // doc.setFont("helvetica", "bold");
+        // doc.text("Organization:", 14, orgLabelY);
         doc.setFont("helvetica", "normal");
         doc.text(currentOrganization.name, 14, orgNameY);
       }
@@ -305,33 +307,33 @@ export default function TaskPayablePage() {
     doc.text(
       `Invoice #: INV-${new Date().getTime().toString().slice(-6)}`,
       195,
-      30,
+      34,
       { align: "right" },
     );
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 35, {
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 40, {
       align: "right",
     });
 
     // Add billing info
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
-    doc.text("Bill From:", 14, 55);
+    doc.text("Bill From:", 14, 64);
     const billFromLines = invoiceDetails.billFrom.split("\n");
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     billFromLines.forEach((line, index) => {
       doc.text(line, 14, 60 + index * 4);
     });
 
-    doc.setFontSize(10);
-    doc.text("Bill To:", 120, 55);
+    doc.setFontSize(9);
+    doc.text("Bill To:", 100, 64);
     const billToLines = invoiceDetails.billTo.split("\n");
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     billToLines.forEach((line, index) => {
       doc.text(line, 120, 60 + index * 4);
     });
 
     // Add filter info
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.text(
       `Date Range: ${startDate || "All"} to ${endDate || "All"}`,
@@ -435,10 +437,10 @@ export default function TaskPayablePage() {
           fontSize: 8,
           lineColor: [220, 220, 220],
           lineWidth: 0.1,
-          overflow: 'linebreak', // Wrap text instead of truncating
+          overflow: "linebreak", // Wrap text instead of truncating
         },
         headStyles: {
-          fillColor: [0, 128, 0],
+          fillColor: [0, 128, 0], // Green header background
           textColor: [255, 255, 255],
           fontStyle: "bold",
           fontSize: 8,
@@ -450,35 +452,39 @@ export default function TaskPayablePage() {
           fillColor: [245, 245, 245],
         },
         // Setup pagination options
-        pageBreak: 'auto', // Enable automatic pagination
-        showFoot: 'lastPage', // Only show footer on the last page
+        pageBreak: "auto", // Enable automatic pagination
+        showFoot: "lastPage", // Only show footer on the last page
         bodyStyles: {
           minCellHeight: 12, // Minimum height for cells
         },
-        
+
         // Add header and footer for each page
-        didDrawPage: function(data) {
+        didDrawPage: function (data) {
           // If not the first page, add a small header with invoice title
           if (doc.getNumberOfPages() > 1) {
             // Add page number
             const pageNumber = doc.getNumberOfPages();
             const str = "Page " + pageNumber;
-            
+
             // Position in the bottom right corner of the page
             const pageSize = doc.internal.pageSize;
-            const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-            const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
-            
+            const pageHeight = pageSize.height
+              ? pageSize.height
+              : pageSize.getHeight();
+            const pageWidth = pageSize.width
+              ? pageSize.width
+              : pageSize.getWidth();
+
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
             doc.text(str, pageWidth - 20, pageHeight - 10);
-            
+
             // Add small invoice title on subsequent pages
-            doc.setFontSize(10);
-            doc.setTextColor(0, 128, 0);
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
             doc.setFont("helvetica", "bold");
             doc.text("Task Invoice", 14, 10);
-            
+
             // Add organization name if available
             if (currentOrganization?.name) {
               doc.setFontSize(8);
@@ -488,7 +494,7 @@ export default function TaskPayablePage() {
             }
           }
         },
-        
+
         // Add custom cell styling for titles and descriptions
         didParseCell: function (data) {
           // Only style cells in the first column (task title/description)
@@ -523,9 +529,14 @@ export default function TaskPayablePage() {
 
             // Get cell position/dimensions
             const { x, y, width, height } = data.cell;
-
-            // Clear the cell's existing content
-            doc.setFillColor(255, 255, 255);
+            
+            // Apply the correct background color based on row index (alternate row styling)
+            // Check if this is an alternate row using modulus operator
+            const isAlternateRow = data.row.index % 2 === 1;
+            const fillColor = isAlternateRow ? [245, 245, 245] : [255, 255, 255];
+            
+            // Clear the cell's existing content with the appropriate background color
+            doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
             doc.rect(x, y, width, height, "F");
 
             // Draw title with bold and larger font
@@ -579,23 +590,28 @@ export default function TaskPayablePage() {
     // Check if we have enough space for payment terms and footer
     // Get document dimensions
     const docPageSize = doc.internal.pageSize;
-    const docPageHeight = docPageSize.height ? docPageSize.height : docPageSize.getHeight();
-    const docPageWidth = docPageSize.width ? docPageSize.width : docPageSize.getWidth();
-    
+    const docPageHeight = docPageSize.height
+      ? docPageSize.height
+      : docPageSize.getHeight();
+    const docPageWidth = docPageSize.width
+      ? docPageSize.width
+      : docPageSize.getWidth();
+
     // Calculate needed space for payment terms
-    const paymentTermsHeight = invoiceDetails.paymentTerms.split("\n").length * 4 + 30; // 30 for header + margins
-    
+    const paymentTermsHeight =
+      invoiceDetails.paymentTerms.split("\n").length * 4 + 30; // 30 for header + margins
+
     // If there's not enough space for payment terms + footer (35mm), add a new page
     let updatedFinalY = finalY;
     if (finalY + paymentTermsHeight + 35 > docPageHeight) {
       doc.addPage();
       updatedFinalY = 20; // Reset to top of page with margin
     }
-    
+
     // Get the current page after potential page addition
     const currentPage = doc.getNumberOfPages();
     doc.setPage(currentPage);
-    
+
     // Add payment terms at the current position
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(10);
@@ -605,7 +621,7 @@ export default function TaskPayablePage() {
     paymentTermsLines.forEach((line, index) => {
       doc.text(line, 14, updatedFinalY + 25 + index * 4);
     });
-    
+
     // Add static footer with link text
     const footerY = docPageHeight - 15;
     doc.setFontSize(9);
