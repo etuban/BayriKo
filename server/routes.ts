@@ -92,6 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/register', userController.register);
   app.post('/api/auth/logout', userController.logout);
   app.get('/api/auth/session', userController.getSession);
+  
+  // Firebase Google authentication
+  app.post('/api/auth/google', firebaseAuthController.handleFirebaseGoogleSignIn);
 
   // User routes
   app.get('/api/users', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), userController.getAllUsers);

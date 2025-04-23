@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, skipPasswordCheck?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (userData: Partial<User>) => Promise<void>;
 }
@@ -154,9 +154,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Login function
-  const login = async (email: string, password: string) => {
-    await loginMutation.mutateAsync({ email, password });
+  // Login function - skipPasswordCheck is used for Firebase authentication
+  const login = async (email: string, password: string, skipPasswordCheck: boolean = false) => {
+    if (skipPasswordCheck) {
+      // For Firebase auth, we'll query the session directly
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/session'] });
+    } else {
+      // Regular email/password login
+      await loginMutation.mutateAsync({ email, password });
+    }
   };
 
   // Logout function

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import { signInWithGoogle } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -199,6 +200,53 @@ export default function LoginPage() {
     } catch (error: any) {
       setAuthError(
         error.message || "Failed to login. Please check your credentials.",
+      );
+    }
+  };
+  
+  // Handle Google Sign-In
+  const handleGoogleSignIn = async () => {
+    try {
+      setAuthError(null);
+      // Call the Firebase Google Sign-In
+      const result = await signInWithGoogle();
+      
+      if (!result || !result.user) {
+        throw new Error('Google sign-in failed');
+      }
+      
+      // Get user data from the Firebase response
+      const { user } = result;
+      
+      // Send the user data to our backend
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0] || 'Unknown User',
+          uid: user.uid,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to authenticate with Google');
+      }
+      
+      // Refresh the session
+      await login(user.email as string, 'firebase-auth', true);
+      
+      // Navigate to dashboard
+      setLocation('/dashboard');
+      
+    } catch (error: any) {
+      console.error('Google Sign-In Error:', error);
+      setAuthError(
+        error.message || 'Failed to login with Google. Please try again.',
       );
     }
   };
