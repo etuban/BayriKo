@@ -237,39 +237,50 @@ export default function TaskPayablePage() {
     // Set default font to Helvetica for the whole document
     doc.setFont("helvetica", "normal");
 
-    // Add organization logo if available
+    // Title position
+    const titleY = 20;
+    
+    // Add title first
+    doc.setFontSize(24);
+    doc.setTextColor(0, 128, 0); // Green color for the header
+    doc.setFont("helvetica", "bold");
+    doc.text("Task Invoice", 105, titleY, { align: "center" });
+    
+    // Add organization logo if available, maintaining proportions
     if (currentOrganization?.logoUrl) {
       try {
-        // Add image with max height of 15mm and positioned on the left
+        // Calculate the logo position (centered horizontally, above the title)
+        const logoHeight = 12; // max height in mm
+        const logoX = 105 - (logoHeight * 1.5) / 2; // assuming roughly 1.5:1 width:height ratio 
+        const logoY = titleY - 18; // Position above the title
+        
+        // Add image with preserved aspect ratio
         doc.addImage(
-          currentOrganization.logoUrl, // URL or Base64 string
-          'JPEG',                      // Format (JPEG/PNG/etc)
-          14,                          // X position (mm)
-          15,                          // Y position (mm)
-          40,                          // Width (mm)
-          15                           // Height (mm)
+          currentOrganization.logoUrl,  // URL or Base64 string
+          'JPEG',                       // Format (JPEG/PNG/etc)
+          logoX,                        // X position (mm) - centered
+          logoY,                        // Y position (mm) - above title
+          0,                            // Width - 0 means calculate based on height
+          logoHeight                    // Height (mm)
         );
       } catch (error) {
         console.error("Error adding logo to PDF:", error);
       }
     }
 
-    // Add organization name (if available) or default title
-    doc.setFontSize(24);
-    doc.setTextColor(0, 128, 0); // Green color for the header
-    doc.setFont("helvetica", "bold");
-    
-    if (currentOrganization?.name) {
-      doc.text(currentOrganization.name, 105, 20, { align: "center" });
-      doc.setFontSize(18);
-      doc.text("Task Invoice", 105, 30, { align: "center" });
-    } else {
-      doc.text("Task Invoice", 105, 20, { align: "center" });
-    }
-
-    // Add invoice number and date
+    // Add organization name (left column) and invoice details (right column)
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
+    
+    // Left side - Organization name
+    if (currentOrganization?.name) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Organization:", 14, 30);
+      doc.setFont("helvetica", "normal");
+      doc.text(currentOrganization.name, 14, 35);
+    }
+    
+    // Right side - Invoice number and date
     doc.text(
       `Invoice #: INV-${new Date().getTime().toString().slice(-6)}`,
       195,
@@ -560,7 +571,7 @@ export default function TaskPayablePage() {
 
     // Add a link annotation for the URL text
     doc.link(websiteX, websiteY - 3, websiteWidth, 4, {
-      url: "https://bayadmn.pawn.media",
+      url: "https://bayriko.pawn.media",
     });
 
     // Create a dynamic filename based on the project name and timestamp
@@ -701,28 +712,34 @@ export default function TaskPayablePage() {
         <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
           {/* Invoice Title - Only visible when printing */}
           <div className="hidden print:block mb-6">
-            {/* Organization Logo */}
+            {/* Organization Logo (centered) */}
             {currentOrganization?.logoUrl && (
               <div className="text-center mb-4">
                 <img 
                   src={currentOrganization.logoUrl} 
                   alt={currentOrganization.name || "Organization logo"} 
-                  className="max-h-16 mx-auto"
+                  className="max-h-12 mx-auto"
+                  style={{ objectFit: "contain" }} /* Preserve aspect ratio */
                 />
               </div>
             )}
             
-            {/* Organization Name and Task Invoice Title */}
+            {/* Task Invoice Title */}
             <h1 className="text-xl font-bold text-center text-primary print-header">
-              {currentOrganization?.name && (
-                <>
-                  {currentOrganization.name}
-                  <div className="text-lg mt-2">Task Invoice</div>
-                </>
-              )}
-              {!currentOrganization?.name && "Task Invoice"}
+              Task Invoice
             </h1>
+            
+            {/* Organization Name and Invoice Details */}
             <div className="flex justify-between mt-4">
+              {/* Left side - Organization info */}
+              {currentOrganization?.name && (
+                <div className="text-left">
+                  <p className="text-xs font-medium text-gray-500">Organization:</p>
+                  <p className="text-xs text-gray-700">{currentOrganization.name}</p>
+                </div>
+              )}
+              
+              {/* Right side - Invoice details */}
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">
                   Invoice #: INV-{new Date().getTime().toString().slice(-6)}
