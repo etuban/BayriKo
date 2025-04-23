@@ -135,6 +135,7 @@ export const updateOrganization = async (req: Request, res: Response) => {
       phone: req.body.phone,
       email: req.body.email,
       website: req.body.website,
+      logoUrl: req.body.logoUrl, // Allow updating the logo URL
     };
     
     const updatedOrganization = await storage.updateOrganization(orgId, updateData);
