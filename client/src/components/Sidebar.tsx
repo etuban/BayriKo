@@ -187,8 +187,8 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       {/* User Profile Section */}
       {(!collapsed || mobile) && <UserProfileCard user={user} />}
 
-      {/* "Found a bug?" link for Staff Users */}
-      {user?.role === "staff" && (
+      {/* "Found a bug?" link for Staff and Supervisor Users */}
+      {(user?.role === "staff" || user?.role === "supervisor") && (
         <div className={cn("px-4", collapsed && !mobile ? "text-center" : "")}>
           <Link href="/settings?tab=feedback">
             <div

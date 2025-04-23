@@ -156,6 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/invitations', authenticateUser, authorizeRole(['super_admin', 'supervisor']), invitationController.createInvitationLink);
   app.get('/api/organizations/:id/invitations', authenticateUser, invitationController.getOrganizationInvitationLinks);
   app.delete('/api/invitations/:id', authenticateUser, invitationController.deleteInvitationLink);
+  app.post('/api/invitations/send-email', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), invitationController.sendExistingInvitationEmail);
   
   // Public invitation validation routes (no auth required)
   app.get('/api/invitations/validate/:token', invitationController.validateInvitationToken);
