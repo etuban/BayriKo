@@ -117,9 +117,6 @@ export const register = async (req: Request, res: Response) => {
       // Auto-approve staff users
       isApproved = true;
       console.log('[REGISTRATION] Auto-approving staff user');
-      
-      // Staff users without invitation should be assigned to a random organization
-      // This is handled later in the code after user creation
     }
     
     // Create new user
@@ -134,10 +131,19 @@ export const register = async (req: Request, res: Response) => {
     
     const newUser = await storage.createUser(userData);
     
+    // Variable to hold the user's organization for email purposes
+    let userOrganization = undefined;
+    
     // Handle organization assignment based on the registration type
     if (organizationId) {
       // For invitation-based registration, add user to the invited organization
       await storage.addUserToOrganization(newUser.id, organizationId, assignedRole);
+      
+      // Get organization details for email
+      const org = await storage.getOrganizationById(organizationId);
+      if (org) {
+        userOrganization = org;
+      }
       
       // Notify organization supervisors about the new user
       const organizationUsers = await storage.getOrganizationUsers(organizationId);
@@ -153,97 +159,37 @@ export const register = async (req: Request, res: Response) => {
           read: false
         });
       }
-    } else if (assignedRole === 'supervisor') {
-      // For supervisor registration without invitation, create a random organization
+    } else {
+      // For all users without invitation (regardless of role), create a random organization
+      // This mirrors the Firebase registration behavior
       try {
-        const newOrgId = await createRandomOrganizationForUser(newUser.id);
+        console.log(`[REGISTRATION] Creating random organization for ${assignedRole} user ${username}`);
         
-        // Notify the new supervisor about their organization
+        // Create a random organization and assign the user with their requested role
+        const newOrgId = await createRandomOrganizationForUser(newUser.id, assignedRole);
+        
+        // Get organization details for email
+        const org = await storage.getOrganizationById(newOrgId);
+        if (org) {
+          userOrganization = org;
+        }
+        
+        // Notify the user about their new organization
         await storage.createNotification({
           userId: newUser.id,
           type: 'new_organization',
-          message: `A new organization has been created for your account. You can manage it from the Organizations page.`,
+          message: `A new organization has been created for your account.${assignedRole === 'supervisor' ? ' You can manage it from the Organizations page.' : ''}`,
           read: false
         });
-      } catch (orgError) {
-        console.error('Error creating random organization:', orgError);
-        // Continue registration even if org creation fails
-      }
-    } else if (assignedRole === 'staff') {
-      // For staff users without invitation, assign to a random organization
-      try {
-        console.log(`[REGISTRATION] Assigning staff user ${username} to random organization`);
-        // Get all organizations
-        const organizations = await storage.getAllOrganizations();
-        console.log(`[REGISTRATION] Found ${organizations.length} organizations for random assignment`);
         
-        if (organizations.length > 0) {
-          // Select a random organization
-          const randomIndex = Math.floor(Math.random() * organizations.length);
-          const randomOrg = organizations[randomIndex];
-          console.log(`[REGISTRATION] Selected random organization: ${randomOrg.name} (${randomOrg.id})`);
-          
-          // Add user to the random organization
-          await storage.addUserToOrganization(newUser.id, randomOrg.id, 'staff');
-          
-          // Notify user about assigned organization
-          await storage.createNotification({
-            userId: newUser.id,
-            type: 'new_organization_user',
-            message: `You have been assigned to organization: ${randomOrg.name}`,
-            read: false
-          });
-          
-          // Notify organization supervisors about the new user
-          const organizationUsers = await storage.getOrganizationUsers(randomOrg.id);
-          const supervisorIds = organizationUsers
-            .filter(user => user.role === 'supervisor')
-            .map(user => user.id);
-          
-          for (const supervisorId of supervisorIds) {
-            await storage.createNotification({
-              userId: supervisorId,
-              type: 'new_organization_user',
-              message: `${username} (${email}) has been auto-assigned to your organization with role staff.`,
-              read: false
-            });
-          }
-        } else {
-          // If no organizations exist, create a random one for the user
-          const newOrgId = await createRandomOrganizationForUser(newUser.id);
-          
-          // Notify the new staff user about their organization
-          await storage.createNotification({
-            userId: newUser.id,
-            type: 'new_organization',
-            message: `A new organization has been created for your account.`,
-            read: false
-          });
-        }
+        console.log(`[REGISTRATION] Created organization ID ${newOrgId} for user ${username}`);
       } catch (orgError) {
-        console.error('Error assigning staff user to random organization:', orgError);
-        // Continue registration even if org assignment fails
-      }
-    } else {
-      // For regular registration (team_lead without invitation)
-      // Send notification to all supervisors about new user registration
-      const supervisors = await storage.getAllUsers();
-      const supervisorIds = supervisors
-        .filter(user => user.role === 'supervisor')
-        .map(user => user.id);
-      
-      // Create notifications for each supervisor
-      for (const supervisorId of supervisorIds) {
-        await storage.createNotification({
-          userId: supervisorId,
-          type: 'new_user',
-          message: `New user ${username} (${email}) has registered and requires approval. Please assign projects and approve the user.`,
-          read: false
-        });
+        console.error(`[REGISTRATION] Error creating random organization for ${username}:`, orgError);
+        // Continue registration even if org creation fails
       }
     }
     
-    // Find super admin by email and add user to all organizations of the super admin
+    // Find super admin by email and notify them about the new user
     const superAdminEmail = await storage.getSuperAdminEmail();
     const superAdmin = await storage.getUserByEmail(superAdminEmail);
     
@@ -255,6 +201,24 @@ export const register = async (req: Request, res: Response) => {
         message: `New user ${username} (${email}) has registered with role ${assignedRole}.`,
         read: false
       });
+    }
+    
+    // Send welcome email for auto-approved users
+    if (isApproved) {
+      try {
+        // Import and use the email service
+        const { sendWelcomeEmail } = await import('../utils/emailService');
+        const emailSent = await sendWelcomeEmail(newUser, userOrganization);
+        
+        if (emailSent) {
+          console.log(`[REGISTRATION] Welcome email sent to ${email}`);
+        } else {
+          console.error(`[REGISTRATION] Failed to send welcome email to ${email}`);
+        }
+      } catch (emailError) {
+        console.error('[REGISTRATION] Error sending welcome email:', emailError);
+        // Continue registration even if email fails
+      }
     }
     
     // Remove password before sending response
@@ -441,14 +405,48 @@ export const updateUser = async (req: Request, res: Response) => {
         }
       }
       
-      // If the user was just approved and assigned projects, create a notification
-      if (updateData.isApproved && updatedUser.isApproved && newProjectIds.length > 0) {
+      // If the user was just approved, create a notification and send an email
+      let wasJustApproved = updateData.isApproved && updatedUser.isApproved;
+      
+      if (wasJustApproved) {
+        // Create a notification about the approval
+        const notificationMessage = newProjectIds.length > 0 
+          ? 'Your account has been approved and you have been assigned to projects.'
+          : 'Your account has been approved.';
+          
         await storage.createNotification({
           userId: userId,
           type: 'account_approved',
-          message: 'Your account has been approved and you have been assigned to projects.',
+          message: notificationMessage,
           read: false
         });
+        
+        // Send an email notification about the approval
+        try {
+          // Get the user's organizations to include in the email
+          const userOrgs = await storage.getUserOrganizations(userId);
+          let userOrganization = undefined;
+          
+          if (userOrgs.length > 0) {
+            const org = await storage.getOrganizationById(userOrgs[0].organizationId);
+            if (org) {
+              userOrganization = org;
+            }
+          }
+          
+          // Import and use the email service
+          const { sendAccountApprovalEmail } = await import('../utils/emailService');
+          const emailSent = await sendAccountApprovalEmail(updatedUser, userOrganization);
+          
+          if (emailSent) {
+            console.log(`[USER-APPROVAL] Approval email sent to ${updatedUser.email}`);
+          } else {
+            console.error(`[USER-APPROVAL] Failed to send approval email to ${updatedUser.email}`);
+          }
+        } catch (emailError) {
+          console.error('[USER-APPROVAL] Error sending approval email:', emailError);
+          // Continue user update even if email fails
+        }
       }
     }
     
