@@ -246,38 +246,59 @@ export default function TaskPayablePage() {
     doc.setFont("helvetica", "bold");
     doc.text("Task Invoice", 105, titleY, { align: "center" });
     
-    // Add organization logo if available, maintaining proportions
-    if (currentOrganization?.logoUrl) {
-      try {
-        // Calculate the logo position (centered horizontally, above the title)
-        const logoHeight = 12; // max height in mm
-        const logoX = 105 - (logoHeight * 1.5) / 2; // assuming roughly 1.5:1 width:height ratio 
-        const logoY = titleY - 18; // Position above the title
-        
-        // Add image with preserved aspect ratio
-        doc.addImage(
-          currentOrganization.logoUrl,  // URL or Base64 string
-          'JPEG',                       // Format (JPEG/PNG/etc)
-          logoX,                        // X position (mm) - centered
-          logoY,                        // Y position (mm) - above title
-          0,                            // Width - 0 means calculate based on height
-          logoHeight                    // Height (mm)
-        );
-      } catch (error) {
-        console.error("Error adding logo to PDF:", error);
-      }
-    }
-
     // Add organization name (left column) and invoice details (right column)
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     
-    // Left side - Organization name
+    // Left side - Organization info with logo and name
     if (currentOrganization?.name) {
-      doc.setFont("helvetica", "bold");
-      doc.text("Organization:", 14, 30);
-      doc.setFont("helvetica", "normal");
-      doc.text(currentOrganization.name, 14, 35);
+      // Position for organization info
+      const orgLabelY = 30;
+      const orgNameY = 35;
+      
+      // Add organization logo on the left if available, maintaining proportions
+      if (currentOrganization?.logoUrl) {
+        try {
+          // Logo position to the left of organization name
+          const logoHeight = 8; // max height in mm
+          const logoX = 14; // Position left aligned
+          const logoY = orgLabelY - 3; // Align with the organization label
+          
+          // Add image with preserved aspect ratio
+          doc.addImage(
+            currentOrganization.logoUrl,  // URL or Base64 string
+            'JPEG',                      // Format (JPEG/PNG/etc)
+            logoX,                       // X position (mm) - left aligned
+            logoY,                       // Y position (mm)
+            0,                           // Width - 0 means calculate based on height
+            logoHeight                   // Height (mm)
+          );
+          
+          // Shift the organization text to the right to accommodate the logo
+          // Assuming logo has a width of about 1.5x its height
+          const logoWidth = logoHeight * 1.5;
+          const orgTextX = logoX + logoWidth + 5; // 5mm margin after logo
+          
+          // Draw organization label and name with the adjusted X position
+          doc.setFont("helvetica", "bold");
+          doc.text("Organization:", orgTextX, orgLabelY);
+          doc.setFont("helvetica", "normal");
+          doc.text(currentOrganization.name, orgTextX, orgNameY);
+        } catch (error) {
+          console.error("Error adding logo to PDF:", error);
+          // Fallback to normal organization text without logo shift
+          doc.setFont("helvetica", "bold");
+          doc.text("Organization:", 14, orgLabelY);
+          doc.setFont("helvetica", "normal");
+          doc.text(currentOrganization.name, 14, orgNameY);
+        }
+      } else {
+        // No logo, just add organization name
+        doc.setFont("helvetica", "bold");
+        doc.text("Organization:", 14, orgLabelY);
+        doc.setFont("helvetica", "normal");
+        doc.text(currentOrganization.name, 14, orgNameY);
+      }
     }
     
     // Right side - Invoice number and date
@@ -712,30 +733,33 @@ export default function TaskPayablePage() {
         <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
           {/* Invoice Title - Only visible when printing */}
           <div className="hidden print:block mb-6">
-            {/* Organization Logo (centered) */}
-            {currentOrganization?.logoUrl && (
-              <div className="text-center mb-4">
-                <img 
-                  src={currentOrganization.logoUrl} 
-                  alt={currentOrganization.name || "Organization logo"} 
-                  className="max-h-12 mx-auto"
-                  style={{ objectFit: "contain" }} /* Preserve aspect ratio */
-                />
-              </div>
-            )}
-            
             {/* Task Invoice Title */}
-            <h1 className="text-xl font-bold text-center text-primary print-header">
+            <h1 className="text-xl font-bold text-center text-primary print-header mb-4">
               Task Invoice
             </h1>
             
             {/* Organization Name and Invoice Details */}
             <div className="flex justify-between mt-4">
-              {/* Left side - Organization info */}
+              {/* Left side - Organization info with logo */}
               {currentOrganization?.name && (
-                <div className="text-left">
-                  <p className="text-xs font-medium text-gray-500">Organization:</p>
-                  <p className="text-xs text-gray-700">{currentOrganization.name}</p>
+                <div className="text-left flex items-center">
+                  {/* Organization Logo */}
+                  {currentOrganization?.logoUrl && (
+                    <div className="mr-3">
+                      <img 
+                        src={currentOrganization.logoUrl} 
+                        alt={currentOrganization.name || "Organization logo"} 
+                        className="max-h-7 max-w-16"
+                        style={{ objectFit: "contain" }} /* Preserve aspect ratio */
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Organization Name */}
+                  <div>
+                    <p className="text-xs font-medium text-gray-500">Organization:</p>
+                    <p className="text-xs text-gray-700">{currentOrganization.name}</p>
+                  </div>
                 </div>
               )}
               
