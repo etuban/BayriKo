@@ -101,8 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Use navigate instead of window.location to avoid page refresh
       // Staff users go directly to Tasks page, others to dashboard
       console.log(`Redirecting user with role ${data.user.role} after login`);
+      
+      // Force a reload of the page to clear any cached state
       if (data.user.role === 'staff') {
-        navigate('/tasks');
+        queryClient.clear(); // Clear query cache
+        window.location.href = '/tasks'; // Force full page navigation
       } else {
         navigate('/dashboard');
       }

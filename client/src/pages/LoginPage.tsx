@@ -61,7 +61,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const sliderItems = [
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-Task-Page.gif",
-    caption: "Assign tasks conveniently to your team.",
+    caption: "Assign tasks conveniently to yourself or your team.",
   },
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-PDF-Invoice.gif",
@@ -72,7 +72,7 @@ const sliderItems = [
     caption: "Supervisor can manage users and their roles.",
   },
   {
-    image: "https://pawn.media/bayriko/steps/Bayriko-Users.gif",
+    image: "https://pawn.media/bayriko/steps/Bayriko-Projects.gif",
     caption: "Create and manage projects for your team.",
   },
   {
@@ -82,19 +82,31 @@ const sliderItems = [
 ];
 
 export default function LoginPage() {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, isAuthenticated, user } = useAuth();
   const [location, setLocation] = useLocation();
   const [authError, setAuthError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
   const { toast } = useToast();
+  
+  // Check if user is already authenticated and redirect accordingly
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Redirect based on user role
+      if (user.role === 'staff') {
+        setLocation('/tasks');
+      } else {
+        setLocation('/dashboard');
+      }
+    }
+  }, [isAuthenticated, user, setLocation]);
 
   // Setup carousels with autoplay
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 15000, stopOnInteraction: true }),
   ]);
-  
+
   // Second carousel for mobile view
   const [emblaRef2, emblaApi2] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 15000, stopOnInteraction: true }),
@@ -119,7 +131,7 @@ export default function LoginPage() {
       emblaApi.off("select", onSelect);
     };
   }, [emblaApi]);
-  
+
   // Effect for second carousel
   useEffect(() => {
     if (!emblaApi2) return;
