@@ -75,7 +75,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "Projects",
       icon: <FolderKanban className="w-5 h-5 mr-3" />,
       path: "/projects",
-      display: user?.role !== "staff",
+      display: true, // Allow all users including staff to access Projects
     },
     {
       title: "Project Comparison",

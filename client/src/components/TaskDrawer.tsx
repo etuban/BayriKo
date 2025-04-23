@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, AlertCircle, Plus } from 'lucide-react';
 import { cn, formatTags, parseTags } from '@/lib/utils';
 import { useTask } from '@/context/TaskContext';
 import { Task, TaskFormValues } from '@/types';
@@ -16,6 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { TaskHistory } from './TaskHistory';
 import { TaskComments } from './TaskComments';
 import { useAuth } from '@/context/AuthContext';
+import { Link } from 'wouter';
 
 // Validation schema
 const taskSchema = z.object({
@@ -232,22 +233,37 @@ export function TaskDrawer() {
               <Label htmlFor="projectId" className="text-sm font-medium mb-1">
                 Project <span className="text-red-500">*</span>
               </Label>
-              <Select
-                value={form.watch('projectId')?.toString() || ''}
-                onValueChange={(value) => form.setValue('projectId', parseInt(value))}
-                disabled={drawer.mode === 'view'}
-              >
-                <SelectTrigger className="w-full bg-dark-bg border border-dark-border">
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project: any) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {projects.length === 0 ? (
+                <div className="mt-2 mb-2">
+                  <div className="text-sm text-yellow-500 flex items-center mb-3">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    No projects available. Please create a project first.
+                  </div>
+                  <Link href="/projects">
+                    <Button type="button" variant="outline" className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Project
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <Select
+                  value={form.watch('projectId')?.toString() || ''}
+                  onValueChange={(value) => form.setValue('projectId', parseInt(value))}
+                  disabled={drawer.mode === 'view'}
+                >
+                  <SelectTrigger className="w-full bg-dark-bg border border-dark-border">
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((project: any) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {form.formState.errors.projectId && (
                 <p className="text-red-500 text-sm mt-1">{form.formState.errors.projectId.message}</p>
               )}

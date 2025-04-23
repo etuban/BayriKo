@@ -131,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get('/api/projects', authenticateUser, projectController.getAllProjects);
   app.get('/api/projects/:id', authenticateUser, projectController.getProjectById);
-  app.post('/api/projects', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), projectController.createProject);
+  app.post('/api/projects', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead', 'staff']), projectController.createProject);
   app.put('/api/projects/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor', 'team_lead']), projectController.updateProject);
   app.delete('/api/projects/:id', authenticateUser, authorizeRole(['super_admin', 'supervisor']), projectController.deleteProject);
 
