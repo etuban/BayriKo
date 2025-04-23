@@ -570,10 +570,30 @@ export default function UsersPage() {
     setIsAddDialogOpen(true);
   };
   
+  // Task creation hooks
+  const { openDrawer } = useTask();
+  const [location, navigate] = useLocation();
+  
+  // Function to assign a task to a user
+  const assignTaskToUser = (user: User) => {
+    // Navigate to tasks page and open drawer with the user pre-selected
+    navigate('/tasks');
+    
+    // Wait for navigation to complete, then open the task drawer
+    setTimeout(() => {
+      openDrawer('new');
+      
+      // The user will be pre-selected in the task form
+      // The TaskDrawer component would need to handle this via the context
+      sessionStorage.setItem('preselectedUserId', user.id.toString());
+    }, 100);
+  };
+  
   // Check if the current user can perform actions
   const canDelete = user?.role === 'super_admin' || user?.role === 'supervisor';
   const canEdit = user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead';
   const canCreate = user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead';
+  const canAssignTask = user?.role === 'super_admin' || user?.role === 'supervisor' || user?.role === 'team_lead';
 
   return (
     <div className="space-y-6">
@@ -678,7 +698,21 @@ export default function UsersPage() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-0 flex justify-end gap-2">
+                  <CardFooter className="pt-0 flex flex-wrap justify-end gap-2">
+                    {/* Assign Task Button - Only for approved users */}
+                    {user.isApproved && canAssignTask && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => assignTaskToUser(user)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <ClipboardList className="w-4 h-4 mr-1" />
+                        Assign Task
+                      </Button>
+                    )}
+                    
+                    {/* Approve Button */}
                     {!user.isApproved && (
                       <Button 
                         size="sm"
@@ -688,6 +722,8 @@ export default function UsersPage() {
                         Approve
                       </Button>
                     )}
+                    
+                    {/* Edit Button */}
                     {canEdit && (
                       <Button 
                         variant="outline" 
@@ -698,6 +734,8 @@ export default function UsersPage() {
                         Edit
                       </Button>
                     )}
+                    
+                    {/* Delete Button */}
                     {canDelete && (
                       <Button 
                         variant="destructive" 

@@ -83,14 +83,34 @@ export function TaskDrawer() {
     enabled: drawer.isOpen,
   });
   
+  // Check for preselected user from sessionStorage
+  useEffect(() => {
+    const preselectedUserId = sessionStorage.getItem('preselectedUserId');
+    if (preselectedUserId) {
+      // Convert to number and set in state for later use
+      const userId = parseInt(preselectedUserId);
+      // Clear it after reading to prevent reuse on future opens
+      sessionStorage.removeItem('preselectedUserId');
+      
+      // If the drawer is opened in new mode, use this userId
+      if (drawer.mode === 'new') {
+        form.setValue('assignedToId', userId);
+      }
+    }
+  }, [drawer.isOpen, form]);
+
   // Set form values when task is loaded or mode changes
   useEffect(() => {
     if (drawer.mode === 'new') {
+      // Get preselected user ID if available
+      const preselectedUserId = form.getValues('assignedToId');
+      
       form.reset({
         title: '',
         description: '',
         projectId: undefined,
-        assignedToId: undefined,
+        // Keep preselected user if it exists
+        assignedToId: preselectedUserId,
         tags: '',
         startDate: '',
         startTime: '',
