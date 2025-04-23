@@ -1,12 +1,36 @@
-import sgMail from '@sendgrid/mail';
-import { MailDataRequired } from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 
-// Initialize SendGrid with API key
-if (!process.env.SENDGRID_API_KEY) {
-  console.warn('SENDGRID_API_KEY environment variable is not set. Email functionality will not work.');
-} else {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Create a test account using Ethereal (for development)
+let testAccount: nodemailer.TestAccount | null = null;
+let transporter: nodemailer.Transporter | null = null;
+
+// Initialize the transporter
+async function initializeTransporter() {
+  if (transporter) return;
+  
+  try {
+    // Create test account for development environment
+    testAccount = await nodemailer.createTestAccount();
+    
+    // Create reusable transporter
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+    
+    console.log('Nodemailer test account created:', testAccount.user);
+  } catch (error) {
+    console.error('Failed to create test email account:', error);
+  }
 }
+
+// Initialize transporter on module load
+initializeTransporter();
 
 export interface EmailData {
   to: string;
@@ -17,40 +41,38 @@ export interface EmailData {
 }
 
 /**
- * Send an email using SendGrid
+ * Send an email using Nodemailer
  */
 export async function sendEmail(emailData: EmailData): Promise<boolean> {
   try {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.error('SendGrid API key not set. Email not sent.');
-      return false;
+    // Make sure transporter is initialized
+    if (!transporter) {
+      await initializeTransporter();
+      if (!transporter) {
+        console.error('Failed to initialize email transporter');
+        return false;
+      }
     }
 
-    // Convert our EmailData to SendGrid's MailDataRequired format
-    const message: MailDataRequired = {
-      to: emailData.to,
+    // Send mail with defined transport object
+    const info = await transporter.sendMail({
       from: emailData.from,
+      to: emailData.to,
       subject: emailData.subject,
-      content: [
-        {
-          type: 'text/plain',
-          value: emailData.text || '',
-        },
-        {
-          type: 'text/html',
-          value: emailData.html || '',
-        },
-      ],
-    };
+      text: emailData.text,
+      html: emailData.html,
+    });
 
-    await sgMail.send(message);
-    console.log(`Email sent successfully to ${emailData.to}`);
-    return true;
-  } catch (error: any) {
-    console.error('Error sending email:', error);
-    if (error.response) {
-      console.error(error.response.body);
+    console.log(`Email sent successfully: ${info.messageId}`);
+    
+    // Log preview URL (for Ethereal emails)
+    if (testAccount) {
+      console.log(`Email preview URL: ${nodemailer.getTestMessageUrl(info)}`);
     }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
     return false;
   }
 }

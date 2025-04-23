@@ -34,6 +34,8 @@ export const submitFeedback = async (req: Request, res: Response) => {
 
     if (!emailSent) {
       console.warn('Email service failed to send feedback email, but feedback was processed');
+    } else {
+      console.log('Feedback email sent successfully');
     }
 
     // Respond with success
