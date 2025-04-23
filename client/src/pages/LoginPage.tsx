@@ -322,426 +322,427 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen login-screen bg-background overflow-hidden">
-      <div className="flex min-h-screen">
-        <div className="w-full mx-auto flex flex-col md:flex-row overflow-hidden">
-          {/* Left side - Brand/Marketing Panel with background color (sticky) */}
-          <div className="w-full md:w-3/5 bg-[#033902] hidden md:block sticky top-0 h-screen overflow-hidden">
-            <div className="h-full flex flex-col justify-between p-8">
-              {/* Top Logo */}
-              <div className="top-logo flex items-center justify-center">
-                <div className="flex items-center">
-                  <div className="border border-white-8 w-24 h-24 bg-white rounded-full mt-2">
-                    <GiReceiveMoney className="w-12 h-12 text-primary mt-6 ml-6" />
-                  </div>
-                  <div className="ml-4">
-                    <h1 className="text-7xl font-bold text-white mb-1 font-Kanit">
-                      BAYRIKO
-                    </h1>
-                    <p className="text-white/80 text-lg max-w-md">
-                      Task to Invoice Management System
-                    </p>
-                  </div>
+    <div className="min-h-screen login-screen bg-background">
+      <div className="flex flex-col md:flex-row min-h-screen">
+        {/* Left side - Fixed brand panel */}
+        <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-[#033902] h-screen">
+          <div className="h-full flex flex-col justify-between p-8">
+            {/* Top Logo */}
+            <div className="top-logo flex items-center justify-center">
+              <div className="flex items-center">
+                <div className="border border-white-8 w-24 h-24 bg-white rounded-full mt-2">
+                  <GiReceiveMoney className="w-12 h-12 text-primary mt-6 ml-6" />
+                </div>
+                <div className="ml-4">
+                  <h1 className="text-7xl font-bold text-white mb-1 font-Kanit">
+                    BAYRIKO
+                  </h1>
+                  <p className="text-white/80 text-lg max-w-md">
+                    Task to Invoice Management System
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Main Content with Carousel */}
-              <div className="my-auto">
-                {/* Image Carousel */}
-                <div className="mb-6 mt-8">
-                  <div className="overflow-hidden rounded-lg" ref={emblaRef}>
-                    <div className="flex">
-                      {sliderItems.map((item, index) => (
-                        <div
-                          key={index}
-                          className="relative flex-[0_0_100%] min-w-0"
-                        >
-                          <div className="flex flex-col items-center justify-center">
-                            <img
-                              src={item.image}
-                              alt={`Slide ${index + 1}`}
-                              className="w-full rounded-lg shadow-md object-cover h-48"
-                            />
-                            <p className="text-center text-md italic text-white/90 mt-4">
-                              {item.caption}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Dot indicators */}
-                  <div className="flex justify-center mt-4">
-                    {sliderItems.map((_, index) => (
-                      <button
+            {/* Main Content with Carousel */}
+            <div className="my-auto">
+              {/* Image Carousel */}
+              <div className="mb-6 mt-8">
+                <div className="overflow-hidden rounded-lg" ref={emblaRef}>
+                  <div className="flex">
+                    {sliderItems.map((item, index) => (
+                      <div
                         key={index}
-                        className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
-                          index === selectedIndex
-                            ? "bg-white scale-125"
-                            : "bg-white/40 hover:bg-white/60"
-                        }`}
-                        type="button"
-                        onClick={() => emblaApi?.scrollTo(index)}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
+                        className="relative flex-[0_0_100%] min-w-0"
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <img
+                            src={item.image}
+                            alt={`Slide ${index + 1}`}
+                            className="w-full rounded-lg shadow-md object-cover h-48"
+                          />
+                          <p className="text-center text-md italic text-white/90 mt-4">
+                            {item.caption}
+                          </p>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Footer Copyright */}
-              <div className="text-white/60 text-sm">
-                © {new Date().getFullYear()} BAYRIKO.{" "}
-                <a href="https://pawn.media" className="font-bold underline">
-                  Pawn Media
-                </a>
-                .
+                {/* Dot indicators */}
+                <div className="flex justify-center mt-4">
+                  {sliderItems.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-2 h-2 rounded-full mx-1 transition-all duration-300 ${
+                        index === selectedIndex
+                          ? "bg-white scale-125"
+                          : "bg-white/40 hover:bg-white/60"
+                      }`}
+                      type="button"
+                      onClick={() => emblaApi?.scrollTo(index)}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
+
+            {/* Footer Copyright */}
+            <div className="text-white/60 text-sm">
+              © {new Date().getFullYear()} BAYRIKO.{" "}
+              <a href="https://pawn.media" className="font-bold underline">
+                Pawn Media
+              </a>
+              .
+            </div>
           </div>
+        </div>
 
-          {/* Right side - Login Form (scrollable) */}
-          <div className="w-full md:w-2/5 p-8 login-form-panel">
-            <div className="w-full max-w-md mx-auto my-8">
-              {/* Brand */}
-
-              <div>
-                {activeTab === "login" ? (
-                  <>
-                    <h2 className="text-3xl font-bold mb-2">Login</h2>
-                    <p className="text-muted-foreground mb-8">
-                      Don't have an account?{" "}
-                      <button
-                        type="button"
-                        className="text-primary hover:underline font-medium"
-                        onClick={() => setActiveTab("register")}
-                      >
-                        Create a new account now
-                      </button>
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h2 className="text-3xl font-bold mb-2">Create Account</h2>
-                    <p className="text-muted-foreground mb-8">
-                      Already have an account?{" "}
-                      <button
-                        type="button"
-                        className="text-primary hover:underline font-medium"
-                        onClick={() => setActiveTab("login")}
-                      >
-                        Sign in instead
-                      </button>
-                    </p>
-                  </>
-                )}
-
-                <Tabs
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                  className="w-full"
-                >
-                  <TabsList className="hidden">
-                    <TabsTrigger value="login">Login</TabsTrigger>
-                    <TabsTrigger value="register">Register</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="login" className="space-y-6">
-                    <form
-                      onSubmit={loginForm.handleSubmit(onLoginSubmit)}
-                      className="space-y-4"
+        {/* Right side - Login Form (scrollable) */}
+        <div className="w-full md:w-2/5 md:ml-auto p-8 login-form-panel">
+          <div className="w-full max-w-md mx-auto my-8">
+            {/* Brand */}
+            <div>
+              {activeTab === "login" ? (
+                <>
+                  <h2 className="text-3xl font-bold mb-2">Login</h2>
+                  <p className="text-muted-foreground mb-8">
+                    Don't have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-primary hover:underline font-medium"
+                      onClick={() => setActiveTab("register")}
                     >
-                      <div className="space-y-2">
-                        <Label htmlFor="login-email">Email</Label>
-                        <Input
-                          id="login-email"
-                          type="email"
-                          placeholder="email@example.com"
-                          {...loginForm.register("email")}
-                          className="w-full"
-                        />
-                        {loginForm.formState.errors.email && (
-                          <p className="text-sm text-red-500">
-                            {loginForm.formState.errors.email.message}
-                          </p>
-                        )}
-                      </div>
+                      Create a new account now
+                    </button>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-3xl font-bold mb-2">Create Account</h2>
+                  <p className="text-muted-foreground mb-8">
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-primary hover:underline font-medium"
+                      onClick={() => setActiveTab("login")}
+                    >
+                      Sign in instead
+                    </button>
+                  </p>
+                </>
+              )}
 
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="login-password">Password</Label>
-                          <a
-                            href="#"
-                            className="text-xs text-primary hover:underline"
-                          >
-                            Forgot password?
-                          </a>
-                        </div>
-                        <Input
-                          id="login-password"
-                          type="password"
-                          placeholder="••••••••"
-                          {...loginForm.register("password")}
-                          className="w-full"
-                        />
-                        {loginForm.formState.errors.password && (
-                          <p className="text-sm text-red-500">
-                            {loginForm.formState.errors.password.message}
-                          </p>
-                        )}
-                      </div>
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="hidden">
+                  <TabsTrigger value="login">Login</TabsTrigger>
+                  <TabsTrigger value="register">Register</TabsTrigger>
+                </TabsList>
 
-                      {authError && (
-                        <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
-                          {authError}
-                        </div>
+                <TabsContent value="login" className="space-y-6">
+                  <form
+                    onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="email@example.com"
+                        {...loginForm.register("email")}
+                        className="w-full"
+                      />
+                      {loginForm.formState.errors.email && (
+                        <p className="text-sm text-red-500">
+                          {loginForm.formState.errors.email.message}
+                        </p>
                       )}
-
-                      <Button
-                        type="submit"
-                        className="w-full py-6 text-lg bg-primary text-white"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Signing in..." : "Login Now"}
-                      </Button>
-                    </form>
-
-                    <div className="relative my-6">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-border"></div>
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Or continue with
-                        </span>
-                      </div>
                     </div>
 
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="login-password">Password</Label>
+                        <a
+                          href="#"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Forgot password?
+                        </a>
+                      </div>
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="••••••••"
+                        {...loginForm.register("password")}
+                        className="w-full"
+                      />
+                      {loginForm.formState.errors.password && (
+                        <p className="text-sm text-red-500">
+                          {loginForm.formState.errors.password.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {authError && (
+                      <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
+                        {authError}
+                      </div>
+                    )}
+
                     <Button
-                      variant="outline"
-                      className="w-full py-6 relative"
-                      onClick={handleGoogleSignIn}
-                      type="button"
+                      type="submit"
+                      className="w-full py-6 text-lg bg-primary text-white"
                       disabled={isLoading}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        className="absolute left-4"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          fill="#4285F4"
-                        />
-                        <path
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          fill="#34A853"
-                        />
-                        <path
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          fill="#FBBC05"
-                        />
-                        <path
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          fill="#EA4335"
-                        />
-                      </svg>
-                      <span className="ml-2">
-                        {isLoading ? "Signing in..." : "Login with Google"}
-                      </span>
+                      {isLoading ? "Signing in..." : "Login Now"}
                     </Button>
-                  </TabsContent>
+                  </form>
 
-                  <TabsContent value="register" className="space-y-6">
-                    {/* Show invitation info if available */}
-                    {invitationInfo?.valid && (
-                      <Alert className="mb-4 bg-primary/10 border-primary/20">
-                        <AlertTitle className="text-primary">
-                          Organization Invitation
-                        </AlertTitle>
-                        <AlertDescription>
-                          You've been invited to join{" "}
-                          <strong>{invitationInfo.organizationName}</strong> as
-                          a <strong>{invitationInfo.role}</strong>. Complete
-                          registration to accept.
-                        </AlertDescription>
-                      </Alert>
-                    )}
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or continue with
+                      </span>
+                    </div>
+                  </div>
 
-                    {validatingInvitation && (
-                      <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20 mb-4">
-                        <p className="text-center">Validating invitation...</p>
-                      </div>
-                    )}
-
-                    <form
-                      onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
-                      className="space-y-4"
+                  <Button
+                    variant="outline"
+                    className="w-full py-6 relative"
+                    onClick={handleGoogleSignIn}
+                    type="button"
+                    disabled={isLoading}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      className="absolute left-4"
+                      viewBox="0 0 24 24"
                     >
-                      <div className="space-y-2">
-                        <Label htmlFor="register-username">Username</Label>
-                        <Input
-                          id="register-username"
-                          type="text"
-                          placeholder="johndoe"
-                          {...registerForm.register("username")}
-                          className="w-full"
-                        />
-                        {registerForm.formState.errors.username && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.username.message}
-                          </p>
-                        )}
-                      </div>
+                      <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"
+                      />
+                    </svg>
+                    <span className="ml-2">
+                      {isLoading ? "Signing in..." : "Login with Google"}
+                    </span>
+                  </Button>
+                </TabsContent>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="register-email">Email</Label>
-                        <Input
-                          id="register-email"
-                          type="email"
-                          placeholder="email@example.com"
-                          {...registerForm.register("email")}
-                          className="w-full"
-                        />
-                        {registerForm.formState.errors.email && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.email.message}
-                          </p>
-                        )}
-                      </div>
+                <TabsContent value="register" className="space-y-6">
+                  {/* Show invitation info if available */}
+                  {invitationInfo?.valid && (
+                    <Alert className="mb-4 bg-primary/10 border-primary/20">
+                      <AlertTitle className="text-primary">
+                        Organization Invitation
+                      </AlertTitle>
+                      <AlertDescription>
+                        You've been invited to join{" "}
+                        <strong>{invitationInfo.organizationName}</strong> as
+                        a <strong>{invitationInfo.role}</strong>. Complete
+                        registration to accept.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
-                      <div className="space-y-2">
-                        <Label htmlFor="register-password">Password</Label>
-                        <Input
-                          id="register-password"
-                          type="password"
-                          placeholder="••••••••"
-                          {...registerForm.register("password")}
-                          className="w-full"
-                        />
-                        {registerForm.formState.errors.password && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.password.message}
-                          </p>
-                        )}
-                      </div>
+                  {validatingInvitation && (
+                    <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20 mb-4">
+                      <p className="text-center">Validating invitation...</p>
+                    </div>
+                  )}
 
-                      <div className="space-y-2">
-                        <Label htmlFor="register-confirm-password">
-                          Confirm Password
-                        </Label>
-                        <Input
-                          id="register-confirm-password"
-                          type="password"
-                          placeholder="••••••••"
-                          {...registerForm.register("confirmPassword")}
-                          className="w-full"
-                        />
-                        {registerForm.formState.errors.confirmPassword && (
-                          <p className="text-sm text-red-500">
-                            {
-                              registerForm.formState.errors.confirmPassword
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
+                  <form
+                    onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="register-username">Username</Label>
+                      <Input
+                        id="register-username"
+                        type="text"
+                        placeholder="johndoe"
+                        {...registerForm.register("username")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.username && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.username.message}
+                        </p>
+                      )}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="register-fullname">Full Name</Label>
-                        <Input
-                          id="register-fullname"
-                          type="text"
-                          placeholder="John Doe"
-                          {...registerForm.register("fullName")}
-                          className="w-full"
-                        />
-                        {registerForm.formState.errors.fullName && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.fullName.message}
-                          </p>
-                        )}
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-email">Email</Label>
+                      <Input
+                        id="register-email"
+                        type="email"
+                        placeholder="email@example.com"
+                        {...registerForm.register("email")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.email && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.email.message}
+                        </p>
+                      )}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="register-position">
-                          Position (Optional)
-                        </Label>
-                        <Input
-                          id="register-position"
-                          type="text"
-                          placeholder="e.g. Developer, Designer, etc."
-                          {...registerForm.register("position")}
-                          className="w-full"
-                        />
-                        {registerForm.formState.errors.position && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.position.message}
-                          </p>
-                        )}
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-password">Password</Label>
+                      <Input
+                        id="register-password"
+                        type="password"
+                        placeholder="••••••••"
+                        {...registerForm.register("password")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.password && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.password.message}
+                        </p>
+                      )}
+                    </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="register-role">Role</Label>
-                        <Select
-                          defaultValue="staff"
-                          onValueChange={(value) =>
-                            registerForm.setValue(
-                              "role",
-                              value as "supervisor" | "team_lead" | "staff",
-                            )
+                    <div className="space-y-2">
+                      <Label htmlFor="register-confirm-password">
+                        Confirm Password
+                      </Label>
+                      <Input
+                        id="register-confirm-password"
+                        type="password"
+                        placeholder="••••••••"
+                        {...registerForm.register("confirmPassword")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.confirmPassword && (
+                        <p className="text-sm text-red-500">
+                          {
+                            registerForm.formState.errors.confirmPassword
+                              .message
                           }
-                        >
-                          <SelectTrigger id="register-role">
-                            <SelectValue placeholder="Select your role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="supervisor">
-                              Supervisor
-                            </SelectItem>
-                            <SelectItem value="team_lead">Team Lead</SelectItem>
-                            <SelectItem value="staff">Staff</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {registerForm.formState.errors.role && (
-                          <p className="text-sm text-red-500">
-                            {registerForm.formState.errors.role.message}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Registration complete notice - shown after successful registration */}
-                      {registering && (
-                        <div className="text-sm text-muted-foreground p-3 border border-muted rounded bg-muted/20">
-                          <p className="mb-1 font-medium text-center">
-                            Creating your account...
-                          </p>
-                          <p className="text-center">
-                            Please wait while we process your registration.
-                          </p>
-                        </div>
+                        </p>
                       )}
+                    </div>
 
-                      {registerError && (
-                        <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
-                          {registerError}
-                        </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-fullname">Full Name</Label>
+                      <Input
+                        id="register-fullname"
+                        type="text"
+                        placeholder="John Doe"
+                        {...registerForm.register("fullName")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.fullName && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.fullName.message}
+                        </p>
                       )}
+                    </div>
 
-                      <Button
-                        type="submit"
-                        className="w-full py-6 text-lg bg-black hover:bg-black/90 text-white"
-                        disabled={registering}
+                    <div className="space-y-2">
+                      <Label htmlFor="register-position">
+                        Position (Optional)
+                      </Label>
+                      <Input
+                        id="register-position"
+                        type="text"
+                        placeholder="Developer, Designer, etc."
+                        {...registerForm.register("position")}
+                        className="w-full"
+                      />
+                      {registerForm.formState.errors.position && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.position.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="register-role">Role</Label>
+                      <Select
+                        value={registerForm.watch("role")}
+                        onValueChange={(value) =>
+                          registerForm.setValue("role", value as any)
+                        }
+                        disabled={invitationInfo?.valid}
                       >
-                        {registering ? "Creating Account..." : "Create Account"}
-                      </Button>
-                    </form>
-                  </TabsContent>
-                </Tabs>
-              </div>
+                        <SelectTrigger
+                          id="register-role"
+                          className="w-full capitalize"
+                        >
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="staff" className="capitalize">
+                            Staff
+                          </SelectItem>
+                          <SelectItem value="team_lead" className="capitalize">
+                            Team Lead
+                          </SelectItem>
+                          <SelectItem value="supervisor" className="capitalize">
+                            Supervisor
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {registerForm.formState.errors.role && (
+                        <p className="text-sm text-red-500">
+                          {registerForm.formState.errors.role.message}
+                        </p>
+                      )}
+                    </div>
+
+                    {registering && (
+                      <div className="text-sm p-3 border border-muted rounded bg-muted/20">
+                        <p className="text-center font-medium">
+                          Creating your account...
+                        </p>
+                        <p className="text-center">
+                          Please wait while we process your registration.
+                        </p>
+                      </div>
+                    )}
+
+                    {registerError && (
+                      <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
+                        {registerError}
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      className="w-full py-6 text-lg bg-black hover:bg-black/90 text-white"
+                      disabled={registering}
+                    >
+                      {registering ? "Creating Account..." : "Create Account"}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>

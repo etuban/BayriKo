@@ -30,6 +30,13 @@
 
   .login-screen {
     align-content: center;
+    position: relative;
+  }
+  
+  @media (min-width: 768px) {
+    .login-form-panel {
+      margin-left: 60%; /* 3/5 of screen width for left panel */
+    }
   }
 
   /* Print styles for pagination */
