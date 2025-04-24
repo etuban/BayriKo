@@ -68,6 +68,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={LoginPage} />
+      <Route path="/register" component={LoginPage} />
       <Route path="/">
         {() => {
           // Redirect Staff users to Tasks page automatically

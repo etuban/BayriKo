@@ -214,33 +214,49 @@ export const deleteInvitationLink = async (req: Request, res: Response) => {
 export const validateInvitationToken = async (req: Request, res: Response) => {
   try {
     const token = req.params.token;
+    console.log(`[INVITATION] Validating token: ${token}`);
+    
+    if (!token) {
+      console.log(`[INVITATION] Missing token parameter`);
+      return res.status(400).json({ valid: false, message: 'Missing token parameter' });
+    }
     
     // Get the invitation link
     const invitationLink = await storage.getInvitationLinkByToken(token);
+    
     if (!invitationLink) {
+      console.log(`[INVITATION] Token not found in database: ${token}`);
       return res.status(404).json({ valid: false, message: 'Invitation link not found' });
     }
     
+    console.log(`[INVITATION] Token found: ${JSON.stringify(invitationLink)}`);
+    
     // Check if the invitation link is active
     if (!invitationLink.active) {
+      console.log(`[INVITATION] Token inactive: ${token}`);
       return res.status(400).json({ valid: false, message: 'This invitation link has been deactivated' });
     }
     
     // Check if the invitation link has expired
     if (invitationLink.expires && new Date() > invitationLink.expires) {
+      console.log(`[INVITATION] Token expired: ${token}, expires: ${invitationLink.expires}`);
       return res.status(400).json({ valid: false, message: 'This invitation link has expired' });
     }
     
     // Check if the invitation link has reached its maximum uses
     if (invitationLink.maxUses && invitationLink.usedCount >= invitationLink.maxUses) {
+      console.log(`[INVITATION] Token max uses reached: ${token}, used: ${invitationLink.usedCount}, max: ${invitationLink.maxUses}`);
       return res.status(400).json({ valid: false, message: 'This invitation link has reached its maximum uses' });
     }
     
     // Get the organization name
     const organization = await storage.getOrganizationById(invitationLink.organizationId);
     if (!organization) {
+      console.log(`[INVITATION] Organization not found for token: ${token}, org ID: ${invitationLink.organizationId}`);
       return res.status(404).json({ valid: false, message: 'Organization not found' });
     }
+    
+    console.log(`[INVITATION] Returning valid token info for ${token}, org: ${organization.name}`);
     
     // Return success
     res.status(200).json({
@@ -257,7 +273,7 @@ export const validateInvitationToken = async (req: Request, res: Response) => {
       usedCount: invitationLink.usedCount
     });
   } catch (error) {
-    console.error('Error validating invitation token:', error);
+    console.error('[INVITATION] Error validating invitation token:', error);
     res.status(500).json({ valid: false, message: 'Internal server error' });
   }
 };
@@ -268,35 +284,49 @@ export const validateInvitationToken = async (req: Request, res: Response) => {
 export const useInvitationLink = async (req: Request, res: Response) => {
   try {
     const token = req.params.token;
+    console.log(`[INVITATION] Using invitation token: ${token}`);
+    
+    if (!token) {
+      console.log(`[INVITATION] Missing token parameter`);
+      return res.status(400).json({ message: 'Missing token parameter' });
+    }
     
     // Get the invitation link
     const invitationLink = await storage.getInvitationLinkByToken(token);
     if (!invitationLink) {
+      console.log(`[INVITATION] Token not found for use: ${token}`);
       return res.status(404).json({ message: 'Invitation link not found' });
     }
     
+    console.log(`[INVITATION] Found token for use: ${JSON.stringify(invitationLink)}`);
+    
     // Check if the invitation link is active
     if (!invitationLink.active) {
+      console.log(`[INVITATION] Token inactive for use: ${token}`);
       return res.status(400).json({ message: 'This invitation link has been deactivated' });
     }
     
     // Check if the invitation link has expired
     if (invitationLink.expires && new Date() > invitationLink.expires) {
+      console.log(`[INVITATION] Token expired for use: ${token}`);
       return res.status(400).json({ message: 'This invitation link has expired' });
     }
     
     // Check if the invitation link has reached its maximum uses
     if (invitationLink.maxUses && invitationLink.usedCount >= invitationLink.maxUses) {
+      console.log(`[INVITATION] Token max uses reached for use: ${token}`);
       return res.status(400).json({ message: 'This invitation link has reached its maximum uses' });
     }
     
     // Increment the usage count
+    console.log(`[INVITATION] Incrementing usage count for token: ${token}, current count: ${invitationLink.usedCount}`);
     await storage.incrementInvitationLinkUsage(invitationLink.id);
     
     // Return success
+    console.log(`[INVITATION] Successfully used token: ${token}`);
     res.status(200).json({ message: 'Invitation link used successfully' });
   } catch (error) {
-    console.error('Error using invitation link:', error);
+    console.error('[INVITATION] Error using invitation link:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

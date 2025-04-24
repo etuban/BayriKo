@@ -779,11 +779,19 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getInvitationLinkByToken(token: string): Promise<InvitationLink | undefined> {
-    const [invitation] = await db
-      .select()
-      .from(invitationLinks)
-      .where(eq(invitationLinks.token, token));
-    return invitation;
+    console.log(`[STORAGE] Looking up invitation token: ${token}`);
+    try {
+      const [invitation] = await db
+        .select()
+        .from(invitationLinks)
+        .where(eq(invitationLinks.token, token));
+      
+      console.log(`[STORAGE] Invitation token lookup result: ${invitation ? JSON.stringify(invitation) : 'not found'}`);
+      return invitation;
+    } catch (error) {
+      console.error(`[STORAGE] Error looking up invitation token: ${token}`, error);
+      throw error;
+    }
   }
   
   async getInvitationLinksByOrganization(organizationId: number): Promise<InvitationLink[]> {

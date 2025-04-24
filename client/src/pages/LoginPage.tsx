@@ -102,6 +102,14 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, user, setLocation]);
 
+  // Set active tab based on current route
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === "/register") {
+      setActiveTab("register");
+    }
+  }, []);
+
   // Setup carousels with autoplay
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 15000, stopOnInteraction: true }),
@@ -175,11 +183,16 @@ export default function LoginPage() {
   const validateInvitationToken = async (token: string) => {
     try {
       setValidatingInvitation(true);
-
+      
+      console.log(`Validating invitation token: ${token}`);
       const response = await fetch(`/api/invitations/validate/${token}`);
+      console.log(`Token validation response status: ${response.status}`);
+      
       const data = await response.json();
+      console.log(`Token validation response data:`, data);
 
       if (response.ok && data.valid) {
+        console.log(`Valid invitation: ${data.organization.name}, role: ${data.role}`);
         setInvitationInfo({
           organizationName: data.organization.name,
           role: data.role,
@@ -190,6 +203,7 @@ export default function LoginPage() {
         registerForm.setValue("role", data.role);
       } else {
         // Invalid token
+        console.error(`Invalid invitation token:`, data);
         setInvitationInfo(null);
         toast({
           title: "Invalid Invitation",
