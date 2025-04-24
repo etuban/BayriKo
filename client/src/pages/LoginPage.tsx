@@ -444,7 +444,7 @@ export default function LoginPage() {
       setForgotPasswordSuccess(false);
       setForgotPasswordSubmitting(true);
 
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetch("/api/password-reset/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -485,7 +485,7 @@ export default function LoginPage() {
       setResetPasswordSuccess(false);
       setResetPasswordSubmitting(true);
 
-      const response = await fetch("/api/auth/reset-password", {
+      const response = await fetch("/api/password-reset/reset", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

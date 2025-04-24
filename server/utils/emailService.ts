@@ -334,7 +334,7 @@ export async function sendPasswordResetEmail(
   
   // Create the reset URL
   const baseUrl = process.env.APP_URL || 'https://bayriko.pawn.media';
-  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  const resetUrl = `${baseUrl}/login?reset=${resetToken}`;
   
   // Expiration information (24 hours from now)
   const expiresDate = new Date();
