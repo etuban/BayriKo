@@ -128,6 +128,16 @@ export const invitationLinks = pgTable("invitation_links", {
   active: boolean("active").notNull().default(true),
 });
 
+// Password reset tokens
+export const passwordResets = pgTable("password_resets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text("token").notNull().unique(),
+  expires: timestamp("expires").notNull(),
+  used: boolean("used").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Define relations
 export const organizationsRelations = {
   projects: projects,
@@ -155,6 +165,7 @@ export const usersRelations = {
   taskComments: taskComments,
   taskHistory: taskHistory,
   notifications: notifications,
+  passwordResets: passwordResets,
   projects: {
     relation: userProjects,
   },
@@ -213,6 +224,7 @@ export const insertTaskHistorySchema = createInsertSchema(taskHistory).omit({ id
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertUserProjectSchema = createInsertSchema(userProjects).omit({ id: true, createdAt: true });
 export const insertInvitationLinkSchema = createInsertSchema(invitationLinks).omit({ id: true, createdAt: true, usedCount: true });
+export const insertPasswordResetSchema = createInsertSchema(passwordResets).omit({ id: true, createdAt: true });
 
 // Types
 export type Organization = typeof organizations.$inferSelect;
@@ -244,3 +256,6 @@ export type InsertUserProject = z.infer<typeof insertUserProjectSchema>;
 
 export type InvitationLink = typeof invitationLinks.$inferSelect;
 export type InsertInvitationLink = z.infer<typeof insertInvitationLinkSchema>;
+
+export type PasswordReset = typeof passwordResets.$inferSelect;
+export type InsertPasswordReset = z.infer<typeof insertPasswordResetSchema>;

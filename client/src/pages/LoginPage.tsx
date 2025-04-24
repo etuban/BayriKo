@@ -183,16 +183,18 @@ export default function LoginPage() {
   const validateInvitationToken = async (token: string) => {
     try {
       setValidatingInvitation(true);
-      
+
       console.log(`Validating invitation token: ${token}`);
       const response = await fetch(`/api/invitations/validate/${token}`);
       console.log(`Token validation response status: ${response.status}`);
-      
+
       const data = await response.json();
       console.log(`Token validation response data:`, data);
 
       if (response.ok && data.valid) {
-        console.log(`Valid invitation: ${data.organization.name}, role: ${data.role}`);
+        console.log(
+          `Valid invitation: ${data.organization.name}, role: ${data.role}`,
+        );
         setInvitationInfo({
           organizationName: data.organization.name,
           role: data.role,
@@ -382,7 +384,7 @@ export default function LoginPage() {
     <div className="min-h-screen login-screen bg-background">
       <div className="flex flex-col md:flex-row lg:min-h-screen">
         {/* Left side - Fixed brand panel */}
-        <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-[#033902] h-screen">
+        <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-gradient-to-br from-[#032200] from-10% via-[#138a31] via-40% to-[#000000] to-90% h-screen">
           <div className="h-full flex flex-col justify-between p-4">
             {/* Top Logo */}
             <div className="top-logo flex items-center justify-center">
@@ -416,7 +418,7 @@ export default function LoginPage() {
                           <img
                             src={item.image}
                             alt={`Slide ${index + 1}`}
-                            className="w-full rounded-lg shadow-md object-cover h-96"
+                            className="w-full rounded-2xl border-white shadow-lg object-contain h-98"
                           />
                           <p className="text-center text-xl text-white/120 mt-4">
                             {item.caption}
@@ -480,28 +482,31 @@ export default function LoginPage() {
             <div>
               {activeTab === "login" ? (
                 <>
-                  <h2 className="text-2xl font-bold mb-2 lg:mt-24">Login</h2>
-                  <p className="text-muted-foreground mb-8">
-                    Don't have an account?{" "}
+                  <h2 className="text-xl font-bold mb-2 lg:mt-24 sm:text-center">
+                    Login
+                  </h2>
+                  <p className="text-muted-foreground mb-8 sm:font-small sm:text-center">
+                    No account yet?{" "}
                     <button
                       type="button"
-                      className="text-primary hover:underline font-medium"
+                      className="text-primary hover:underline font-medium sm:font-small"
                       onClick={() => setActiveTab("register")}
                     >
-                      Create a new account now
+                      Create one now
                     </button>
+                    .
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold mb-2 lg:mt-12">
+                  <h2 className="text-xl font-bold mb-2 lg:mt-12 sm:text-center">
                     Create Account
                   </h2>
-                  <p className="text-muted-foreground mb-8">
+                  <p className="text-muted-foreground mb-8 sm:font-small sm:text-center">
                     Already have an account?{" "}
                     <button
                       type="button"
-                      className="text-primary hover:underline font-medium"
+                      className="text-primary hover:underline font-medium sm:font-small"
                       onClick={() => setActiveTab("login")}
                     >
                       Sign in instead
@@ -824,8 +829,8 @@ export default function LoginPage() {
       </div>
       <div className="flex flex-col md:flex-row mobile-only">
         {/* Mobile Only */}
-        <div className="md:block left-0 top-0 bg-[#033902]">
-          <div className="h-full flex flex-col justify-between p-4 pt-12">
+        <div className="md:block left-0 top-0 bg-gradient-to-br from-[#032200] from-10% via-[#138a31] via-40% to-[#000000] to-90%">
+          <div className="h-full flex flex-col justify-between p-1 pt-12">
             <h3 className="text-center text-[18px] font-bold mb-4">
               Some of the Apps Features:
             </h3>
@@ -842,9 +847,9 @@ export default function LoginPage() {
                         <img
                           src={item.image}
                           alt={`Slide ${index + 1}`}
-                          className="w-full rounded-lg shadow-md object-cover h-64"
+                          className="w-full rounded-lg shadow-md object-cover h-50"
                         />
-                        <p className="text-center text-sm text-white/120 mt-4">
+                        <p className="text-center text-sm text-white/120 mt-6">
                           {item.caption}
                         </p>
                       </div>
