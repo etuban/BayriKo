@@ -861,74 +861,73 @@ export default function UsersPage() {
                   </CardContent>
                   <CardFooter className="pt-0 flex justify-between">
                     <Dialog>
-                      {(open, setOpen) => (
-                        <>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="secondary" 
-                              size="sm"
-                            >
-                              <Mail className="w-4 h-4 mr-1" />
-                              Send to Email
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                              <DialogTitle>Send Invitation via Email</DialogTitle>
-                              <DialogDescription>
-                                Enter the recipient's email address to send this invitation link.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                              <div className="grid gap-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input 
-                                  id="email" 
-                                  placeholder="recipient@example.com" 
-                                  className="bg-dark-bg"
-                                  type="email"
-                                  ref={(el) => {
-                                    // Store the input element reference for each invitation
-                                    if (el) invitation.emailInputRef = el;
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button 
-                                type="submit" 
-                                onClick={() => {
-                                  if (invitation.emailInputRef) {
-                                    const email = invitation.emailInputRef.value;
-                                    if (!email || !/\S+@\S+\.\S+/.test(email)) {
-                                      toast({
-                                        title: "Invalid Email",
-                                        description: "Please enter a valid email address",
-                                        variant: "destructive"
-                                      });
-                                      return;
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="secondary" 
+                          size="sm"
+                        >
+                          <Mail className="w-4 h-4 mr-1" />
+                          Send to Email
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Send Invitation via Email</DialogTitle>
+                          <DialogDescription>
+                            Enter the recipient's email address to send this invitation link.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input 
+                              id="email" 
+                              placeholder="recipient@example.com" 
+                              className="bg-dark-bg"
+                              type="email"
+                              ref={(el) => {
+                                // Store the input element reference for each invitation
+                                if (el) invitation.emailInputRef = el;
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button 
+                            type="submit" 
+                            onClick={() => {
+                              if (invitation.emailInputRef) {
+                                const email = invitation.emailInputRef.value;
+                                if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                                  toast({
+                                    title: "Invalid Email",
+                                    description: "Please enter a valid email address",
+                                    variant: "destructive"
+                                  });
+                                  return;
+                                }
+                                
+                                // Call API to send invitation
+                                sendInvitationEmail.mutate({
+                                  token: invitation.token,
+                                  email: email,
+                                  organizationId: invitation.organizationId
+                                }, {
+                                  onSuccess: () => {
+                                    // Close the dialog on success
+                                    const closeButton = document.querySelector('[data-dialog-close="true"]') as HTMLButtonElement | null;
+                                    if (closeButton) {
+                                      closeButton.click();
                                     }
-                                    
-                                    // Call API to send invitation
-                                    sendInvitationEmail.mutate({
-                                      token: invitation.token,
-                                      email: email,
-                                      organizationId: invitation.organizationId
-                                    }, {
-                                      onSuccess: () => {
-                                        // Close the dialog on success
-                                        setOpen(false);
-                                      }
-                                    });
                                   }
-                                }}
-                              >
-                                Send Invitation
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </>
-                      )}
+                                });
+                              }
+                            }}
+                          >
+                            Send Invitation
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
                     </Dialog>
                     
                     <Button 
