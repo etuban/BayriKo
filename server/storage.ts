@@ -53,6 +53,12 @@ export interface IStorage {
   deleteInvitationLink(id: number): Promise<boolean>;
   incrementInvitationLinkUsage(id: number): Promise<boolean>;
   
+  // Password reset methods
+  createPasswordReset(reset: InsertPasswordReset): Promise<PasswordReset>;
+  getPasswordResetById(id: number): Promise<PasswordReset | undefined>;
+  getPasswordResetByToken(token: string): Promise<PasswordReset | undefined>;
+  markPasswordResetAsUsed(id: number): Promise<boolean>;
+  
   // Organization-User methods
   addUserToOrganization(userId: number, organizationId: number, role: string): Promise<OrganizationUser>;
   removeUserFromOrganization(userId: number, organizationId: number): Promise<boolean>;
@@ -819,6 +825,40 @@ export class DatabaseStorage implements IStorage {
     await db.execute(sql`
       UPDATE invitation_links
       SET used_count = used_count + 1
+      WHERE id = ${id}
+    `);
+    return true;
+  }
+  
+  // Password reset methods
+  async createPasswordReset(reset: InsertPasswordReset): Promise<PasswordReset> {
+    const [newReset] = await db
+      .insert(passwordResets)
+      .values(reset)
+      .returning();
+    return newReset;
+  }
+  
+  async getPasswordResetById(id: number): Promise<PasswordReset | undefined> {
+    const [reset] = await db
+      .select()
+      .from(passwordResets)
+      .where(eq(passwordResets.id, id));
+    return reset;
+  }
+  
+  async getPasswordResetByToken(token: string): Promise<PasswordReset | undefined> {
+    const [reset] = await db
+      .select()
+      .from(passwordResets)
+      .where(eq(passwordResets.token, token));
+    return reset;
+  }
+  
+  async markPasswordResetAsUsed(id: number): Promise<boolean> {
+    await db.execute(sql`
+      UPDATE password_resets
+      SET used = true
       WHERE id = ${id}
     `);
     return true;
