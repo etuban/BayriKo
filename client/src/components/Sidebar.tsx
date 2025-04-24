@@ -187,27 +187,25 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       {/* User Profile Section */}
       {(!collapsed || mobile) && <UserProfileCard user={user} />}
 
-      {/* "Found a bug?" link for Staff and Supervisor Users */}
-      {(user?.role === "staff" || user?.role === "supervisor") && (
-        <div className={cn("px-4", collapsed && !mobile ? "text-center" : "")}>
-          <Link href="/settings?tab=feedback">
-            <div
-              className={cn(
-                "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-amber-500 hover:text-amber-600",
-                collapsed && !mobile ? "justify-center" : "",
-              )}
-              onClick={handleNavClick}
-            >
-              <Bug
-                className={
-                  collapsed && !mobile ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3"
-                }
-              />
-              {(!collapsed || mobile) && <span>Found a bug?</span>}
-            </div>
-          </Link>
-        </div>
-      )}
+      {/* "Found a bug?" link for all users */}
+      <div className={cn("px-4", collapsed && !mobile ? "text-center" : "")}>
+        <Link href="/bug-report">
+          <div
+            className={cn(
+              "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-amber-500 hover:text-amber-600",
+              collapsed && !mobile ? "justify-center" : "",
+            )}
+            onClick={handleNavClick}
+          >
+            <Bug
+              className={
+                collapsed && !mobile ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3"
+              }
+            />
+            {(!collapsed || mobile) && <span>Report a Bug</span>}
+          </div>
+        </Link>
+      </div>
 
       {/* Sign Out Button */}
       <div

@@ -14,6 +14,7 @@ import UsersPage from "@/pages/UsersPage";
 import SettingsPage from "@/pages/SettingsPage";
 import OrganizationsPage from "@/pages/OrganizationsPage";
 import OrganizationSettingsPage from "@/pages/OrganizationSettingsPage";
+import BugReportPage from "@/pages/BugReportPage";
 import { Layout } from "@/components/Layout";
 import { ThemeProvider } from "next-themes";
 import { TaskProvider } from "./context/TaskContext";
@@ -113,6 +114,7 @@ function Router() {
       <Route path="/tasks">
         {() => <ProtectedRoute component={TasksPage} />}
       </Route>
+      <Route path="/bug-report" component={BugReportPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

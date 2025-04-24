@@ -12,6 +12,7 @@ import * as organizationController from './controllers/organizationController';
 import * as invitationController from './controllers/invitationController';
 import * as firebaseAuthController from './controllers/firebaseAuthController';
 import * as feedbackController from './controllers/feedbackController';
+import * as bugReportController from './controllers/bugReportController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
@@ -164,6 +165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Feedback route
   app.post('/api/feedback', authenticateUser, feedbackController.submitFeedback);
+  
+  // Bug report route
+  app.post('/api/bug-report', bugReportController.submitBugReport);
 
   // Run database migrations
   try {
