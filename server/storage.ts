@@ -9,6 +9,7 @@ import {
   organizations,
   organizationUsers,
   invitationLinks,
+  passwordResets,
   type User, 
   type InsertUser,
   type Project,
@@ -28,7 +29,9 @@ import {
   type OrganizationUser,
   type InsertOrganizationUser,
   type InvitationLink,
-  type InsertInvitationLink
+  type InsertInvitationLink,
+  type PasswordReset,
+  type InsertPasswordReset
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, inArray, gte, lte, desc, asc, like, isNull, not, sql } from "drizzle-orm";
