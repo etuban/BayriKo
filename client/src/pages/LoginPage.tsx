@@ -89,15 +89,15 @@ export default function LoginPage() {
   const [registering, setRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("login");
   const { toast } = useToast();
-  
+
   // Check if user is already authenticated and redirect accordingly
   useEffect(() => {
     if (isAuthenticated && user) {
       // Redirect based on user role
-      if (user.role === 'staff') {
-        setLocation('/tasks');
+      if (user.role === "staff") {
+        setLocation("/tasks");
       } else {
-        setLocation('/dashboard');
+        setLocation("/dashboard");
       }
     }
   }, [isAuthenticated, user, setLocation]);
@@ -825,7 +825,7 @@ export default function LoginPage() {
                           alt={`Slide ${index + 1}`}
                           className="w-full rounded-lg shadow-md object-cover h-64"
                         />
-                        <p className="text-center text-lg text-white/120 mt-4">
+                        <p className="text-center text-sm text-white/120 mt-4">
                           {item.caption}
                         </p>
                       </div>

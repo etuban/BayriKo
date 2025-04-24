@@ -163,7 +163,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                 <Link href={item.path}>
                   <div
                     className={cn(
-                      "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors cursor-pointer",
+                      "flex items-center px-2 py-1 rounded-md w-full text-left transition-colors cursor-pointer",
                       location === item.path
                         ? "bg-primary text-white"
                         : "hover:bg-muted",

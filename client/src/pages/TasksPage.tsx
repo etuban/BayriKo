@@ -61,8 +61,8 @@ export default function TasksPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
-      if (projectFilter) params.append('projectId', projectFilter);
-      if (statusFilter) params.append('status', statusFilter);
+      if (projectFilter && projectFilter !== 'all') params.append('projectId', projectFilter);
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
       if (selectedOrganization) params.append('organizationId', selectedOrganization.toString());
       
       const url = `/api/tasks?${params.toString()}`;
