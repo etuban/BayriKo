@@ -317,6 +317,94 @@ export async function sendWelcomeEmail(user: User, organization?: Organization):
 }
 
 /**
+ * Send password reset email to a user
+ */
+export async function sendPasswordResetEmail(
+  user: User,
+  resetToken: string
+): Promise<boolean> {
+  if (!user.email) {
+    console.error('Cannot send password reset email: User has no email');
+    return false;
+  }
+
+  const to = user.email;
+  const from = 'pawnmedia.ph@gmail.com';
+  const subject = 'Reset Your BayriKo Password';
+  
+  // Create the reset URL
+  const baseUrl = process.env.APP_URL || 'https://bayriko.pawn.media';
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  
+  // Expiration information (24 hours from now)
+  const expiresDate = new Date();
+  expiresDate.setHours(expiresDate.getHours() + 24);
+  const expiresInfo = `This reset link will expire on ${expiresDate.toLocaleDateString()} at ${expiresDate.toLocaleTimeString()}.`;
+  
+  // Construct the HTML content
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background-color: #4CAF50; padding: 20px; text-align: center; color: white;">
+        <h1 style="margin: 0;">BayriKo</h1>
+        <p style="margin: 5px 0 0 0;">Task Management System</p>
+      </div>
+      
+      <div style="padding: 20px; border: 1px solid #e9e9e9; border-top: none;">
+        <h2>Password Reset Request</h2>
+        <p>Hello ${user.fullName || user.username},</p>
+        <p>We received a request to reset your password for your BayriKo account. If you did not make this request, you can safely ignore this email.</p>
+        
+        <p>To reset your password, click on the button below:</p>
+        
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            Reset My Password
+          </a>
+        </div>
+        
+        <p style="color: #777; font-size: 14px;">${expiresInfo}</p>
+        <p style="color: #777; font-size: 14px;">If the button above doesn't work, copy and paste this URL into your browser: ${resetUrl}</p>
+        
+        <p>If you did not request a password reset, please contact the system administrator.</p>
+        <p>Thank you!</p>
+      </div>
+      
+      <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+        <p>&copy; ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  // Plain text version
+  const text = `
+    BayriKo - Password Reset Request
+    
+    Hello ${user.fullName || user.username},
+    
+    We received a request to reset your password for your BayriKo account. If you did not make this request, you can safely ignore this email.
+    
+    To reset your password, click on this link or copy and paste it into your browser:
+    ${resetUrl}
+    
+    ${expiresInfo}
+    
+    If you did not request a password reset, please contact the system administrator.
+    
+    Thank you!
+    
+    © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
+  `;
+  
+  return sendEmail({
+    to,
+    from,
+    subject,
+    text,
+    html
+  });
+}
+
+/**
  * Send invitation link to a recipient's email
  */
 export async function sendInvitationEmail(

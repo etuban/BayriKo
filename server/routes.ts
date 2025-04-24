@@ -13,6 +13,7 @@ import * as invitationController from './controllers/invitationController';
 import * as firebaseAuthController from './controllers/firebaseAuthController';
 import * as feedbackController from './controllers/feedbackController';
 import * as bugReportController from './controllers/bugReportController';
+import * as passwordResetController from './controllers/passwordResetController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
@@ -168,6 +169,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Bug report route
   app.post('/api/bug-report', bugReportController.submitBugReport);
+  
+  // Password reset routes (no auth required)
+  app.post('/api/password-reset/request', passwordResetController.createPasswordReset);
+  app.get('/api/password-reset/validate/:token', passwordResetController.validateResetToken);
+  app.post('/api/password-reset/reset', passwordResetController.resetPassword);
 
   // Run database migrations
   try {

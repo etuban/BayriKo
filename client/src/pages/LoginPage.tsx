@@ -107,6 +107,10 @@ export default function LoginPage() {
     const path = window.location.pathname;
     if (path === "/register") {
       setActiveTab("register");
+    } else if (path === "/forgot-password") {
+      setActiveTab("forgot-password");
+    } else if (path === "/reset-password") {
+      setActiveTab("reset-password");
     }
   }, []);
 
