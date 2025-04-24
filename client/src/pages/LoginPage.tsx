@@ -433,7 +433,7 @@ export default function LoginPage() {
             </div>
 
             {/* Footer Copyright */}
-            <div className="text-white/60 text-[9px] text-center">
+            <div className="text-white/60 text-[11px] text-center">
               © {new Date().getFullYear()} BAYRIKO.{" "}
               <a href="https://pawn.media" className="font-bold underline">
                 Pawn Media
@@ -444,7 +444,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right side - Login Form (scrollable) */}
-        <div className="w-full md:w-2/5 md:ml-auto p-4 login-form-panel">
+        <div className="w-full md:w-2/5 md:ml-auto p-4 login-form-panel mb-4">
           <div className="w-full max-w-md mx-auto my-4">
             {/* Brand */}
             {/* Top Logo */}
@@ -480,7 +480,9 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold mb-2">Create Account</h2>
+                  <h2 className="text-2xl font-bold mb-2 lg:mt-12">
+                    Create Account
+                  </h2>
                   <p className="text-muted-foreground mb-8">
                     Already have an account?{" "}
                     <button
@@ -809,7 +811,10 @@ export default function LoginPage() {
       <div className="flex flex-col md:flex-row mobile-only">
         {/* Mobile Only */}
         <div className="md:block left-0 top-0 bg-[#033902]">
-          <div className="h-full flex flex-col justify-between p-4 pt-8">
+          <div className="h-full flex flex-col justify-between p-4 pt-12">
+            <h3 className="text-center text-[18px] font-bold mb-4">
+              Some of the Apps Features:
+            </h3>
             <div className="image-carousel-2 mb-4 mt-2">
               {/* Mobile Image Carousel */}
               <div className="overflow-hidden rounded-lg" ref={emblaRef2}>
@@ -835,7 +840,7 @@ export default function LoginPage() {
               </div>
 
               {/* Dot indicators for mobile carousel */}
-              <div className="flex justify-center mt-4">
+              <div className="flex justify-center mt-4 mb-4">
                 {sliderItems.map((_, index) => (
                   <button
                     key={index}
@@ -851,9 +856,8 @@ export default function LoginPage() {
                 ))}
               </div>
             </div>
-
             {/* Footer Copyright */}
-            <div className="text-white/60 text-[9px] text-center">
+            <div className="text-white/60 text-[10px] text-center mt-8">
               © {new Date().getFullYear()} BAYRIKO.{" "}
               <a href="https://pawn.media" className="font-bold underline">
                 Pawn Media
