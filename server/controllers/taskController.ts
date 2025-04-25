@@ -611,9 +611,22 @@ export const getTaskPayableReport = async (req: Request, res: Response) => {
     // Calculate grand total for the invoice
     const grandTotal = tasksWithDetails.reduce((sum, task) => sum + (task.totalAmount || 0), 0);
     
+    // Sort tasks by date (oldest to latest) before returning
+    // This ensures consistent sorting even when tasks don't have startDate
+    const sortedTasks = tasksWithDetails.sort((a, b) => {
+      // Determine the best available date field for each task
+      const getDateValue = (task: { startDate?: string; dueDate?: string; createdAt: string }) => {
+        if (task.startDate) return new Date(task.startDate).getTime();
+        if (task.dueDate) return new Date(task.dueDate).getTime();
+        return new Date(task.createdAt).getTime();
+      };
+      
+      return getDateValue(a) - getDateValue(b); // Ascending order (oldest first)
+    });
+    
     // Return in the format expected by the PDF invoice page
     res.status(200).json({
-      tasks: tasksWithDetails,
+      tasks: sortedTasks,
       grandTotal
     });
   } catch (error) {

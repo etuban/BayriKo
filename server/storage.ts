@@ -695,11 +695,11 @@ export class DatabaseStorage implements IStorage {
       return await db.select()
         .from(tasks)
         .where(and(...conditions))
-        .orderBy(asc(tasks.projectId));
+        .orderBy(asc(tasks.startDate), asc(tasks.projectId));
     } else {
       return await db.select()
         .from(tasks)
-        .orderBy(asc(tasks.projectId));
+        .orderBy(asc(tasks.startDate), asc(tasks.projectId));
     }
   }
 

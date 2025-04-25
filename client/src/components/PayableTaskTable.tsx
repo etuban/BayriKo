@@ -34,21 +34,9 @@ export function PayableTaskTable({
       }
     > = {};
 
-    // Sort tasks by date (oldest first) before grouping
-    const sortedTasks = [...tasks].sort((a, b) => {
-      // Use startDate for comparison if available
-      const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                   a.dueDate ? new Date(a.dueDate).getTime() : 
-                   new Date(a.createdAt).getTime();
-      
-      const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                   b.dueDate ? new Date(b.dueDate).getTime() : 
-                   new Date(b.createdAt).getTime();
-      
-      return dateA - dateB; // Ascending order (oldest first)
-    });
+    // Tasks already sorted by the server in ascending date order
 
-    sortedTasks.forEach((task) => {
+    tasks.forEach((task) => {
       const projectId = task.projectId;
       const projectName = task.project?.name || "Unknown Project";
       const key = `${projectId}-${projectName}`;
