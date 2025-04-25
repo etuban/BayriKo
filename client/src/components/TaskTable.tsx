@@ -295,21 +295,49 @@ export function TaskTable({ tasks }: TaskTableProps) {
                   <tr className="border-t border-b border-dark-border bg-dark-surface/80">
                     <th
                       colSpan={2}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150"
+                      onClick={() => handleSort('title')}
                     >
-                      Task
+                      <div className="flex items-center">
+                        Task
+                        {getSortIcon('title')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Assigned To
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150"
+                      onClick={() => handleSort('assignedTo')}
+                    >
+                      <div className="flex items-center">
+                        Assigned To
+                        {getSortIcon('assignedTo')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Due Date
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150"
+                      onClick={() => handleSort('dueDate')}
+                    >
+                      <div className="flex items-center">
+                        Due Date
+                        {getSortIcon('dueDate')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Status
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        Status
+                        {getSortIcon('status')}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Hours
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150"
+                      onClick={() => handleSort('hours')}
+                    >
+                      <div className="flex items-center">
+                        Hours
+                        {getSortIcon('hours')}
+                      </div>
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                       Actions
