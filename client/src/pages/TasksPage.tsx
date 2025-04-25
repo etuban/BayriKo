@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TaskTable } from '@/components/TaskTable';
-import { TaskGrid } from '@/components/TaskGrid';
+import { TaskCalendar } from '@/components/TaskCalendar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, FolderKanban, CheckCircle, Building, Plus, LayoutGrid, List } from 'lucide-react';
+import { Search, FolderKanban, CheckCircle, Building, Plus, Calendar, List } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Task, Organization, Project } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -84,7 +84,7 @@ export default function TasksPage() {
   // Access task context
   const { openDrawer } = useTask();
   
-  // View mode state (table or grid)
+  // View mode state (table or calendar)
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   
   return (
@@ -104,8 +104,8 @@ export default function TasksPage() {
             <ToggleGroupItem value="table" aria-label="View as table">
               <List className="h-4 w-4" />
             </ToggleGroupItem>
-            <ToggleGroupItem value="grid" aria-label="View as grid">
-              <LayoutGrid className="h-4 w-4" />
+            <ToggleGroupItem value="grid" aria-label="View as calendar">
+              <Calendar className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -204,7 +204,7 @@ export default function TasksPage() {
         viewMode === 'table' ? (
           <TaskTable tasks={tasks} />
         ) : (
-          <TaskGrid tasks={tasks} />
+          <TaskCalendar tasks={tasks} />
         )
       ) : (
         <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">

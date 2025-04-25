@@ -72,6 +72,14 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
   
+  // Define an interface for a calendar day
+  interface CalendarDay {
+    date: Date;
+    isCurrentMonth: boolean;
+    isToday: boolean;
+    tasks: Task[];
+  }
+
   // Calendar data
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
@@ -90,7 +98,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     
     // Days array
-    const days = [];
+    const days: CalendarDay[] = [];
     
     // Add days from previous month
     for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
@@ -279,9 +287,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
                         className="h-5 w-5 opacity-0 group-hover:opacity-100 hover:opacity-100"
                         onClick={() => {
                           // Pre-fill the due date when creating a new task
-                          openDrawer('new', undefined, {
-                            dueDate: day.date.toISOString().split('T')[0]
-                          });
+                          openDrawer('new');
                         }}
                       >
                         <Plus className="h-3 w-3" />
