@@ -38,8 +38,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-// Import Inter font
-import "@/assets/Inter-normal.js";
+// No special font import needed for helvetica
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
@@ -590,8 +589,8 @@ export default function TaskPayablePage() {
   const generatePDF = (doc: jsPDF): jsPDF => {
     if (!data) return doc;
 
-    // Set default font to Inter for the whole document
-    doc.setFont("Inter", "normal");
+    // Set default font to helvetica for the whole document
+    doc.setFont("helvetica", "normal");
 
     // Title position
     const titleY = 17;
@@ -599,7 +598,7 @@ export default function TaskPayablePage() {
     // Add title first
     doc.setFontSize(24);
     doc.setTextColor(0, 0, 0); // Green color for the header
-    doc.setFont("Inter", "bold");
+    doc.setFont("helvetica", "bold");
     doc.text("Task Invoice", 108, titleY, { align: "center" });
 
     // Add organization name (left column) and invoice details (right column)
@@ -740,7 +739,7 @@ export default function TaskPayablePage() {
       //doc.setFillColor(255, 255, 255);
       //doc.setDrawColor(220, 220, 220);
       // doc.rect(10, startY, 176, 8, "F");
-      doc.setFont("Inter", "bold");
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text(project.projectName, 14, startY + 5);
@@ -858,14 +857,14 @@ export default function TaskPayablePage() {
             // Add small invoice title on subsequent pages
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
-            doc.setFont("Inter", "bold");
+            doc.setFont("helvetica", "bold");
             doc.text("Task Invoice", 14, 15);
 
             // Add continued
 
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            doc.setFont("Inter", "normal");
+            doc.setFont("helvetica", "normal");
             doc.text("(continued...)", 14, 20);
           }
         },
@@ -918,13 +917,13 @@ export default function TaskPayablePage() {
             doc.rect(x, y, width, height, "F");
 
             // Draw title with bold and larger font
-            doc.setFont("Inter", "bold");
+            doc.setFont("helvetica", "bold");
             doc.setFontSize(10);
             doc.text(text[0], x + 2, y + 5);
 
             // Draw description with normal font and smaller size
             if (text.length > 1) {
-              doc.setFont("Inter", "normal");
+              doc.setFont("helvetica", "normal");
               doc.setFontSize(9);
               doc.text(text.slice(1).join("\n"), x + 2, y + 10);
             }
@@ -952,7 +951,7 @@ export default function TaskPayablePage() {
     doc.rect(135, startY, 60, 12, "F");
     doc.setFontSize(14);
     doc.setTextColor(0, 128, 0);
-    doc.setFont("Inter", "bold");
+    doc.setFont("helvetica", "bold");
     doc.text("Grand Total:", 138, startY + 7.5);
     doc.text(` ${data.grandTotal.toFixed(2)}`, 192, startY + 7.5, {
       align: "right",
@@ -963,10 +962,10 @@ export default function TaskPayablePage() {
       startY += 14;
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
-      doc.setFont("Inter", "bold");
+      doc.setFont("helvetica", "bold");
       doc.text("Payment Terms:", 14, startY);
 
-      doc.setFont("Inter", "normal");
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.text(invoiceDetails.paymentTerms, 16, startY + 5);
     }
