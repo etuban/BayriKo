@@ -758,7 +758,7 @@ export default function TaskPayablePage() {
       startY += 10;
 
       // Create standard data arrays for jspdf-autotable
-      const tableRows: any[][] = [];
+      const tableData = [];
       
       // Process each task individually
       for (const task of project.tasks) {
@@ -778,13 +778,14 @@ export default function TaskPayablePage() {
         const amount = task.totalAmount || 0;
         grandTotal += amount;
         
-        // Use a plain string for the first column with both title and description
+        // Use string with newlines for the first column
         const titleText = task.title || "Untitled Task";
         const descText = task.description || "";
+        const combinedText = descText ? `${titleText}\n${descText}` : titleText;
         
-        // Add the task row with strings for all cells (no custom objects)
-        tableRows.push([
-          { content: titleText, title: descText }, // Store description in title attribute for custom rendering
+        // Add the task row
+        tableData.push([
+          combinedText,
           dateStr,
           typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || ""),
           task.pricingType === "hourly" ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` : "Fixed",
@@ -798,7 +799,7 @@ export default function TaskPayablePage() {
       // Generate table
       autoTable(doc, {
         head: headers,
-        body: tableRows,
+        body: tableData,
         startY: startY,
         theme: "grid",
         styles: {
@@ -823,35 +824,11 @@ export default function TaskPayablePage() {
         alternateRowStyles: {
           fillColor: [245, 245, 245]
         },
-        didDrawCell: function(data) {
-          // Draw task title and description
-          if (data.column.index === 0 && data.cell.raw && typeof data.cell.raw === 'object') {
-            // Get data from the cell
-            const content = data.cell.raw.content || '';
-            const description = data.cell.raw.title || '';
-            
-            // Cell position
-            const { x, y, width, height } = data.cell;
-            
-            // Draw title in bold
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(0, 0, 0);
-            doc.text(content, x + 3, y + 6);
-            
-            // Draw description if it exists
-            if (description) {
-              doc.setFont('helvetica', 'normal');
-              doc.setFontSize(8);
-              doc.setTextColor(80, 80, 80);
-              doc.text(description, x + 3, y + 12, { 
-                maxWidth: width - 6,
-                lineHeightFactor: 1.2
-              });
-            }
-            
-            // Return false to prevent default rendering
-            return false;
+        cellStyles: {
+          // Apply different style to first column (Task) cells
+          0: {
+            fontStyle: 'bold',
+            fontSize: 9
           }
         },
         didDrawPage: function(data) {
