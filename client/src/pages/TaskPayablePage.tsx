@@ -740,7 +740,7 @@ export default function TaskPayablePage() {
       //doc.setFillColor(255, 255, 255);
       //doc.setDrawColor(220, 220, 220);
       // doc.rect(10, startY, 176, 8, "F");
-      doc.setFont("Helvetica", "bold");
+      doc.setFont("Inter", "bold");
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text(project.projectName, 14, startY + 5);
@@ -858,14 +858,14 @@ export default function TaskPayablePage() {
             // Add small invoice title on subsequent pages
             doc.setFontSize(14);
             doc.setTextColor(0, 0, 0);
-            doc.setFont("helvetica", "bold");
+            doc.setFont("Inter", "bold");
             doc.text("Task Invoice", 14, 15);
 
             // Add continued
 
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            doc.setFont("helvetica", "normal");
+            doc.setFont("Inter", "normal");
             doc.text("(continued...)", 14, 20);
           }
         },
@@ -918,13 +918,13 @@ export default function TaskPayablePage() {
             doc.rect(x, y, width, height, "F");
 
             // Draw title with bold and larger font
-            doc.setFont("helvetica", "bold");
+            doc.setFont("Inter", "bold");
             doc.setFontSize(10);
             doc.text(text[0], x + 2, y + 5);
 
             // Draw description with normal font and smaller size
             if (text.length > 1) {
-              doc.setFont("helvetica", "normal");
+              doc.setFont("Inter", "normal");
               doc.setFontSize(9);
               doc.text(text.slice(1).join("\n"), x + 2, y + 10);
             }
@@ -934,7 +934,8 @@ export default function TaskPayablePage() {
           }
           return false; // Let jsPDF-AutoTable handle other cells
         },
-        columnStyles: {
+        // Use a different property name since columnStyles is already defined above
+        customColumnWidth: {
           0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
           1: { cellWidth: 18, halign: "left" }, // Date
           2: { cellWidth: 15, halign: "left" }, // Hours
@@ -959,7 +960,7 @@ export default function TaskPayablePage() {
     doc.rect(135, startY, 60, 12, "F");
     doc.setFontSize(14);
     doc.setTextColor(0, 128, 0);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Inter", "bold");
     doc.text("Grand Total:", 138, startY + 7.5);
     doc.text(` ${data.grandTotal.toFixed(2)}`, 192, startY + 7.5, {
       align: "right",
@@ -970,10 +971,10 @@ export default function TaskPayablePage() {
       startY += 14;
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("Inter", "bold");
       doc.text("Payment Terms:", 14, startY);
 
-      doc.setFont("helvetica", "normal");
+      doc.setFont("Inter", "normal");
       doc.setFontSize(9);
       doc.text(invoiceDetails.paymentTerms, 16, startY + 5);
     }
@@ -982,12 +983,12 @@ export default function TaskPayablePage() {
     startY = doc.internal.pageSize.height - 18;
     doc.setFontSize(10);
     doc.setTextColor(0, 100, 0);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Inter", "bold");
     const footerText = "Invoice generated via Bayriko";
     doc.text(footerText, 105, startY, { align: "center" });
     doc.setFontSize(9);
     doc.setTextColor(0, 50, 0);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Inter", "normal");
     doc.text("https://bayriko.pawn.media", 105, startY + 4, {
       align: "center",
     });
