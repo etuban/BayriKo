@@ -674,29 +674,27 @@ export default function TaskPayablePage() {
       return dateA - dateB;
     });
     
-    // Group tasks by project
-    const projectGroups = new Map<number, {
-      name: string;
-      tasks: Task[];
-    }>();
+    // Group tasks by project in a way that's easier to iterate
+    const projectGroups: {[key: number]: {name: string; tasks: Task[]}} = {};
     
     // Create groups of tasks by project
     for (const task of sortedTasks) {
       const projectId = task.projectId;
-      if (!projectGroups.has(projectId)) {
+      if (!projectGroups[projectId]) {
         const projectName = task.project?.name || "Unknown Project";
-        projectGroups.set(projectId, {
+        projectGroups[projectId] = {
           name: projectName,
           tasks: []
-        });
+        };
       }
-      projectGroups.get(projectId)?.tasks.push(task);
+      projectGroups[projectId].tasks.push(task);
     }
     
     // Process each project group
-    for (const [projectId, project] of projectGroups.entries()) {
+    Object.entries(projectGroups).forEach(([projectIdStr, project]) => {
+      const projectId = parseInt(projectIdStr, 10);
       // Skip empty projects
-      if (project.tasks.length === 0) continue;
+      if (project.tasks.length === 0) return;
       
       // Project header
       doc.setFillColor(240, 240, 240);
@@ -712,7 +710,7 @@ export default function TaskPayablePage() {
       
       // Setup table header and rows
       const tableHeader = ["Task", "Date", "Hours", "Rate", "Total"];
-      const tableRows = project.tasks.map(task => {
+      const tableRows = project.tasks.map((task: Task) => {
         // Format date
         let dateStr = "";
         if (task.startDate) {
@@ -745,11 +743,13 @@ export default function TaskPayablePage() {
           body: tableRows,
           startY: startY,
           theme: "grid",
+          margin: { top: 30 }, // Ensure space for headers on new pages
           styles: {
             fontSize: 8,
             cellPadding: 3,
             lineColor: [220, 220, 220],
-            lineWidth: 0.1
+            lineWidth: 0.1,
+            overflow: 'linebreak'
           },
           headStyles: {
             fillColor: [0, 128, 0],
@@ -758,7 +758,7 @@ export default function TaskPayablePage() {
             halign: "center"
           },
           columnStyles: {
-            0: { cellWidth: 'auto' },
+            0: { cellWidth: 80 }, // Fixed width for task column
             1: { cellWidth: 30, halign: 'center' },
             2: { cellWidth: 20, halign: 'right' },
             3: { cellWidth: 20, halign: 'right' },
@@ -767,6 +767,9 @@ export default function TaskPayablePage() {
           alternateRowStyles: {
             fillColor: [245, 245, 245]
           },
+          showHead: 'everyPage', // Show header on every page
+          pageBreak: 'auto', // Let the plugin handle page breaks
+          tableWidth: 'auto', // Use auto width
           didParseCell: function(data) {
             // Bold the task title (first line)
             if (data.column.index === 0 && data.cell.text) {
@@ -812,30 +815,28 @@ export default function TaskPayablePage() {
             }
           },
           didDrawPage: function(data) {
-            // Add header on every page after the first
-            if (doc.getNumberOfPages() > 1) {
-              const pageNumber = doc.getNumberOfPages();
-              const pageSize = doc.internal.pageSize;
-              const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
-              const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-              
-              // Page number
-              doc.setFontSize(8);
-              doc.setTextColor(100, 100, 100);
-              doc.text(`Page ${pageNumber}`, pageWidth - 20, pageHeight - 10);
-              
-              // Mini header
-              doc.setFontSize(12);
-              doc.setTextColor(0, 128, 0);
-              doc.setFont("helvetica", "bold");
-              doc.text("Task Invoice", 105, 15, { align: "center" });
-              
-              if (currentOrganization?.name) {
-                doc.setFontSize(9);
-                doc.setTextColor(80, 80, 80);
-                doc.setFont("helvetica", "normal");
-                doc.text(currentOrganization.name, 20, 15);
-              }
+            // Add header on every page
+            const pageNumber = doc.getNumberOfPages();
+            const pageSize = doc.internal.pageSize;
+            const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+            const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+            
+            // Page number
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Page ${pageNumber}`, pageWidth - 20, pageHeight - 10);
+            
+            // Header on all pages (not just after first)
+            doc.setFontSize(12);
+            doc.setTextColor(0, 128, 0);
+            doc.setFont("helvetica", "bold");
+            doc.text("Task Invoice", 105, 15, { align: "center" });
+            
+            if (currentOrganization?.name) {
+              doc.setFontSize(9);
+              doc.setTextColor(80, 80, 80);
+              doc.setFont("helvetica", "normal");
+              doc.text(currentOrganization.name, 20, 15);
             }
           }
         });
@@ -847,7 +848,7 @@ export default function TaskPayablePage() {
         // If table fails, still move down a bit
         startY += 20;
       }
-    }
+    });
     
     // ---------- TOTALS SECTION ----------
     // Add the grand total
