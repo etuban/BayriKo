@@ -7,26 +7,22 @@ import {
   formatStatus,
   getStatusColor,
   formatHours,
+  getInitials,
+  cn
 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Pencil,
-  Trash2,
   ChevronLeft,
   ChevronRight,
-  Plus,
+  Plus
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 
 interface TaskCalendarProps {
   tasks: Task[];
@@ -168,8 +164,6 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
   
   // Render a task item
   const renderTaskItem = (task: Task) => {
-    const statusColor = getStatusColor(task.status);
-    
     return (
       <div 
         key={task.id}
@@ -265,7 +259,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
             <div 
               key={index}
               className={cn(
-                "min-h-[120px] p-2 border-r border-b border-dark-border relative",
+                "min-h-[120px] p-2 border-r border-b border-dark-border relative group",
                 !day.isCurrentMonth && "bg-dark-bg/50 text-gray-500",
                 day.isToday && "bg-primary/5"
               )}
@@ -285,10 +279,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
                         size="icon"
                         variant="ghost"
                         className="h-5 w-5 opacity-0 group-hover:opacity-100 hover:opacity-100"
-                        onClick={() => {
-                          // Pre-fill the due date when creating a new task
-                          openDrawer('new');
-                        }}
+                        onClick={() => openDrawer('new')}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
