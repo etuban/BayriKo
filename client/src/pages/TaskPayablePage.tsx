@@ -757,8 +757,11 @@ export default function TaskPayablePage() {
       
       startY += 10;
 
-      // Create simple arrays for the table
-      const tableData = project.tasks.map(task => {
+      // Create standard data arrays for jspdf-autotable
+      const tableRows: any[][] = [];
+      
+      // Process each task individually
+      for (const task of project.tasks) {
         // Format date
         let dateStr = "";
         if (task.startDate) {
@@ -775,17 +778,19 @@ export default function TaskPayablePage() {
         const amount = task.totalAmount || 0;
         grandTotal += amount;
         
-        return [
-          {
-            title: task.title || "Untitled Task", 
-            description: task.description || ""
-          },
+        // Use a plain string for the first column with both title and description
+        const titleText = task.title || "Untitled Task";
+        const descText = task.description || "";
+        
+        // Add the task row with strings for all cells (no custom objects)
+        tableRows.push([
+          { content: titleText, title: descText }, // Store description in title attribute for custom rendering
           dateStr,
           typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || ""),
           task.pricingType === "hourly" ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` : "Fixed",
           amount.toFixed(2)
-        ];
-      });
+        ]);
+      }
 
       // Create table column headers
       const headers = [["Task", "Date", "Hours", "Rate", "Total"]];
@@ -793,7 +798,7 @@ export default function TaskPayablePage() {
       // Generate table
       autoTable(doc, {
         head: headers,
-        body: tableData,
+        body: tableRows,
         startY: startY,
         theme: "grid",
         styles: {
@@ -821,7 +826,9 @@ export default function TaskPayablePage() {
         didDrawCell: function(data) {
           // Draw task title and description
           if (data.column.index === 0 && data.cell.raw && typeof data.cell.raw === 'object') {
-            const taskData = data.cell.raw as {title: string, description: string};
+            // Get data from the cell
+            const content = data.cell.raw.content || '';
+            const description = data.cell.raw.title || '';
             
             // Cell position
             const { x, y, width, height } = data.cell;
@@ -830,14 +837,14 @@ export default function TaskPayablePage() {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
             doc.setTextColor(0, 0, 0);
-            doc.text(taskData.title, x + 3, y + 6);
+            doc.text(content, x + 3, y + 6);
             
             // Draw description if it exists
-            if (taskData.description) {
+            if (description) {
               doc.setFont('helvetica', 'normal');
               doc.setFontSize(8);
               doc.setTextColor(80, 80, 80);
-              doc.text(taskData.description, x + 3, y + 12, { 
+              doc.text(description, x + 3, y + 12, { 
                 maxWidth: width - 6,
                 lineHeightFactor: 1.2
               });
