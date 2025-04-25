@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTask } from "@/context/TaskContext";
 import { Task } from "@/types";
@@ -8,6 +8,7 @@ import {
   getStatusColor,
   formatPricing,
   formatHours,
+  calculateHours,
 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,8 @@ import {
   FolderKanban,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
+  ArrowUpDown,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
@@ -33,6 +36,10 @@ interface TaskTableProps {
 export function TaskTable({ tasks }: TaskTableProps) {
   const { user } = useAuth();
   const { openDrawer, confirmDelete } = useTask();
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Check if user can edit/delete based on role and ownership
   const canEdit = (task: Task) => {
@@ -46,6 +53,81 @@ export function TaskTable({ tasks }: TaskTableProps) {
     if (user.role === "super_admin" || user.role === "supervisor") return true;
     if (user.role === "team_lead" && task.createdById === user.id) return true;
     return user.role === "staff" && task.assignedToId === user.id;
+  };
+
+  // Handle sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field is clicked
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new sort field and reset direction to asc
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+  
+  // Get sort icon for column headers
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 ml-1" />;
+    }
+    
+    return sortDirection === 'asc' 
+      ? <ChevronUp className="w-4 h-4 ml-1" />
+      : <ChevronDown className="w-4 h-4 ml-1" />;
+  };
+  
+  // Sort tasks based on current sort field and direction
+  const sortTasks = (tasksToSort: Task[]) => {
+    if (!sortField) return tasksToSort;
+    
+    return [...tasksToSort].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+      
+      switch (sortField) {
+        case 'title':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'assignedTo':
+          aValue = a.assignedTo?.fullName?.toLowerCase() || '';
+          bValue = b.assignedTo?.fullName?.toLowerCase() || '';
+          break;
+        case 'dueDate':
+          aValue = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+          bValue = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case 'hours':
+          // For hours, we need to handle fixed price differently
+          if (a.pricingType === 'fixed' && b.pricingType === 'fixed') {
+            aValue = 0;
+            bValue = 0;
+          } else if (a.pricingType === 'fixed') {
+            aValue = 0;
+            bValue = b.timeSpent || calculateHours(b.startDate, b.endDate, b.startTime, b.endTime) || 0;
+          } else if (b.pricingType === 'fixed') {
+            aValue = a.timeSpent || calculateHours(a.startDate, a.endDate, a.startTime, a.endTime) || 0;
+            bValue = 0;
+          } else {
+            aValue = a.timeSpent || calculateHours(a.startDate, a.endDate, a.startTime, a.endTime) || 0;
+            bValue = b.timeSpent || calculateHours(b.startDate, b.endDate, b.startTime, b.endTime) || 0;
+          }
+          break;
+        default:
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+      }
+      
+      // Apply sort direction
+      const comparison = aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
   };
 
   // Group tasks by project
@@ -72,20 +154,25 @@ export function TaskTable({ tasks }: TaskTableProps) {
 
       groupedTasks[projectId].tasks.push(task);
     });
+    
+    // Sort tasks in each project group
+    Object.values(groupedTasks).forEach(group => {
+      group.tasks = sortTasks(group.tasks);
+    });
 
     // Convert to array and sort by project name
     return Object.values(groupedTasks).sort((a, b) =>
       a.projectName.localeCompare(b.projectName),
     );
-  }, [tasks]);
+  }, [tasks, sortField, sortDirection]);
 
   // Render a single task row
   const renderTaskRow = (task: Task) => {
-    const statusColors = getStatusColor(task.status);
+    const statusColor = getStatusColor(task.status);
     return (
       <tr
         key={task.id}
-        className="task-row hover:bg-dark-border/30 cursor-pointer border-b border-dark-border last:border-b-0"
+        className="task-row hover:bg-primary/10 hover:shadow-md transition-all duration-150 cursor-pointer border-b border-dark-border last:border-b-0"
         onClick={() => openDrawer("view", task.id)}
       >
         <td className="px-6 py-4 whitespace-nowrap" colSpan={2}>
@@ -130,7 +217,7 @@ export function TaskTable({ tasks }: TaskTableProps) {
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           <span
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors.bg} ${statusColors.text}`}
+            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${statusColor}`}
           >
             {formatStatus(task.status)}
           </span>
