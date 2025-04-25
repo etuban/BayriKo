@@ -198,41 +198,106 @@ export default function TaskPayablePage() {
         <style>
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 15mm;
           }
           body {
-            font-family: 'Inter', Arial, sans-serif;
+            font-family: 'Helvetica', Arial, sans-serif;
             color: #333;
-            line-height: 1.4;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
           }
           .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0;
           }
-          .print-header {
-            color: #008000;
+          /* Invoice Header */
+          .invoice-header {
             text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
           }
+          .invoice-header h1 {
+            color: #008000;
+            font-size: 28px;
+            margin-bottom: 5px;
+          }
+          .organization-name {
+            font-size: 14px;
+            color: #666;
+            margin-top: 0;
+          }
+          .organization-logo {
+            max-height: 40px;
+            max-width: 120px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+          }
+          
+          /* Invoice Details */
           .invoice-details {
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .info-section {
+            width: 48%;
           }
           .info-block {
             margin-bottom: 20px;
           }
           .info-block h3 {
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 5px;
+            color: #008000;
           }
           .info-block p {
-            font-size: 14px;
-            margin: 0;
+            font-size: 12px;
+            margin: 2px 0;
+          }
+          
+          /* Project & Tasks Tables */
+          .project-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
           }
           .project-header {
             background-color: #f2f2f2;
             font-weight: bold;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 15px;
+          }
+          th {
+            background-color: #008000;
+            color: white;
+            text-align: left;
+            padding: 8px;
+            font-weight: bold;
+          }
+          td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            vertical-align: top;
+          }
+          tr:nth-child(even) {
+            background-color: #f9f9f9;
+          }
+          .task-title {
+            font-weight: bold;
+            font-size: 12px;
+          }
+          .task-description {
+            font-size: 11px;
+            color: #555;
+            margin-top: 4px;
           }
           .right-align {
             text-align: right;
@@ -240,21 +305,61 @@ export default function TaskPayablePage() {
           .center-align {
             text-align: center;
           }
-          tr:nth-child(even) {
-            background-color: #f9f9f9;
-          }
+          
+          /* Grand Total */
           .grand-total {
+            text-align: right;
             font-weight: bold;
-            background-color: #e6f7e6;
-            font-size: 14px;
+            font-size: 16px;
+            color: #008000;
+            margin: 20px 0;
+            border-top: 2px solid #008000;
+            padding-top: 10px;
           }
+          
+          /* Terms Section */
+          .terms {
+            margin: 20px 0;
+            font-size: 12px;
+          }
+          .terms-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          
+          /* Footer */
           .footer {
             margin-top: 40px;
             text-align: center;
-            font-size: 12px;
+            font-size: 11px;
             color: #777;
             border-top: 1px solid #ddd;
             padding-top: 10px;
+            page-break-inside: avoid;
+          }
+          .footer a {
+            color: #008000;
+            text-decoration: none;
+          }
+          
+          /* Page numbers */
+          .page-number:before {
+            content: "Page " counter(page);
+          }
+          
+          /* For better pagination */
+          table, tr, td, th, tbody, thead, tfoot {
+            page-break-inside: avoid !important;
+          }
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          thead {
+            display: table-header-group;
+          }
+          tfoot {
+            display: table-footer-group;
           }
         </style>
       </head>
@@ -262,14 +367,7 @@ export default function TaskPayablePage() {
         <div class="container">
           ${contentToPrint.innerHTML}
           <div class="footer">
-            <p>This PDF Invoice is generated through <a href="https://bayriko.pawn.media" style="color: green; text-decoration: underline;">BayriKo</a></p>
-            <div style="margin-top: 5px;">
-              <a href="https://bayriko.pawn.media">
-                <div className="bg-primary p-2 rounded-md">
-                 <GiReceiveMoney className="w-6 h-6 text-white" />
-               </div>
-              </a>
-            </div>
+            <p>This Invoice is generated through <a href="https://bayriko.pawn.media">BayriKo Task Management System</a></p>
           </div>
         </div>
       </body>
@@ -414,21 +512,8 @@ export default function TaskPayablePage() {
       }
     > = {};
 
-    // Sort tasks by date (oldest first) before grouping
-    const sortedTasks = [...data.tasks].sort((a, b) => {
-      // Use startDate for comparison if available
-      const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                  a.dueDate ? new Date(a.dueDate).getTime() : 
-                  new Date(a.createdAt).getTime();
-      
-      const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                  b.dueDate ? new Date(b.dueDate).getTime() : 
-                  new Date(b.createdAt).getTime();
-      
-      return dateA - dateB; // Ascending order (oldest first)
-    });
-
-    sortedTasks.forEach((task) => {
+    // Use the already sorted tasks from the API
+    data.tasks.forEach((task) => {
       const projectId = task.projectId;
       if (!tasksByProject[projectId]) {
         tasksByProject[projectId] = {
