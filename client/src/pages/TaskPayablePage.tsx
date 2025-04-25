@@ -216,9 +216,18 @@ export default function TaskPayablePage() {
     
     const projectsMap = new Map<number, ProjectGroup>();
     
+    // Sort tasks by date (oldest first)
+    const sortedTasks = [...data.tasks].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+      return dateA - dateB;
+    });
+    
     projectIds.forEach(projectId => {
-      const projectTasks = data.tasks.filter(task => task.projectId === projectId);
+      // Get tasks for this project and sort by date
+      const projectTasks = sortedTasks.filter(task => task.projectId === projectId);
       const projectName = projectTasks[0]?.project?.name || "Unknown Project";
+      
       projectsMap.set(projectId, {
         name: projectName,
         tasks: projectTasks,
@@ -534,7 +543,13 @@ export default function TaskPayablePage() {
     };
   };
 
-  // Direct PDF generation is used instead of react-to-print
+  // Helper function to calculate vertical position after text blocks
+  const getYPosition = (doc: jsPDF, startY: number, text1: string, text2: string): number => {
+    const text1Lines = text1.split("\n").length;
+    const text2Lines = text2.split("\n").length;
+    const maxLines = Math.max(text1Lines, text2Lines);
+    return startY + (maxLines * 5) + 10; // Approximate line height and padding
+  };
 
   // Generate PDF helper function that can be used by both download and email
   const generatePDF = (doc: jsPDF): jsPDF => {
@@ -606,11 +621,12 @@ export default function TaskPayablePage() {
     
     const billFromText = invoiceDetails.billFrom || 
       `${invoiceDetails.fromOrgName || ""}\n${invoiceDetails.fromName || ""}\n${invoiceDetails.fromEmail || ""}\n${invoiceDetails.fromContact || ""}`;
-    const billFromLines = billFromText.split("\n").filter(line => line.trim() !== "");
-    billFromLines.forEach((line, index) => {
-      doc.text(line, 20, fromY + 5 + (index * 5));
+    
+    doc.text(billFromText, 20, fromY + 5, { 
+      maxWidth: 80,
+      lineHeightFactor: 1.3
     });
-
+    
     // Bill To
     doc.setFontSize(11);
     doc.setTextColor(0, 128, 0);
@@ -623,21 +639,19 @@ export default function TaskPayablePage() {
     
     const billToText = invoiceDetails.billTo || 
       `${invoiceDetails.toOrgName || ""}\n${invoiceDetails.toName || ""}\n${invoiceDetails.toEmail || ""}\n${invoiceDetails.toContact || ""}`;
-    const billToLines = billToText.split("\n").filter(line => line.trim() !== "");
-    billToLines.forEach((line, index) => {
-      doc.text(line, 110, toY + 5 + (index * 5));
+    
+    doc.text(billToText, 110, toY + 5, {
+      maxWidth: 80,
+      lineHeightFactor: 1.3
     });
-
-    // ---------- FILTERS SECTION ----------
-    const filterY = Math.max(
-      fromY + 5 + (billFromLines.length * 5),
-      toY + 5 + (billToLines.length * 5)
-    ) + 10;
+    
+    // ---------- FILTER INFO SECTION ----------
+    const filterY = getYPosition(doc, fromY + 5, billFromText, billToText);
     
     doc.setFontSize(9);
     doc.setTextColor(80, 80, 80);
     
-    // Project filter info
+    // Project filter
     if (projectId && projectId !== "all-projects") {
       const project = projects.find(p => p.id.toString() === projectId);
       if (project) {
@@ -645,43 +659,45 @@ export default function TaskPayablePage() {
       }
     }
     
-    // Date range filter info
-    doc.text(
-      `Date Range: ${startDate || "All time"} to ${endDate || "Present"}`,
-      startDate || endDate ? 20 : 105,
-      startDate || endDate ? filterY + 5 : filterY,
-      { align: startDate || endDate ? "left" : "center" }
-    );
+    // Date range filter
+    const dateRangeText = `Date Range: ${startDate || "All time"} to ${endDate || "Present"}`;
+    doc.text(dateRangeText, 195, filterY, { align: "right" });
 
     // ---------- TASKS SECTION ----------
     // Set the start Y position for the tables based on content above
     let startY = filterY + 15;
     
-    // Get unique projects from the tasks
-    const projectIds = new Set(data.tasks.map(task => task.projectId));
-    
-    // Define a proper type for our projectsMap
-    type ProjectGroup = {
-      name: string;
-      tasks: Task[];
-      subtotal: number;
-    };
-    
-    const projectsMap = new Map<number, ProjectGroup>();
-    
-    // Create a map of projects with their tasks
-    projectIds.forEach(projectId => {
-      const projectTasks = data.tasks.filter(task => task.projectId === projectId);
-      const projectName = projectTasks[0]?.project?.name || "Unknown Project";
-      projectsMap.set(projectId, {
-        name: projectName,
-        tasks: projectTasks,
-        subtotal: projectTasks.reduce((sum, task) => sum + (task.totalAmount || 0), 0)
-      });
+    // Sort tasks by date (oldest first)
+    const sortedTasks = [...data.tasks].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+      return dateA - dateB;
     });
     
-    // Render each project section
-    projectsMap.forEach((project, projectId) => {
+    // Group tasks by project
+    const projectGroups = new Map<number, {
+      name: string;
+      tasks: Task[];
+    }>();
+    
+    // Create groups of tasks by project
+    for (const task of sortedTasks) {
+      const projectId = task.projectId;
+      if (!projectGroups.has(projectId)) {
+        const projectName = task.project?.name || "Unknown Project";
+        projectGroups.set(projectId, {
+          name: projectName,
+          tasks: []
+        });
+      }
+      projectGroups.get(projectId)?.tasks.push(task);
+    }
+    
+    // Process each project group
+    for (const [projectId, project] of projectGroups.entries()) {
+      // Skip empty projects
+      if (project.tasks.length === 0) continue;
+      
       // Project header
       doc.setFillColor(240, 240, 240);
       doc.setDrawColor(200, 200, 200);
@@ -694,9 +710,9 @@ export default function TaskPayablePage() {
       
       startY += 10;
       
-      // Create table for this project's tasks
+      // Setup table header and rows
       const tableHeader = ["Task", "Date", "Hours", "Rate", "Total"];
-      const tableRows = project.tasks.map((task: Task) => {
+      const tableRows = project.tasks.map(task => {
         // Format date
         let dateStr = "";
         if (task.startDate) {
@@ -721,111 +737,117 @@ export default function TaskPayablePage() {
         ];
       });
       
-      // Generate the table
-      autoTable(doc, {
-        head: [tableHeader],
-        body: tableRows,
-        startY: startY,
-        theme: "grid",
-        styles: {
-          fontSize: 8,
-          cellPadding: 3,
-          lineColor: [220, 220, 220],
-          lineWidth: 0.1
-        },
-        headStyles: {
-          fillColor: [0, 128, 0],
-          textColor: [255, 255, 255],
-          fontStyle: "bold",
-          halign: "center"
-        },
-        columnStyles: {
-          0: { cellWidth: 'auto' },
-          1: { cellWidth: 30, halign: 'center' },
-          2: { cellWidth: 20, halign: 'right' },
-          3: { cellWidth: 20, halign: 'right' },
-          4: { cellWidth: 20, halign: 'right' }
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245]
-        },
-        didParseCell: function(data) {
-          // Bold the task title (first line)
-          if (data.column.index === 0 && data.cell.text) {
-            if (Array.isArray(data.cell.text) && data.cell.text.length > 0) {
-              data.cell.styles.fontSize = 9;
-              data.cell.styles.fontStyle = 'bold';
+      // Generate table for this project
+      console.log(`Creating table for project ${project.name} with ${tableRows.length} rows`);
+      try {
+        autoTable(doc, {
+          head: [tableHeader],
+          body: tableRows,
+          startY: startY,
+          theme: "grid",
+          styles: {
+            fontSize: 8,
+            cellPadding: 3,
+            lineColor: [220, 220, 220],
+            lineWidth: 0.1
+          },
+          headStyles: {
+            fillColor: [0, 128, 0],
+            textColor: [255, 255, 255],
+            fontStyle: "bold",
+            halign: "center"
+          },
+          columnStyles: {
+            0: { cellWidth: 'auto' },
+            1: { cellWidth: 30, halign: 'center' },
+            2: { cellWidth: 20, halign: 'right' },
+            3: { cellWidth: 20, halign: 'right' },
+            4: { cellWidth: 20, halign: 'right' }
+          },
+          alternateRowStyles: {
+            fillColor: [245, 245, 245]
+          },
+          didParseCell: function(data) {
+            // Bold the task title (first line)
+            if (data.column.index === 0 && data.cell.text) {
+              if (Array.isArray(data.cell.text) && data.cell.text.length > 0) {
+                data.cell.styles.fontSize = 9;
+                data.cell.styles.fontStyle = 'bold';
+              }
+            }
+          },
+          willDrawCell: function(data) {
+            // Custom rendering for the task title/description cell
+            if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
+              // This is a cell with both title and description
+              // We'll handle it in the didDrawCell function
+              return false;
+            }
+            return true;
+          },
+          didDrawCell: function(data) {
+            // Custom drawing for cells with title + description
+            if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
+              const currentDoc = data.doc;
+              const title = data.cell.text[0];
+              const description = data.cell.text.slice(1).join(' ');
+              
+              // Cell position
+              const { x, y, width, height } = data.cell;
+              
+              // Draw title in bold
+              currentDoc.setFont('helvetica', 'bold');
+              currentDoc.setFontSize(9);
+              currentDoc.setTextColor(0, 0, 0);
+              currentDoc.text(title, x + 3, y + 6);
+              
+              // Draw description in normal text with margin
+              currentDoc.setFont('helvetica', 'normal');
+              currentDoc.setFontSize(8);
+              currentDoc.setTextColor(80, 80, 80);
+              currentDoc.text(description, x + 3, y + 12, { 
+                maxWidth: width - 6,
+                lineHeightFactor: 1.2
+              });
+            }
+          },
+          didDrawPage: function(data) {
+            // Add header on every page after the first
+            if (doc.getNumberOfPages() > 1) {
+              const pageNumber = doc.getNumberOfPages();
+              const pageSize = doc.internal.pageSize;
+              const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
+              const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+              
+              // Page number
+              doc.setFontSize(8);
+              doc.setTextColor(100, 100, 100);
+              doc.text(`Page ${pageNumber}`, pageWidth - 20, pageHeight - 10);
+              
+              // Mini header
+              doc.setFontSize(12);
+              doc.setTextColor(0, 128, 0);
+              doc.setFont("helvetica", "bold");
+              doc.text("Task Invoice", 105, 15, { align: "center" });
+              
+              if (currentOrganization?.name) {
+                doc.setFontSize(9);
+                doc.setTextColor(80, 80, 80);
+                doc.setFont("helvetica", "normal");
+                doc.text(currentOrganization.name, 20, 15);
+              }
             }
           }
-        },
-        willDrawCell: function(data) {
-          // Custom rendering for the task title/description cell
-          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
-            // This is a cell with both title and description
-            // We'll handle it in the didDrawCell function
-            return false;
-          }
-          return true;
-        },
-        didDrawCell: function(data) {
-          // Custom drawing for cells with title + description
-          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
-            const doc = data.doc;
-            const cell = data.cell;
-            const title = data.cell.text[0];
-            const description = data.cell.text.slice(1).join(' ');
-            
-            // Cell position
-            const { x, y, width, height } = data.cell;
-            
-            // Draw title in bold
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(9);
-            doc.setTextColor(0, 0, 0);
-            doc.text(title, x + 3, y + 6);
-            
-            // Draw description in normal text with margin
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(80, 80, 80);
-            doc.text(description, x + 3, y + 12, { 
-              maxWidth: width - 6,
-              lineHeightFactor: 1.2
-            });
-          }
-        },
-        didDrawPage: function(data) {
-          // Add header on every page after the first
-          if (doc.getNumberOfPages() > 1) {
-            const pageNumber = doc.getNumberOfPages();
-            const pageSize = doc.internal.pageSize;
-            const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
-            const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-            
-            // Page number
-            doc.setFontSize(8);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Page ${pageNumber}`, pageWidth - 20, pageHeight - 10);
-            
-            // Mini header
-            doc.setFontSize(12);
-            doc.setTextColor(0, 128, 0);
-            doc.setFont("helvetica", "bold");
-            doc.text("Task Invoice", 105, 15, { align: "center" });
-            
-            if (currentOrganization?.name) {
-              doc.setFontSize(9);
-              doc.setTextColor(80, 80, 80);
-              doc.setFont("helvetica", "normal");
-              doc.text(currentOrganization.name, 20, 15);
-            }
-          }
-        }
-      });
+        });
       
-      // Update the Y position for the next project
-      startY = (doc as any).lastAutoTable.finalY + 10;
-    });
+        // Update Y position for next project
+        startY = (doc as any).lastAutoTable.finalY + 10;
+      } catch (error) {
+        console.error("Error generating table:", error);
+        // If table fails, still move down a bit
+        startY += 20;
+      }
+    }
     
     // ---------- TOTALS SECTION ----------
     // Add the grand total
@@ -893,7 +915,12 @@ export default function TaskPayablePage() {
   // Download PDF handler
   const handleDownloadPDF = () => {
     if (!data) return;
-
+    
+    // Debug to check data
+    console.log("Generating PDF with data:", data);
+    console.log("Task count:", data.tasks.length);
+    
+    // Create new PDF document
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -1216,83 +1243,88 @@ export default function TaskPayablePage() {
             </div>
           </div>
         </div>
-        
+
         {/* Payment Terms */}
         <div className="mt-6">
           <Label htmlFor="payment-terms">Payment Terms</Label>
-          <Textarea 
-            id="payment-terms" 
-            value={invoiceDetails.paymentTerms || ""}
+          <Textarea
+            id="payment-terms"
+            value={invoiceDetails.paymentTerms}
             onChange={(e) => setInvoiceDetails({...invoiceDetails, paymentTerms: e.target.value})}
-            placeholder="Payment is due within 15 days of receipt."
-            className="mt-1"
+            placeholder="E.g., Payment due within 30 days of invoice receipt."
+            className="mt-1 min-h-[100px]"
           />
         </div>
       </div>
 
-      {/* Invoice Actions */}
-      <div className="flex justify-end space-x-3">
+      {/* PDF Actions */}
+      <div className="flex flex-wrap gap-4">
         <Button
-          variant="outline"
+          variant="default"
+          size="lg"
           onClick={print}
-          disabled={!data || data.tasks.length === 0}
-          className="flex items-center"
+          disabled={isLoading || !data || data.tasks.length === 0}
+          className="mr-4"
         >
-          <Printer className="w-4 h-4 mr-2" />
+          <Printer className="mr-2 h-5 w-5" />
           Print
         </Button>
+
         <Button
-          variant="outline"
+          variant="secondary"
+          size="lg"
           onClick={handleDownloadPDF}
-          disabled={!data || data.tasks.length === 0}
-          className="flex items-center"
+          disabled={isLoading || !data || data.tasks.length === 0}
+          className="mr-4"
         >
-          <Download className="w-4 h-4 mr-2" />
+          <Download className="mr-2 h-5 w-5" />
           Download PDF
         </Button>
+
         <Button
-          className="bg-primary hover:bg-primary/90 text-white flex items-center"
+          variant="outline"
+          size="lg"
           onClick={() => setEmailDialogOpen(true)}
-          disabled={!data || data.tasks.length === 0}
+          disabled={isLoading || !data || data.tasks.length === 0}
         >
-          <Mail className="w-4 h-4 mr-2" />
-          Email Invoice
+          <Mail className="mr-2 h-5 w-5" />
+          Send as Email
         </Button>
       </div>
-      
+
       {/* Email Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Send Invoice by Email</DialogTitle>
+            <DialogTitle>Send Invoice via Email</DialogTitle>
             <DialogDescription>
-              Fill in the details below to send the invoice via email.
+              The invoice PDF will be attached to this email.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
+
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email-from-name">From Name</Label>
                 <Input 
                   id="email-from-name" 
                   value={invoiceDetails.fromName}
-                  onChange={(e) => setInvoiceDetails({...invoiceDetails, fromName: e.target.value})}
+                  readOnly 
+                  className="mt-1"
                 />
               </div>
-              
               <div>
                 <Label htmlFor="email-from-email">From Email</Label>
                 <Input 
                   id="email-from-email" 
-                  type="email"
                   value={invoiceDetails.fromEmail}
-                  onChange={(e) => setInvoiceDetails({...invoiceDetails, fromEmail: e.target.value})}
+                  readOnly
+                  className="mt-1"
                 />
               </div>
             </div>
-            
-            <div className="space-y-4">
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email-to-name">Recipient Name</Label>
                 <Input 
@@ -1300,42 +1332,40 @@ export default function TaskPayablePage() {
                   value={invoiceDetails.toName || ""}
                   onChange={(e) => setInvoiceDetails({...invoiceDetails, toName: e.target.value})}
                   placeholder="Recipient's name"
+                  className="mt-1"
                 />
               </div>
-              
               <div>
                 <Label htmlFor="email-to-email">Recipient Email</Label>
                 <Input 
                   id="email-to-email" 
-                  type="email"
                   value={invoiceDetails.toEmail || ""}
                   onChange={(e) => setInvoiceDetails({...invoiceDetails, toEmail: e.target.value})}
                   placeholder="recipient@example.com"
+                  className="mt-1"
+                  required
                 />
               </div>
             </div>
+
+            <div>
+              <Label htmlFor="email-message">Email Message</Label>
+              <Textarea
+                id="email-message"
+                className="min-h-[200px] mt-1"
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                placeholder="Enter your email message here..."
+              />
+            </div>
           </div>
-          
-          <div className="space-y-4 mt-4">
-            <Label htmlFor="email-message">Email Message</Label>
-            <Textarea 
-              id="email-message" 
-              value={emailMessage}
-              onChange={(e) => setEmailMessage(e.target.value)}
-              rows={6}
-              className="min-h-[120px]"
-            />
-          </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setEmailDialogOpen(false)}>
+              <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button 
-              onClick={handleSendEmail}
-              disabled={emailSending || !invoiceDetails.toEmail}
-              className="ml-2"
-            >
+            <Button onClick={handleSendEmail} disabled={emailSending || !invoiceDetails.toEmail}>
               {emailSending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
