@@ -165,148 +165,29 @@ export default function TaskPayablePage() {
   // Update email message when data changes
   useEffect(() => {
     if (user && currentOrganization && data) {
-      // Get project info if a specific project is selected
-      let projectInfo = "";
-      if (projectId && projectId !== "all-projects") {
-        const project = projects.find(p => p.id.toString() === projectId);
-        if (project) {
-          projectInfo = `Project: ${project.name}\n`;
-        }
-      }
-      
-      // Get date range info
-      let dateInfo = "";
-      if (startDate || endDate) {
-        dateInfo = `Period: ${startDate || "All time"} to ${endDate || "Present"}\n`;
-      }
-      
       setEmailMessage(
         `Dear ${invoiceDetails.toName || "Recipient"},\n\n` +
         `Please find attached the invoice for tasks completed by ${currentOrganization.name}.\n\n` +
-        (projectInfo ? projectInfo : "") +
-        (dateInfo ? dateInfo + "\n" : "") +
         `The total amount due is ${data.grandTotal ? formatCurrency(data.grandTotal, "PHP") : ""}.` +
         `\n\nPayment Terms:\n${invoiceDetails.paymentTerms || "Please process payment within 15 days of receipt."}` +
         `\n\nIf you have any questions, please don't hesitate to contact me.` +
         `\n\nBest regards,\n${user.fullName}`
       );
     }
-  }, [user, currentOrganization, data, invoiceDetails.toName, invoiceDetails.paymentTerms, projectId, startDate, endDate, projects]);
+  }, [user, currentOrganization, data, invoiceDetails.toName, invoiceDetails.paymentTerms]);
   
   // Function to handle manual printing
   const print = () => {
-    if (!data || !data.tasks || data.tasks.length === 0) return;
-    
+    const contentToPrint = componentRef.current;
+    if (!contentToPrint) return;
+
     // Create a new window for printing
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
       alert("Please allow pop-ups for printing");
       return;
     }
-    
-    // ---------- GROUP TASKS BY PROJECT ----------
-    // Sort tasks by date (oldest first)
-    const sortedTasks = [...data.tasks].sort((a, b) => {
-      const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                a.dueDate ? new Date(a.dueDate).getTime() : 
-                new Date(a.createdAt).getTime();
-      
-      const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                b.dueDate ? new Date(b.dueDate).getTime() : 
-                new Date(b.createdAt).getTime();
-      
-      return dateA - dateB;
-    });
-    
-    // Create a map of unique tasks by ID to avoid duplicates
-    const uniqueTasks = new Map<number, Task>();
-    for (const task of sortedTasks) {
-      if (!uniqueTasks.has(task.id)) {
-        uniqueTasks.set(task.id, task);
-      }
-    }
-    
-    // Group tasks by project
-    const tasksByProject = new Map<number, { name: string, tasks: Task[] }>();
-    // Convert map values to array to avoid TypeScript iteration errors
-    const uniqueTasksArray = Array.from(uniqueTasks.values());
-    
-    for (const task of uniqueTasksArray) {
-      const projectId = task.projectId;
-      const projectName = task.project?.name || "Unknown Project";
-      
-      if (!tasksByProject.has(projectId)) {
-        tasksByProject.set(projectId, { name: projectName, tasks: [] });
-      }
-      
-      const projectEntry = tasksByProject.get(projectId);
-      if (projectEntry) {
-        projectEntry.tasks.push(task);
-      }
-    }
-    
-    // Calculate grand total
-    let grandTotal = 0;
-    uniqueTasksArray.forEach(task => {
-      grandTotal += (task.totalAmount || 0);
-    });
-    
-    // Generate project tasks HTML
-    let projectTasksHtml = '';
-    tasksByProject.forEach((project, projectId) => {
-      if (project.tasks.length === 0) return;
-      
-      projectTasksHtml += `
-        <div class="project-section">
-          <div class="project-header">${project.name}</div>
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 40%;">Task</th>
-                <th style="width: 20%; text-align: center;">Date</th>
-                <th style="width: 13%; text-align: right;">Hours</th>
-                <th style="width: 13%; text-align: right;">Rate</th>
-                <th style="width: 14%; text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${project.tasks.map((task: Task, idx: number) => {
-                // Format date
-                let dateStr = "";
-                if (task.startDate) {
-                  const startDate = new Date(task.startDate);
-                  dateStr = startDate.toLocaleDateString();
-                  
-                  if (task.endDate && task.startDate !== task.endDate) {
-                    const endDate = new Date(task.endDate);
-                    dateStr += ` - ${endDate.toLocaleDateString()}`;
-                  }
-                }
-                
-                // Ensure task title is never undefined for display
-                const taskTitle = task.title || 'Untitled Task';
-                // Safely handle description which might be null/undefined
-                const taskDescription = task.description || '';
-                
-                return `
-                  <tr class="${idx % 2 === 1 ? 'alternate-row' : ''}">
-                    <td>
-                      <div class="task-title">${taskTitle}</div>
-                      ${taskDescription ? `<div class="task-description">${taskDescription}</div>` : ''}
-                    </td>
-                    <td style="text-align: center;">${dateStr}</td>
-                    <td style="text-align: right;">${typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || "")}</td>
-                    <td style="text-align: right;">${task.pricingType === "hourly" ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` : "Fixed"}</td>
-                    <td style="text-align: right;">${(task.totalAmount || 0).toFixed(2)}</td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    });
-    
+
     // Setup the print window
     printWindow.document.open();
     printWindow.document.write(`
@@ -320,7 +201,7 @@ export default function TaskPayablePage() {
             margin: 15mm;
           }
           body {
-            font-family: Helvetica, Arial, sans-serif;
+            font-family: 'Helvetica', Arial, sans-serif;
             color: #333;
             line-height: 1.5;
             margin: 0;
@@ -331,153 +212,126 @@ export default function TaskPayablePage() {
             margin: 0 auto;
             padding: 0;
           }
-          
           /* Invoice Header */
           .invoice-header {
             text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-            padding-bottom: 10px;
+            margin-bottom: 30px;
           }
-          .invoice-title {
+          .invoice-header h1 {
             color: #008000;
-            font-size: 24px;
+            font-size: 28px;
             margin-bottom: 5px;
-            font-weight: bold;
-          }
-          .organization-info {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-bottom: 10px;
-            position: relative;
-          }
-          .organization-logo {
-            max-height: 40px;
-            margin-right: 10px;
           }
           .organization-name {
             font-size: 14px;
             color: #666;
+            margin-top: 0;
           }
-          .invoice-details {
-            position: absolute;
-            right: 0;
-            top: 10px;
-            text-align: right;
-            font-size: 10px;
-            color: #666;
+          .organization-logo {
+            max-height: 40px;
+            max-width: 120px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
           }
           
-          /* Billing Section */
-          .billing-section {
+          /* Invoice Details */
+          .invoice-details {
+            margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            page-break-inside: avoid;
           }
-          .billing-column {
+          .info-section {
             width: 48%;
           }
-          .billing-title {
-            color: #008000;
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 5px;
-          }
-          .billing-info {
-            font-size: 11px;
-            margin-left: 5px;
-            white-space: pre-line;
-          }
-          
-          /* Filter Info */
-          .filter-info {
-            margin-bottom: 15px;
-            font-size: 10px;
-            color: #666;
-          }
-          
-          /* Project Section */
-          .project-section {
+          .info-block {
             margin-bottom: 20px;
+          }
+          .info-block h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #008000;
+          }
+          .info-block p {
+            font-size: 12px;
+            margin: 2px 0;
+          }
+          
+          /* Project & Tasks Tables */
+          .project-section {
+            margin-bottom: 30px;
             page-break-inside: avoid;
           }
           .project-header {
             background-color: #f2f2f2;
-            padding: 8px;
-            font-size: 12px;
             font-weight: bold;
+            padding: 8px 12px;
+            font-size: 14px;
             border: 1px solid #ddd;
-            border-bottom: none;
           }
-          
-          /* Tables */
           table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 12px;
             margin-bottom: 15px;
           }
           th {
             background-color: #008000;
             color: white;
-            font-weight: bold;
-            padding: 6px 8px;
             text-align: left;
-            border: 1px solid #ddd;
+            padding: 8px;
+            font-weight: bold;
           }
           td {
-            padding: 6px 8px;
             border: 1px solid #ddd;
+            padding: 8px;
             vertical-align: top;
           }
-          .alternate-row {
+          tr:nth-child(even) {
             background-color: #f9f9f9;
           }
           .task-title {
             font-weight: bold;
-            margin-bottom: 3px;
+            font-size: 12px;
           }
           .task-description {
-            font-size: 10px;
-            color: #666;
+            font-size: 11px;
+            color: #555;
+            margin-top: 4px;
+          }
+          .right-align {
+            text-align: right;
+          }
+          .center-align {
+            text-align: center;
           }
           
           /* Grand Total */
-          .total-section {
-            text-align: right;
-            margin: 20px 0;
-            padding-top: 8px;
-            border-top: 1px solid #ddd;
-          }
           .grand-total {
+            text-align: right;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
             color: #008000;
+            margin: 20px 0;
+            border-top: 2px solid #008000;
+            padding-top: 10px;
           }
           
           /* Terms Section */
-          .terms-section {
+          .terms {
             margin: 20px 0;
-            page-break-inside: avoid;
+            font-size: 12px;
           }
           .terms-title {
             font-weight: bold;
-            font-size: 12px;
             margin-bottom: 5px;
-          }
-          .terms-text {
-            font-size: 11px;
-            color: #444;
-            white-space: pre-line;
           }
           
           /* Footer */
           .footer {
-            margin-top: 30px;
+            margin-top: 40px;
             text-align: center;
-            font-size: 10px;
+            font-size: 11px;
             color: #777;
             border-top: 1px solid #ddd;
             padding-top: 10px;
@@ -487,66 +341,33 @@ export default function TaskPayablePage() {
             color: #008000;
             text-decoration: none;
           }
+          
+          /* Page numbers */
+          .page-number:before {
+            content: "Page " counter(page);
+          }
+          
+          /* For better pagination */
+          table, tr, td, th, tbody, thead, tfoot {
+            page-break-inside: avoid !important;
+          }
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          thead {
+            display: table-header-group;
+          }
+          tfoot {
+            display: table-footer-group;
+          }
         </style>
       </head>
       <body>
         <div class="container">
-          <!-- Invoice Header -->
-          <div class="invoice-header">
-            <div class="invoice-title">Task Invoice</div>
-            <div class="organization-info">
-              ${currentOrganization?.logoUrl ? `<img src="${currentOrganization.logoUrl}" class="organization-logo" alt="Organization Logo">` : ''}
-              <div class="organization-name">${currentOrganization?.name || ''}</div>
-            </div>
-            <div class="invoice-details">
-              <div>Invoice #: INV-${new Date().getTime().toString().slice(-6)}</div>
-              <div>Date: ${new Date().toLocaleDateString()}</div>
-            </div>
-          </div>
-          
-          <!-- Billing Information -->
-          <div class="billing-section">
-            <div class="billing-column">
-              <div class="billing-title">Bill From:</div>
-              <div class="billing-info">${invoiceDetails.billFrom || 
-                `${invoiceDetails.fromOrgName || ""}\n${invoiceDetails.fromName || ""}\n${invoiceDetails.fromEmail || ""}\n${invoiceDetails.fromContact || ""}`
-              }</div>
-            </div>
-            <div class="billing-column">
-              <div class="billing-title">Bill To:</div>
-              <div class="billing-info">${invoiceDetails.billTo || 
-                `${invoiceDetails.toOrgName || ""}\n${invoiceDetails.toName || ""}\n${invoiceDetails.toEmail || ""}\n${invoiceDetails.toContact || ""}`
-              }</div>
-            </div>
-          </div>
-          
-          <!-- Filter Information -->
-          <div class="filter-info">
-            ${projectId && projectId !== "all-projects" ? 
-              `Project: ${projects.find(p => p.id.toString() === projectId)?.name || ''}<br>` : ''}
-            Date Range: ${startDate || "All time"} to ${endDate || "Present"}
-          </div>
-          
-          <!-- Projects and Tasks -->
-          ${projectTasksHtml}
-          
-          <!-- Grand Total -->
-          <div class="total-section">
-            <div class="grand-total">GRAND TOTAL: ${formatCurrency(grandTotal || 0, "PHP")}</div>
-          </div>
-          
-          <!-- Payment Terms -->
-          ${invoiceDetails.paymentTerms ? `
-            <div class="terms-section">
-              <div class="terms-title">Payment Terms:</div>
-              <div class="terms-text">${invoiceDetails.paymentTerms}</div>
-            </div>
-          ` : ''}
-          
-          <!-- Footer -->
+          ${contentToPrint.innerHTML}
           <div class="footer">
-            <p>Generated with BayriKo Task Management System</p>
-            <p><a href="https://bayriko.pawn.media">https://bayriko.pawn.media</a></p>
+            <p>This Invoice is generated through <a href="https://bayriko.pawn.media">BayriKo Task Management System</a></p>
           </div>
         </div>
       </body>
@@ -556,13 +377,11 @@ export default function TaskPayablePage() {
 
     // Wait for everything to load then print
     printWindow.onload = function () {
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-        printWindow.onafterprint = function () {
-          printWindow.close();
-        };
-      }, 500); // Small delay to make sure styles are applied
+      printWindow.focus();
+      printWindow.print();
+      printWindow.onafterprint = function () {
+        printWindow.close();
+      };
     };
   };
 
@@ -570,359 +389,377 @@ export default function TaskPayablePage() {
 
   // Generate PDF helper function that can be used by both download and email
   const generatePDF = (doc: jsPDF): jsPDF => {
-    if (!data || !data.tasks || data.tasks.length === 0) return doc;
+    if (!data) return doc;
 
-    // Create a new document
-    doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    // Set default font and color for the document
+    // Set default font to Helvetica for the whole document
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(0, 0, 0);
 
-    // ---------- HEADER SECTION ----------
-    // Title 
+    // Title position
+    const titleY = 17;
+
+    // Add title first
     doc.setFontSize(24);
+    doc.setTextColor(0, 0, 0); // Green color for the header
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(0, 128, 0);
-    doc.text("Task Invoice", 105, 20, { align: "center" });
+    doc.text("Task Invoice", 108, titleY, { align: "center" });
 
-    // Organization info
+    // Add organization name (left column) and invoice details (right column)
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+
+    // Left side - Organization info with logo and name
     if (currentOrganization?.name) {
-      // Organization name
-      doc.setFontSize(12);
-      doc.setTextColor(80, 80, 80);
-      doc.setFont("helvetica", "normal");
-      doc.text(currentOrganization.name, 20, 30);
+      // Position for organization info
+      const orgLabelY = 34;
+      const orgNameY = 54;
 
-      // Organization logo if available
+      // Add organization logo on the left if available, maintaining proportions
       if (currentOrganization?.logoUrl) {
         try {
-          const logoHeight = 15;
+          // Logo position to the left of organization name
+          const logoHeight = 24; // max height in mm
+          const logoX = 14; // Position left aligned
+          const logoY = orgLabelY - 9; // Align with the organization label
+
+          // Add image with preserved aspect ratio
           doc.addImage(
-            currentOrganization.logoUrl,
-            "JPEG",
-            10,
-            25,
-            0,
-            logoHeight
+            currentOrganization.logoUrl, // URL or Base64 string
+            "JPEG", // Format (JPEG/PNG/etc)
+            logoX, // X position (mm) - left aligned
+            logoY, // Y position (mm)
+            0, // Width - 0 means calculate based on height
+            logoHeight, // Height (mm)
           );
+
+          // Shift the organization text to the right to accommodate the logo
+          // Assuming logo has a width of about 1.5x its height
+          const logoWidth = logoHeight * 1.5;
+          const orgTextX = 14;
+          //const orgTextX = logoX + logoWidth - 5; // 5mm margin after logo
+
+          // Draw organization label and name with the adjusted X position
+          //  doc.setFont("helvetica", "bold");
+          //  doc.text("Organization:", orgTextX, orgLabelY);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.text(currentOrganization.name, orgTextX, orgNameY);
         } catch (error) {
           console.error("Error adding logo to PDF:", error);
+          // Fallback to normal organization text without logo shift
+          // doc.setFont("helvetica", "normal");
+          // doc.text("Organization:", 18, orgLabelY);
+          doc.setFont("helvetica", "normal");
+          doc.text(currentOrganization.name, 20, orgNameY);
         }
+      } else {
+        // No logo, just add organization name
+        // doc.setFont("helvetica", "bold");
+        // doc.text("Organization:", 14, orgLabelY);
+        doc.setFont("helvetica", "normal");
+        doc.text(currentOrganization.name, 14, orgNameY);
       }
     }
 
-    // Invoice details with unique number
-    const invoiceNumber = new Date().getTime().toString().slice(-6);
-    doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
+    // Right side - Invoice number and date
     doc.text(
-      `Invoice #: INV-${invoiceNumber}`,
+      `Invoice #: INV-${new Date().getTime().toString().slice(-6)}`,
       195,
-      25,
-      { align: "right" }
+      34,
+      { align: "right" },
     );
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 30, {
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 195, 40, {
       align: "right",
     });
 
-    // ---------- BILLING INFO SECTION ----------
-    const fromY = 40;
-    const toY = fromY;
-    
-    // Bill From
-    doc.setFontSize(11);
-    doc.setTextColor(0, 128, 0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bill From:", 20, fromY);
-    
+    // Add billing info
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    
+    doc.text("Bill From:", 14, 62);
     const billFromText = invoiceDetails.billFrom || 
       `${invoiceDetails.fromOrgName || ""}\n${invoiceDetails.fromName || ""}\n${invoiceDetails.fromEmail || ""}\n${invoiceDetails.fromContact || ""}`;
-    const billFromLines = billFromText.split("\n").filter(line => line.trim() !== "");
+    const billFromLines = billFromText.split("\n");
+    doc.setFontSize(9);
     billFromLines.forEach((line, index) => {
-      doc.text(line, 20, fromY + 5 + (index * 5));
+      doc.text(line, 16, 67 + index * 4);
     });
 
-    // Bill To
-    doc.setFontSize(11);
-    doc.setTextColor(0, 128, 0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bill To:", 110, toY);
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    
+    doc.setFontSize(10);
+    doc.text("Bill To:", 100, 62);
     const billToText = invoiceDetails.billTo || 
       `${invoiceDetails.toOrgName || ""}\n${invoiceDetails.toName || ""}\n${invoiceDetails.toEmail || ""}\n${invoiceDetails.toContact || ""}`;
-    const billToLines = billToText.split("\n").filter(line => line.trim() !== "");
+    const billToLines = billToText.split("\n");
+    doc.setFontSize(9);
     billToLines.forEach((line, index) => {
-      doc.text(line, 110, toY + 5 + (index * 5));
+      doc.text(line, 102, 67 + index * 4);
     });
 
-    // ---------- FILTERS SECTION ----------
-    const filterY = Math.max(
-      fromY + 5 + (billFromLines.length * 5),
-      toY + 5 + (billToLines.length * 5)
-    ) + 10;
-    
+    // Add filter info
     doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    
-    // Project filter info
-    if (projectId && projectId !== "all-projects") {
-      const project = projects.find(p => p.id.toString() === projectId);
-      if (project) {
-        doc.text(`Project: ${project.name}`, 20, filterY);
-      }
-    }
-    
-    // Date range filter info
+    doc.setTextColor(100, 100, 100);
     doc.text(
-      `Date Range: ${startDate || "All time"} to ${endDate || "Present"}`,
-      startDate || endDate ? 20 : 105,
-      startDate || endDate ? filterY + 5 : filterY,
-      { align: startDate || endDate ? "left" : "center" }
+      `Date Range: ${startDate || "All"} to ${endDate || "All"}`,
+      14,
+      85,
     );
 
-    // ---------- GROUP TASKS BY PROJECT ----------
-    // Sort tasks by date (oldest first)
-    const sortedTasks = [...data.tasks].sort((a, b) => {
-      const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                  a.dueDate ? new Date(a.dueDate).getTime() : 
-                  new Date(a.createdAt).getTime();
-      
-      const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                  b.dueDate ? new Date(b.dueDate).getTime() : 
-                  new Date(b.createdAt).getTime();
-      
-      return dateA - dateB;
-    });
-    
-    // Create a map of unique tasks by ID to avoid duplicates
-    const uniqueTasks = new Map<number, Task>();
-    for (const task of sortedTasks) {
-      if (!uniqueTasks.has(task.id)) {
-        uniqueTasks.set(task.id, task);
-      }
-    }
-    
     // Group tasks by project
-    const tasksByProject = new Map<number, { name: string, tasks: Task[] }>();
-    // Convert Map values to array for iteration
-    const uniqueTasksArray = Array.from(uniqueTasks.values());
-    
-    for (const task of uniqueTasksArray) {
-      const projectId = task.projectId;
-      const projectName = task.project?.name || "Unknown Project";
-      
-      if (!tasksByProject.has(projectId)) {
-        tasksByProject.set(projectId, { name: projectName, tasks: [] });
+    const tasksByProject: Record<
+      number,
+      {
+        projectName: string;
+        tasks: Task[];
+        subtotal: number;
       }
-      
-      const projectEntry = tasksByProject.get(projectId);
-      if (projectEntry) {
-        projectEntry.tasks.push(task);
-      }
-    }
+    > = {};
 
-    // ---------- TASKS SECTION ----------
-    // Set the start Y position for the tables based on content above
-    let startY = filterY + 15;
-    
-    // Generate tables for each project
-    let grandTotal = 0;
-    
-    // Render each project section
-    tasksByProject.forEach((project, projectId) => {
-      if (project.tasks.length === 0) return;
-      
-      // Project header
-      doc.setFillColor(240, 240, 240);
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(10, startY, 190, 8, "F");
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
+    // Use the already sorted tasks from the API
+    data.tasks.forEach((task) => {
+      const projectId = task.projectId;
+      if (!tasksByProject[projectId]) {
+        tasksByProject[projectId] = {
+          projectName: task.project?.name || "Unknown Project",
+          tasks: [],
+          subtotal: 0,
+        };
+      }
+
+      tasksByProject[projectId].tasks.push(task);
+      tasksByProject[projectId].subtotal += task.totalAmount || 0;
+    });
+
+    // Create table content
+    let startY = 90;
+
+    // For each project
+    Object.entries(tasksByProject).forEach(([projectId, project], index) => {
+      // Project header row
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(220, 220, 220);
+      doc.rect(10, startY, 176, 8, "F");
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      doc.text(project.name, 15, startY + 5.5);
-      
+      doc.text(project.projectName, 14, startY + 5);
+      /* doc.text(`Php ${project.subtotal.toFixed(2)}`, 194, startY + 5, {
+        align: "right",
+      }); */
       startY += 10;
 
-      // Create standard data arrays for jspdf-autotable
-      const tableData = [];
-      
-      // Process each task individually
-      for (const task of project.tasks) {
-        // Format date
+      // Tasks table headers
+      const tableColumn = ["Task", "Date", "Hours", "Rate", "Total"];
+
+      // Tasks rows
+      const tableRows = project.tasks.map((task) => {
+        // Format dates safely
         let dateStr = "";
         if (task.startDate) {
           const startDate = new Date(task.startDate);
           dateStr = startDate.toLocaleDateString();
-          
+
           if (task.endDate && task.startDate !== task.endDate) {
             const endDate = new Date(task.endDate);
             dateStr += ` - ${endDate.toLocaleDateString()}`;
           }
         }
-        
-        // Calculate amount for this task
-        const amount = task.totalAmount || 0;
-        grandTotal += amount;
-        
-        // Use string with newlines for the first column
-        const titleText = task.title || "Untitled Task";
-        const descText = task.description || "";
-        const combinedText = descText ? `${titleText}\n${descText}` : titleText;
-        
-        // Add the task row
-        tableData.push([
-          combinedText,
-          dateStr,
-          typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || ""),
-          task.pricingType === "hourly" ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` : "Fixed",
-          amount.toFixed(2)
-        ]);
-      }
 
-      // Create table column headers
-      const headers = [["Task", "Date", "Hours", "Rate", "Total"]];
-      
-      // Generate table
+        // Format title and description for display with bold title
+        let taskTitle = "";
+
+        if (task.title) {
+          // We'll use styling in autoTable to make this bold
+          taskTitle = task.title;
+        }
+
+        if (task.description) {
+          // Add description as a separate line
+          taskTitle += task.description ? `\n${task.description}` : "";
+        }
+
+        return [
+          taskTitle,
+          dateStr,
+          typeof task.hours === "number"
+            ? task.hours.toFixed(2)
+            : task.hours || "",
+          task.pricingType === "hourly"
+            ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr`
+            : "Fixed",
+          `${(task.totalAmount || 0).toFixed(2)}`,
+        ];
+      });
+
+      // Add the table for this project
       autoTable(doc, {
-        head: headers,
-        body: tableData,
+        head: [tableColumn],
+        body: tableRows,
         startY: startY,
         theme: "grid",
         styles: {
+          cellPadding: 2,
           fontSize: 8,
-          cellPadding: 3,
           lineColor: [220, 220, 220],
-          lineWidth: 0.1
+          lineWidth: 0.1,
+          overflow: "linebreak", // Wrap text instead of truncating
         },
         headStyles: {
-          fillColor: [0, 128, 0],
+          fillColor: [0, 128, 0], // Green header background
           textColor: [255, 255, 255],
           fontStyle: "bold",
-          halign: "center"
-        },
-        columnStyles: {
-          0: { cellWidth: 'auto' },
-          1: { cellWidth: 30, halign: 'center' },
-          2: { cellWidth: 20, halign: 'right' },
-          3: { cellWidth: 20, halign: 'right' },
-          4: { cellWidth: 20, halign: 'right' }
+          fontSize: 8,
+          minCellHeight: 10,
+          valign: "middle",
+          halign: "center",
         },
         alternateRowStyles: {
-          fillColor: [245, 245, 245]
+          fillColor: [245, 245, 245],
         },
-        cellStyles: {
-          // Apply different style to first column (Task) cells
-          0: {
-            fontStyle: 'bold',
-            fontSize: 9
-          }
+        // Setup pagination options
+        pageBreak: "auto", // Enable automatic pagination
+        showFoot: "lastPage", // Only show footer on the last page
+        bodyStyles: {
+          minCellHeight: 12, // Minimum height for cells
         },
-        didDrawPage: function(data) {
-          // Add header on every page after the first
+
+        // Add header and footer for each page
+        didDrawPage: function (data) {
+          // If not the first page, add a small header with invoice title
           if (doc.getNumberOfPages() > 1) {
+            // Add page number
             const pageNumber = doc.getNumberOfPages();
+            const str = "Page " + pageNumber;
+
+            // Position in the bottom right corner of the page
             const pageSize = doc.internal.pageSize;
-            const pageWidth = pageSize.width ? pageSize.width : pageSize.getWidth();
-            const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-            
-            // Page number
+            const pageHeight = pageSize.height
+              ? pageSize.height
+              : pageSize.getHeight();
+            const pageWidth = pageSize.width
+              ? pageSize.width
+              : pageSize.getWidth();
+
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            doc.text(`Page ${pageNumber}`, pageWidth - 20, pageHeight - 10);
-            
-            // Mini header
-            doc.setFontSize(12);
-            doc.setTextColor(0, 128, 0);
+            doc.text(str, pageWidth - 20, pageHeight - 10);
+
+            // Add small invoice title on subsequent pages
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
             doc.setFont("helvetica", "bold");
-            doc.text("Task Invoice", 105, 15, { align: "center" });
-            
+            doc.text("Task Invoice", 14, 10);
+
+            // Add organization name if available
             if (currentOrganization?.name) {
-              doc.setFontSize(9);
-              doc.setTextColor(80, 80, 80);
+              doc.setFontSize(8);
+              doc.setTextColor(100, 100, 100);
               doc.setFont("helvetica", "normal");
-              doc.text(currentOrganization.name, 20, 15);
+              doc.text(currentOrganization.name, 14, 15);
             }
           }
-        }
+        },
+
+        // Add custom cell styling for titles and descriptions
+        didParseCell: function (data) {
+          // Only style cells in the first column (task title/description)
+          if (data.column.index === 0 && data.cell.text) {
+            // If this is a cell in the first column with content
+            if (Array.isArray(data.cell.text) && data.cell.text.length > 0) {
+              // The first line is the title, set it to bold
+              if (data.cell.text[0] !== "") {
+                data.cell.styles.fontStyle = "bold";
+                data.cell.styles.fontSize = 9; // Making title slightly larger
+              }
+
+              // If there are multiple lines (description exists)
+              if (data.cell.text.length > 1) {
+                // We need to handle this with a custom didDrawCell function
+                data.cell.styles.lineWidth = 0.1;
+              }
+            }
+          }
+        },
+        // Custom draw cell function to handle title and description differently
+        didDrawCell: function (data) {
+          // Only process first column cells with multi-line text
+          if (
+            data.column.index === 0 &&
+            data.cell.text &&
+            Array.isArray(data.cell.text) &&
+            data.cell.text.length > 1
+          ) {
+            const doc = data.doc;
+            const text = data.cell.text;
+
+            // Get cell position/dimensions
+            const { x, y, width, height } = data.cell;
+
+            // Apply the correct background color based on row index (alternate row styling)
+            // Check if this is an alternate row using modulus operator
+            const isAlternateRow = data.row.index % 2 === 1;
+            const fillColor = isAlternateRow
+              ? [245, 245, 245]
+              : [255, 255, 255];
+
+            // No need to re-draw the background, but if we wanted to we would:
+            // doc.setFillColor(...fillColor);
+            // doc.rect(x, y, width, height, "F");
+
+            // Now, we draw each line with different styling
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+
+            // Draw title in bold (first line)
+            const titleText = text[0];
+            doc.text(titleText, x + 2, y + 5);
+
+            // Draw description in normal text (remaining lines)
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(80, 80, 80);
+
+            for (let i = 1; i < text.length; i++) {
+              doc.text(text[i], x + 2, y + 5 + i * 4);
+            }
+          }
+        },
       });
-      
-      // Update the Y position for the next project
-      startY = (doc as any).lastAutoTable.finalY + 10;
+
+      // Move the Y position down based on the height of the last added table
+      startY = (doc as any).lastAutoTable.finalY + 15;
     });
-    
-    // ---------- TOTALS SECTION ----------
-    // Add the grand total
-    doc.setFillColor(230, 246, 230);
-    doc.rect(140, startY, 60, 10, "F");
-    
-    doc.setFontSize(11);
+
+    // Add grand total
+    doc.setFontSize(12);
     doc.setTextColor(0, 128, 0);
     doc.setFont("helvetica", "bold");
-    doc.text("GRAND TOTAL:", 160, startY + 6, { align: "right" });
     doc.text(
-      formatCurrency(grandTotal, "PHP"),
+      `GRAND TOTAL: ${formatCurrency(data.grandTotal || 0, "PHP")}`,
       195,
-      startY + 6,
-      { align: "right" }
+      startY,
+      { align: "right" },
     );
-    
-    // ---------- PAYMENT TERMS SECTION ----------
-    if (invoiceDetails.paymentTerms && invoiceDetails.paymentTerms.trim() !== "") {
-      startY += 20;
+
+    // Add payment terms at the bottom if specified
+    if (invoiceDetails.paymentTerms) {
+      startY += 14;
       doc.setFontSize(10);
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "bold");
-      doc.text("Payment Terms:", 20, startY);
+      doc.text("Payment Terms:", 14, startY);
       
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      doc.text(invoiceDetails.paymentTerms, 20, startY + 5, {
-        maxWidth: 170,
-        lineHeightFactor: 1.3
-      });
+      doc.text(invoiceDetails.paymentTerms, 16, startY + 5);
     }
-    
-    // ---------- FOOTER SECTION ----------
-    const pageCount = doc.getNumberOfPages();
-    
-    // Add footer on each page
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      
-      const pageSize = doc.internal.pageSize;
-      const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
-      
-      // Footer text
-      doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
-      doc.setFont("helvetica", "normal");
-      doc.text(
-        "Generated with BayriKo Task Management System",
-        105,
-        pageHeight - 15,
-        { align: "center" }
-      );
-      doc.text(
-        "https://bayriko.pawn.media",
-        105,
-        pageHeight - 10,
-        { align: "center" }
-      );
-    }
+
+    // Add footer on last page
+    startY = doc.internal.pageSize.height - 25;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("helvetica", "normal");
+    const footerText = "Generated with BayriKo Task Management System";
+    doc.text(footerText, 105, startY, { align: "center" });
+    doc.text("https://bayriko.pawn.media", 105, startY + 4, { align: "center" });
 
     return doc;
   };
