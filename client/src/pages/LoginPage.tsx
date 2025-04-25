@@ -148,14 +148,19 @@ export default function LoginPage() {
   // For dots navigation
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedIndex2, setSelectedIndex2] = useState(0);
-  
+
   // State for forgot password and reset password
-  const [forgotPasswordSubmitting, setForgotPasswordSubmitting] = useState(false);
-  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(null);
+  const [forgotPasswordSubmitting, setForgotPasswordSubmitting] =
+    useState(false);
+  const [forgotPasswordError, setForgotPasswordError] = useState<string | null>(
+    null,
+  );
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
-  
+
   const [resetPasswordSubmitting, setResetPasswordSubmitting] = useState(false);
-  const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
+  const [resetPasswordError, setResetPasswordError] = useState<string | null>(
+    null,
+  );
   const [resetPasswordSuccess, setResetPasswordSuccess] = useState(false);
 
   useEffect(() => {
@@ -287,7 +292,7 @@ export default function LoginPage() {
       position: "",
     },
   });
-  
+
   // Initialize forgot password form
   const forgotPasswordForm = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -295,7 +300,7 @@ export default function LoginPage() {
       email: "",
     },
   });
-  
+
   // Initialize reset password form
   const resetPasswordForm = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -436,7 +441,7 @@ export default function LoginPage() {
       setRegistering(false);
     }
   };
-  
+
   // Handle forgot password form submission
   const onForgotPasswordSubmit = async (data: ForgotPasswordFormValues) => {
     try {
@@ -455,22 +460,26 @@ export default function LoginPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to send password reset email");
+        throw new Error(
+          result.message || "Failed to send password reset email",
+        );
       }
 
       setForgotPasswordSuccess(true);
       toast({
         title: "Email Sent",
-        description: "If an account exists with that email, you will receive a password reset link shortly.",
+        description:
+          "If an account exists with that email, you will receive a password reset link shortly.",
         duration: 6000,
       });
     } catch (error: any) {
       setForgotPasswordError(
-        error.message || "Failed to process your request. Please try again."
+        error.message || "Failed to process your request. Please try again.",
       );
       toast({
         title: "Error",
-        description: error.message || "Failed to process your request. Please try again.",
+        description:
+          error.message || "Failed to process your request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -502,19 +511,21 @@ export default function LoginPage() {
       setResetPasswordSuccess(true);
       toast({
         title: "Password Reset Successful",
-        description: "Your password has been updated. You can now login with your new password.",
+        description:
+          "Your password has been updated. You can now login with your new password.",
         duration: 6000,
       });
-      
+
       // Change to login tab after successful password reset
       setActiveTab("login");
     } catch (error: any) {
       setResetPasswordError(
-        error.message || "Failed to reset password. Please try again."
+        error.message || "Failed to reset password. Please try again.",
       );
       toast({
         title: "Error",
-        description: error.message || "Failed to reset password. Please try again.",
+        description:
+          error.message || "Failed to reset password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -526,7 +537,7 @@ export default function LoginPage() {
     <div className="min-h-screen login-screen bg-background">
       <div className="flex flex-col md:flex-row lg:min-h-screen">
         {/* Left side - Fixed brand panel */}
-        <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-gradient-to-br from-[#032200] from-10% via-[#138a31] via-40% to-[#000000] to-90% h-screen">
+        <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-gradient-to-b from-[#09090B] from-10% via-[#016810] via-50% to-[#09090B] to-90% h-screen">
           <div className="h-full flex flex-col justify-between p-4">
             {/* Top Logo */}
             <div className="top-logo flex items-center justify-center">
@@ -624,24 +635,23 @@ export default function LoginPage() {
             <div>
               {activeTab === "login" ? (
                 <>
-                  <h2 className="text-xl font-bold mb-2 lg:mt-24 sm:text-center">
+                  <h2 className="text-2xl font-bold mb-2 lg:mt-24 sm:text-center">
                     Login
                   </h2>
                   <p className="text-muted-foreground mb-8 sm:font-small sm:text-center">
-                    No account yet?{" "}
+                    Create an account now.{" "}
                     <button
                       type="button"
-                      className="text-primary hover:underline font-medium sm:font-small"
+                      className="text-primary hover:underline font-lg sm:font-small font-extrabold"
                       onClick={() => setActiveTab("register")}
                     >
-                      Create one now
+                      It's FREE!
                     </button>
-                    .
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 className="text-xl font-bold mb-2 lg:mt-12 sm:text-center">
+                  <h2 className="text-2xl font-bold mb-2 lg:mt-12 sm:text-center">
                     Create Account
                   </h2>
                   <p className="text-muted-foreground mb-8 sm:font-small sm:text-center">
@@ -665,8 +675,12 @@ export default function LoginPage() {
                 <TabsList className="hidden">
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
-                  <TabsTrigger value="forgot-password">Forgot Password</TabsTrigger>
-                  <TabsTrigger value="reset-password">Reset Password</TabsTrigger>
+                  <TabsTrigger value="forgot-password">
+                    Forgot Password
+                  </TabsTrigger>
+                  <TabsTrigger value="reset-password">
+                    Reset Password
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login" className="space-y-6">
@@ -967,7 +981,7 @@ export default function LoginPage() {
                     </Button>
                   </form>
                 </TabsContent>
-                
+
                 {/* Forgot Password Tab */}
                 <TabsContent value="forgot-password" className="space-y-6">
                   <div className="flex flex-col items-center space-y-4">
@@ -975,20 +989,38 @@ export default function LoginPage() {
                       onClick={() => setActiveTab("login")}
                       className="self-start flex items-center text-sm text-muted-foreground hover:text-primary"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                      </svg>
                       Back to login
                     </button>
-                    
-                    <h2 className="text-xl font-bold mb-2">Forgot Your Password</h2>
+
+                    <h2 className="text-xl font-bold mb-2">
+                      Forgot Your Password?
+                    </h2>
                     <p className="text-muted-foreground text-center mb-4">
-                      Enter your email address and we'll send you a link to reset your password.
+                      Enter your email address and we'll send you a link to
+                      reset your password.
                     </p>
-                    
+
                     {forgotPasswordSuccess ? (
                       <div className="w-full text-center p-4 bg-green-50 border border-green-200 rounded-md text-green-600">
                         <p className="font-medium">Check your email</p>
                         <p className="text-sm mt-1">
-                          If an account with that email exists, we've sent a password reset link.
+                          If an account with that email exists, we've sent a
+                          password reset link.
                         </p>
                         <Button
                           type="button"
@@ -1000,8 +1032,10 @@ export default function LoginPage() {
                         </Button>
                       </div>
                     ) : (
-                      <form 
-                        onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}
+                      <form
+                        onSubmit={forgotPasswordForm.handleSubmit(
+                          onForgotPasswordSubmit,
+                        )}
                         className="space-y-4 w-full"
                       >
                         <div className="space-y-2">
@@ -1015,29 +1049,34 @@ export default function LoginPage() {
                           />
                           {forgotPasswordForm.formState.errors.email && (
                             <p className="text-sm text-red-500">
-                              {forgotPasswordForm.formState.errors.email.message}
+                              {
+                                forgotPasswordForm.formState.errors.email
+                                  .message
+                              }
                             </p>
                           )}
                         </div>
-                        
+
                         {forgotPasswordError && (
                           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
                             {forgotPasswordError}
                           </div>
                         )}
-                        
+
                         <Button
                           type="submit"
                           className="w-full py-6 text-lg bg-primary text-white"
                           disabled={forgotPasswordSubmitting}
                         >
-                          {forgotPasswordSubmitting ? "Sending..." : "Send Reset Link"}
+                          {forgotPasswordSubmitting
+                            ? "Sending..."
+                            : "Send Reset Link"}
                         </Button>
                       </form>
                     )}
                   </div>
                 </TabsContent>
-                
+
                 {/* Reset Password Tab */}
                 <TabsContent value="reset-password" className="space-y-6">
                   <div className="flex flex-col items-center space-y-4">
@@ -1045,20 +1084,37 @@ export default function LoginPage() {
                       onClick={() => setActiveTab("login")}
                       className="self-start flex items-center text-sm text-muted-foreground hover:text-primary"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <path d="m12 19-7-7 7-7" />
+                        <path d="M19 12H5" />
+                      </svg>
                       Back to login
                     </button>
-                    
-                    <h2 className="text-xl font-bold mb-2">Reset Your Password</h2>
+
+                    <h2 className="text-xl font-bold mb-2">
+                      Reset Your Password
+                    </h2>
                     <p className="text-muted-foreground text-center mb-4">
                       Enter your new password below.
                     </p>
-                    
+
                     {resetPasswordSuccess ? (
                       <div className="w-full text-center p-4 bg-green-50 border border-green-200 rounded-md text-green-600">
                         <p className="font-medium">Password Reset Successful</p>
                         <p className="text-sm mt-1">
-                          Your password has been updated. You can now login with your new password.
+                          Your password has been updated. You can now login with
+                          your new password.
                         </p>
                         <Button
                           type="button"
@@ -1070,8 +1126,10 @@ export default function LoginPage() {
                         </Button>
                       </div>
                     ) : (
-                      <form 
-                        onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)}
+                      <form
+                        onSubmit={resetPasswordForm.handleSubmit(
+                          onResetPasswordSubmit,
+                        )}
                         className="space-y-4 w-full"
                       >
                         <div className="space-y-2 hidden">
@@ -1088,9 +1146,11 @@ export default function LoginPage() {
                             </p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
-                          <Label htmlFor="reset-password-new">New Password</Label>
+                          <Label htmlFor="reset-password-new">
+                            New Password
+                          </Label>
                           <Input
                             id="reset-password-new"
                             type="password"
@@ -1100,13 +1160,18 @@ export default function LoginPage() {
                           />
                           {resetPasswordForm.formState.errors.password && (
                             <p className="text-sm text-red-500">
-                              {resetPasswordForm.formState.errors.password.message}
+                              {
+                                resetPasswordForm.formState.errors.password
+                                  .message
+                              }
                             </p>
                           )}
                         </div>
-                        
+
                         <div className="space-y-2">
-                          <Label htmlFor="reset-password-confirm">Confirm New Password</Label>
+                          <Label htmlFor="reset-password-confirm">
+                            Confirm New Password
+                          </Label>
                           <Input
                             id="reset-password-confirm"
                             type="password"
@@ -1114,25 +1179,31 @@ export default function LoginPage() {
                             {...resetPasswordForm.register("confirmPassword")}
                             className="w-full"
                           />
-                          {resetPasswordForm.formState.errors.confirmPassword && (
+                          {resetPasswordForm.formState.errors
+                            .confirmPassword && (
                             <p className="text-sm text-red-500">
-                              {resetPasswordForm.formState.errors.confirmPassword.message}
+                              {
+                                resetPasswordForm.formState.errors
+                                  .confirmPassword.message
+                              }
                             </p>
                           )}
                         </div>
-                        
+
                         {resetPasswordError && (
                           <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 p-2 rounded">
                             {resetPasswordError}
                           </div>
                         )}
-                        
+
                         <Button
                           type="submit"
                           className="w-full py-6 text-lg bg-primary text-white"
                           disabled={resetPasswordSubmitting}
                         >
-                          {resetPasswordSubmitting ? "Resetting..." : "Reset Password"}
+                          {resetPasswordSubmitting
+                            ? "Resetting..."
+                            : "Reset Password"}
                         </Button>
                       </form>
                     )}
@@ -1145,7 +1216,7 @@ export default function LoginPage() {
       </div>
       <div className="flex flex-col md:flex-row mobile-only">
         {/* Mobile Only */}
-        <div className="md:block left-0 top-0 bg-gradient-to-br from-[#032200] from-10% via-[#138a31] via-40% to-[#000000] to-90%">
+        <div className="md:block left-0 top-0 bg-gradient-to-b from-[#09090B] from-10% via-[#016810] via-40% to-[#09090B] to-80%">
           <div className="h-full flex flex-col justify-between p-1 pt-12">
             <h3 className="text-center text-[18px] font-bold mb-4">
               Some of the Apps Features:

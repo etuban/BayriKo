@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TaskTable } from '@/components/TaskTable';
+import { TaskGrid } from '@/components/TaskGrid';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, FolderKanban, CheckCircle, Building, Plus } from 'lucide-react';
+import { Search, FolderKanban, CheckCircle, Building, Plus, LayoutGrid, List } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Task, Organization, Project } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useTask } from '@/context/TaskContext';
 import { Button } from '@/components/ui/button';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -82,6 +84,9 @@ export default function TasksPage() {
   // Access task context
   const { openDrawer } = useTask();
   
+  // View mode state (table or grid)
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -93,6 +98,16 @@ export default function TasksPage() {
           >
             <Plus className="mr-2 h-4 w-4" /> New Task
           </Button>
+            
+          {/* View toggle */}
+          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'table' | 'grid')}>
+            <ToggleGroupItem value="table" aria-label="View as table">
+              <List className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="grid" aria-label="View as grid">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
         
         {/* Filters */}
