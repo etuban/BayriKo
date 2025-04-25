@@ -195,7 +195,7 @@ export default function TaskPayablePage() {
   
   // Function to handle manual printing
   const print = () => {
-    if (!data) return;
+    if (!data || !data.tasks || data.tasks.length === 0) return;
     
     // Create a new window for printing
     const printWindow = window.open("", "_blank");
@@ -204,68 +204,58 @@ export default function TaskPayablePage() {
       return;
     }
     
-    // We'll sort tasks by date and put them in a Map first
-    // This ensures they only appear once per project
-    const processedTasks = new Map<number, Task>();
-    
-    // Create sorted list of tasks by date with no duplicates
-    const sortedTasks = [...data.tasks]
-      .sort((a, b) => {
-        // Use startDate for comparison if available
-        const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                    a.dueDate ? new Date(a.dueDate).getTime() : 
-                    new Date(a.createdAt).getTime();
-        
-        const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                    b.dueDate ? new Date(b.dueDate).getTime() : 
-                    new Date(b.createdAt).getTime();
-        
-        return dateA - dateB; // Ascending order (oldest first)
-      });
-    
-    // Use a map to ensure each task only appears once
-    sortedTasks.forEach(task => {
-      if (!processedTasks.has(task.id)) {
-        processedTasks.set(task.id, task);
-      }
-    });
-    
-    // Get unique task list with no duplicates
-    const uniqueTasks = Array.from(processedTasks.values());
-    
-    // Group unique tasks by project for display
-    const projectIds = new Set(uniqueTasks.map(task => task.projectId));
-    
-    // Define proper type for our projectsMap
-    type ProjectGroup = {
-      name: string;
-      tasks: Task[];
-      subtotal: number;
-    };
-    
-    // Create project map with no duplicates
-    const projectsMap = new Map<number, ProjectGroup>();
-    
-    projectIds.forEach(projectId => {
-      const projectTasks = uniqueTasks.filter(task => task.projectId === projectId);
+    // ---------- GROUP TASKS BY PROJECT ----------
+    // Sort tasks by date (oldest first)
+    const sortedTasks = [...data.tasks].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 
+                a.dueDate ? new Date(a.dueDate).getTime() : 
+                new Date(a.createdAt).getTime();
       
-      if (projectTasks.length > 0) {
-        const projectName = projectTasks[0]?.project?.name || "Unknown Project";
-        
-        projectsMap.set(projectId, {
-          name: projectName,
-          tasks: projectTasks,
-          subtotal: projectTasks.reduce((sum, task) => sum + (task.totalAmount || 0), 0)
-        });
-      }
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 
+                b.dueDate ? new Date(b.dueDate).getTime() : 
+                new Date(b.createdAt).getTime();
+      
+      return dateA - dateB;
     });
     
-    // Recalculate the grand total from our unique tasks to ensure accuracy
-    const recalculatedTotal = uniqueTasks.reduce((sum, task) => sum + (task.totalAmount || 0), 0);
+    // Create a map of unique tasks by ID to avoid duplicates
+    const uniqueTasks = new Map<number, Task>();
+    for (const task of sortedTasks) {
+      if (!uniqueTasks.has(task.id)) {
+        uniqueTasks.set(task.id, task);
+      }
+    }
+    
+    // Group tasks by project
+    const tasksByProject = new Map<number, { name: string, tasks: Task[] }>();
+    // Convert map values to array to avoid TypeScript iteration errors
+    const uniqueTasksArray = Array.from(uniqueTasks.values());
+    
+    for (const task of uniqueTasksArray) {
+      const projectId = task.projectId;
+      const projectName = task.project?.name || "Unknown Project";
+      
+      if (!tasksByProject.has(projectId)) {
+        tasksByProject.set(projectId, { name: projectName, tasks: [] });
+      }
+      
+      const projectEntry = tasksByProject.get(projectId);
+      if (projectEntry) {
+        projectEntry.tasks.push(task);
+      }
+    }
+    
+    // Calculate grand total
+    let grandTotal = 0;
+    uniqueTasksArray.forEach(task => {
+      grandTotal += (task.totalAmount || 0);
+    });
     
     // Generate project tasks HTML
     let projectTasksHtml = '';
-    projectsMap.forEach((project, projectId) => {
+    tasksByProject.forEach((project, projectId) => {
+      if (project.tasks.length === 0) return;
+      
       projectTasksHtml += `
         <div class="project-section">
           <div class="project-header">${project.name}</div>
@@ -294,7 +284,7 @@ export default function TaskPayablePage() {
                 }
                 
                 // Ensure task title is never undefined for display
-                const taskTitle = task.title || '';
+                const taskTitle = task.title || 'Untitled Task';
                 // Safely handle description which might be null/undefined
                 const taskDescription = task.description || '';
                 
@@ -542,7 +532,7 @@ export default function TaskPayablePage() {
           
           <!-- Grand Total -->
           <div class="total-section">
-            <div class="grand-total">GRAND TOTAL: ${formatCurrency(recalculatedTotal || 0, "PHP")}</div>
+            <div class="grand-total">GRAND TOTAL: ${formatCurrency(grandTotal || 0, "PHP")}</div>
           </div>
           
           <!-- Payment Terms -->
@@ -580,66 +570,13 @@ export default function TaskPayablePage() {
 
   // Generate PDF helper function that can be used by both download and email
   const generatePDF = (doc: jsPDF): jsPDF => {
-    if (!data) return doc;
+    if (!data || !data.tasks || data.tasks.length === 0) return doc;
 
-    // Reset any previous state to ensure a fresh start
-    doc.deletePage(1);
-    doc.addPage();
-
-    // We'll sort tasks by date and put them in a Map first
-    // This ensures they only appear once per project
-    const processedTasks = new Map<number, Task>();
-    
-    // Create sorted list of tasks by date with no duplicates
-    const sortedTasks = [...data.tasks]
-      .sort((a, b) => {
-        // Use startDate for comparison if available
-        const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                    a.dueDate ? new Date(a.dueDate).getTime() : 
-                    new Date(a.createdAt).getTime();
-        
-        const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                    b.dueDate ? new Date(b.dueDate).getTime() : 
-                    new Date(b.createdAt).getTime();
-        
-        return dateA - dateB; // Ascending order (oldest first)
-      });
-    
-    // Use a map to ensure each task only appears once
-    sortedTasks.forEach(task => {
-      if (!processedTasks.has(task.id)) {
-        processedTasks.set(task.id, task);
-      }
-    });
-    
-    // Get unique task list with no duplicates
-    const uniqueTasks = Array.from(processedTasks.values());
-    
-    // Group unique tasks by project for display
-    const projectIds = new Set(uniqueTasks.map(task => task.projectId));
-    
-    // Define project group type
-    type ProjectGroup = {
-      name: string;
-      tasks: Task[];
-      subtotal: number;
-    };
-    
-    // Create project map with no duplicates
-    const projectsMap = new Map<number, ProjectGroup>();
-    
-    projectIds.forEach(projectId => {
-      const projectTasks = uniqueTasks.filter(task => task.projectId === projectId);
-      
-      if (projectTasks.length > 0) {
-        const projectName = projectTasks[0]?.project?.name || "Unknown Project";
-        
-        projectsMap.set(projectId, {
-          name: projectName,
-          tasks: projectTasks,
-          subtotal: projectTasks.reduce((sum, task) => sum + (task.totalAmount || 0), 0)
-        });
-      }
+    // Create a new document
+    doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     });
 
     // Set default font and color for the document
@@ -647,7 +584,7 @@ export default function TaskPayablePage() {
     doc.setTextColor(0, 0, 0);
 
     // ---------- HEADER SECTION ----------
-    // Title and invoice number
+    // Title 
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 128, 0);
@@ -679,7 +616,7 @@ export default function TaskPayablePage() {
       }
     }
 
-    // Invoice details
+    // Invoice details with unique number
     const invoiceNumber = new Date().getTime().toString().slice(-6);
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
@@ -756,12 +693,58 @@ export default function TaskPayablePage() {
       { align: startDate || endDate ? "left" : "center" }
     );
 
+    // ---------- GROUP TASKS BY PROJECT ----------
+    // Sort tasks by date (oldest first)
+    const sortedTasks = [...data.tasks].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 
+                  a.dueDate ? new Date(a.dueDate).getTime() : 
+                  new Date(a.createdAt).getTime();
+      
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 
+                  b.dueDate ? new Date(b.dueDate).getTime() : 
+                  new Date(b.createdAt).getTime();
+      
+      return dateA - dateB;
+    });
+    
+    // Create a map of unique tasks by ID to avoid duplicates
+    const uniqueTasks = new Map<number, Task>();
+    for (const task of sortedTasks) {
+      if (!uniqueTasks.has(task.id)) {
+        uniqueTasks.set(task.id, task);
+      }
+    }
+    
+    // Group tasks by project
+    const tasksByProject = new Map<number, { name: string, tasks: Task[] }>();
+    // Convert Map values to array for iteration
+    const uniqueTasksArray = Array.from(uniqueTasks.values());
+    
+    for (const task of uniqueTasksArray) {
+      const projectId = task.projectId;
+      const projectName = task.project?.name || "Unknown Project";
+      
+      if (!tasksByProject.has(projectId)) {
+        tasksByProject.set(projectId, { name: projectName, tasks: [] });
+      }
+      
+      const projectEntry = tasksByProject.get(projectId);
+      if (projectEntry) {
+        projectEntry.tasks.push(task);
+      }
+    }
+
     // ---------- TASKS SECTION ----------
     // Set the start Y position for the tables based on content above
     let startY = filterY + 15;
     
-    // Render each project section, but using our uniqueTasks to avoid duplication
-    projectsMap.forEach((project, projectId) => {
+    // Generate tables for each project
+    let grandTotal = 0;
+    
+    // Render each project section
+    tasksByProject.forEach((project, projectId) => {
+      if (project.tasks.length === 0) return;
+      
       // Project header
       doc.setFillColor(240, 240, 240);
       doc.setDrawColor(200, 200, 200);
@@ -773,10 +756,9 @@ export default function TaskPayablePage() {
       doc.text(project.name, 15, startY + 5.5);
       
       startY += 10;
-      
-      // Create table for this project's tasks
-      const tableHeader = ["Task", "Date", "Hours", "Rate", "Total"];
-      const tableRows = project.tasks.map((task: Task) => {
+
+      // Create simple arrays for the table
+      const tableData = project.tasks.map(task => {
         // Format date
         let dateStr = "";
         if (task.startDate) {
@@ -789,26 +771,29 @@ export default function TaskPayablePage() {
           }
         }
         
-        // For PDFs, we need to be explicit about splitting the title and description
-        // into separate array elements to ensure proper rendering
-        let taskCell = [task.title];
-        if (task.description) {
-          taskCell.push(task.description);
-        }
+        // Calculate amount for this task
+        const amount = task.totalAmount || 0;
+        grandTotal += amount;
         
         return [
-          taskCell, // Now an array with title as first element and description as second (if exists)
+          {
+            title: task.title || "Untitled Task", 
+            description: task.description || ""
+          },
           dateStr,
           typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || ""),
           task.pricingType === "hourly" ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` : "Fixed",
-          (task.totalAmount || 0).toFixed(2)
+          amount.toFixed(2)
         ];
       });
+
+      // Create table column headers
+      const headers = [["Task", "Date", "Hours", "Rate", "Total"]];
       
-      // Generate the table
+      // Generate table
       autoTable(doc, {
-        head: [tableHeader],
-        body: tableRows,
+        head: headers,
+        body: tableData,
         startY: startY,
         theme: "grid",
         styles: {
@@ -833,31 +818,10 @@ export default function TaskPayablePage() {
         alternateRowStyles: {
           fillColor: [245, 245, 245]
         },
-        didParseCell: function(data) {
-          // Bold the task title (first line)
-          if (data.column.index === 0 && data.cell.text) {
-            if (Array.isArray(data.cell.text) && data.cell.text.length > 0) {
-              data.cell.styles.fontSize = 9;
-              data.cell.styles.fontStyle = 'bold';
-            }
-          }
-        },
-        willDrawCell: function(data) {
-          // Custom rendering for the task title/description cell
-          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
-            // This is a cell with both title and description
-            // We'll handle it in the didDrawCell function
-            return false;
-          }
-          return true;
-        },
         didDrawCell: function(data) {
-          // Custom drawing for cells with title + description
-          if (data.column.index === 0 && data.cell.text && Array.isArray(data.cell.text) && data.cell.text.length > 1) {
-            const doc = data.doc;
-            const cell = data.cell;
-            const title = data.cell.text[0];
-            const description = data.cell.text.slice(1).join(' ');
+          // Draw task title and description
+          if (data.column.index === 0 && data.cell.raw && typeof data.cell.raw === 'object') {
+            const taskData = data.cell.raw as {title: string, description: string};
             
             // Cell position
             const { x, y, width, height } = data.cell;
@@ -866,16 +830,21 @@ export default function TaskPayablePage() {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
             doc.setTextColor(0, 0, 0);
-            doc.text(title, x + 3, y + 6);
+            doc.text(taskData.title, x + 3, y + 6);
             
-            // Draw description in normal text with margin
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-            doc.setTextColor(80, 80, 80);
-            doc.text(description, x + 3, y + 12, { 
-              maxWidth: width - 6,
-              lineHeightFactor: 1.2
-            });
+            // Draw description if it exists
+            if (taskData.description) {
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(8);
+              doc.setTextColor(80, 80, 80);
+              doc.text(taskData.description, x + 3, y + 12, { 
+                maxWidth: width - 6,
+                lineHeightFactor: 1.2
+              });
+            }
+            
+            // Return false to prevent default rendering
+            return false;
           }
         },
         didDrawPage: function(data) {
@@ -912,9 +881,6 @@ export default function TaskPayablePage() {
     });
     
     // ---------- TOTALS SECTION ----------
-    // Recalculate the grand total from our unique tasks to ensure accuracy
-    const recalculatedTotal = uniqueTasks.reduce((sum, task) => sum + (task.totalAmount || 0), 0);
-    
     // Add the grand total
     doc.setFillColor(230, 246, 230);
     doc.rect(140, startY, 60, 10, "F");
@@ -924,7 +890,7 @@ export default function TaskPayablePage() {
     doc.setFont("helvetica", "bold");
     doc.text("GRAND TOTAL:", 160, startY + 6, { align: "right" });
     doc.text(
-      formatCurrency(recalculatedTotal, "PHP"),
+      formatCurrency(grandTotal, "PHP"),
       195,
       startY + 6,
       { align: "right" }
