@@ -570,9 +570,12 @@ export default function TaskPayablePage() {
           taskTitle = task.title;
         }
 
+        // Only add description if it exists (and avoid duplicate descriptions)
         if (task.description) {
-          // Add description as a separate line
-          taskTitle += task.description ? `\n${task.description}` : "";
+          // Add description as a separate line, but don't include the description if it's already in the title
+          if (taskTitle !== task.description) {
+            taskTitle += `\n${task.description}`;
+          }
         }
 
         return [
