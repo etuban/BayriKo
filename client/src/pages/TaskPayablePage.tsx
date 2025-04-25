@@ -43,6 +43,7 @@ import { formatCurrency } from "@/lib/utils";
 
 export default function TaskPayablePage() {
   const { user } = useAuth();
+  const { toast } = useToast();
 
   // State for filters
   const [startDate, setStartDate] = useState<string>("");
@@ -72,7 +73,6 @@ export default function TaskPayablePage() {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [emailMessage, setEmailMessage] = useState("");
   const [emailSending, setEmailSending] = useState(false);
-  const { toast } = useToast();
 
   // Component ref for printing
   const componentRef = React.useRef<HTMLDivElement>(null);
@@ -418,12 +418,12 @@ export default function TaskPayablePage() {
     const sortedTasks = [...data.tasks].sort((a, b) => {
       // Use startDate for comparison if available
       const dateA = a.startDate ? new Date(a.startDate).getTime() : 
-                    a.dueDate ? new Date(a.dueDate).getTime() : 
-                    new Date(a.createdAt).getTime();
+                  a.dueDate ? new Date(a.dueDate).getTime() : 
+                  new Date(a.createdAt).getTime();
       
       const dateB = b.startDate ? new Date(b.startDate).getTime() : 
-                    b.dueDate ? new Date(b.dueDate).getTime() : 
-                    new Date(b.createdAt).getTime();
+                  b.dueDate ? new Date(b.dueDate).getTime() : 
+                  new Date(b.createdAt).getTime();
       
       return dateA - dateB; // Ascending order (oldest first)
     });
@@ -614,167 +614,173 @@ export default function TaskPayablePage() {
               ? [245, 245, 245]
               : [255, 255, 255];
 
-            // Clear the cell's existing content with the appropriate background color
-            doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
-            doc.rect(x, y, width, height, "F");
+            // No need to re-draw the background, but if we wanted to we would:
+            // doc.setFillColor(...fillColor);
+            // doc.rect(x, y, width, height, "F");
 
-            // Draw title with bold and larger font
-            doc.setFont("helvetica", "bold");
+            // Now, we draw each line with different styling
+            doc.setFont("Helvetica", "bold");
             doc.setFontSize(9);
-            doc.text(text[0], x + 2, y + 5);
+            doc.setTextColor(0, 0, 0);
 
-            // Draw description with normal font and smaller size
-            if (text.length > 1) {
-              doc.setFont("helvetica", "normal");
-              doc.setFontSize(7);
-              doc.text(text.slice(1).join("\n"), x + 2, y + 10);
+            // Draw title in bold (first line)
+            const titleText = text[0];
+            doc.text(titleText, x + 2, y + 5);
+
+            // Draw description in normal text (remaining lines)
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(80, 80, 80);
+
+            for (let i = 1; i < text.length; i++) {
+              doc.text(text[i], x + 2, y + 5 + i * 4);
             }
-
-            // Return true to indicate we've handled the cell drawing
-            return true;
           }
-          return false; // Let jsPDF-AutoTable handle other cells
         },
-        columnStyles: {
-          0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
-          1: { cellWidth: 18, halign: "right" }, // Date
-          2: { cellWidth: 15, halign: "center" }, // Hours
-          3: { cellWidth: 20, halign: "center" }, // Rate
-          4: { cellWidth: 17, halign: "right" }, // Total
-        },
-        margin: { left: 14, right: 14, top: 20 }, // Increased top margin for headers
-        tableWidth: 175,
       });
 
-      // Update startY for next project
-      startY = (doc as any).lastAutoTable.finalY + 10;
+      // Move the Y position down based on the height of the last added table
+      startY = (doc as any).lastAutoTable.finalY + 15;
     });
-
-    // Get the final position
-    const finalY = (doc as any).lastAutoTable
-      ? (doc as any).lastAutoTable.finalY
-      : 120;
 
     // Add grand total
-    doc.setFillColor(230, 250, 230);
-    doc.rect(110, finalY + 2, 86, 8, "F");
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("Helvetica", "bold");
-    doc.text("Grand Total:", 112, finalY + 7.5);
-    doc.text(`P${data.grandTotal.toFixed(2)}`, 194, finalY + 7.5, {
-      align: "right",
-    });
+    doc.setFontSize(12);
+    doc.setTextColor(0, 128, 0);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      `GRAND TOTAL: ${formatCurrency(data.grandTotal || 0, "PHP")}`,
+      195,
+      startY,
+      { align: "right" },
+    );
 
-    // Check if we have enough space for payment terms and footer
-    // Get document dimensions
-    const docPageSize = doc.internal.pageSize;
-    const docPageHeight = docPageSize.height
-      ? docPageSize.height
-      : docPageSize.getHeight();
-    const docPageWidth = docPageSize.width
-      ? docPageSize.width
-      : docPageSize.getWidth();
-
-    // Calculate needed space for payment terms
-    const paymentTermsHeight =
-      invoiceDetails.paymentTerms.split("\n").length * 4 + 30; // 30 for header + margins
-
-    // If there's not enough space for payment terms + footer (35mm), add a new page
-    let updatedFinalY = finalY;
-    if (finalY + paymentTermsHeight + 35 > docPageHeight) {
-      doc.addPage();
-      updatedFinalY = 20; // Reset to top of page with margin
+    // Add payment terms at the bottom if specified
+    if (invoiceDetails.paymentTerms) {
+      startY += 14;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.text("Payment Terms:", 14, startY);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(invoiceDetails.paymentTerms, 16, startY + 5);
     }
 
-    // Get the current page after potential page addition
-    const currentPage = doc.getNumberOfPages();
-    doc.setPage(currentPage);
-
-    // Add payment terms at the current position
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("Payment Terms:", 14, updatedFinalY + 20);
-    const paymentTermsLines = invoiceDetails.paymentTerms.split("\n");
+    // Add footer on last page
+    startY = doc.internal.pageSize.height - 25;
     doc.setFontSize(8);
-    paymentTermsLines.forEach((line, index) => {
-      doc.text(line, 14, updatedFinalY + 25 + index * 4);
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("helvetica", "normal");
+    const footerText = "Generated with BayriKo Task Management System";
+    doc.text(footerText, 105, startY, { align: "center" });
+    doc.text("https://bayriko.pawn.media", 105, startY + 4, { align: "center" });
+
+    return doc;
+  };
+
+  // Download PDF handler
+  const handleDownloadPDF = () => {
+    if (!data) return;
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+      putOnlyUsedFonts: true,
+      floatPrecision: 16,
     });
 
-    // Add static footer with link text
-    const footerY = docPageHeight - 15;
-    doc.setFontSize(9);
+    generatePDF(doc);
 
-    // Add footer text with URL below the icon
-    const footerText = "This PDF Invoice is generated through BayriKo";
-    const textWidth = doc.getTextWidth(footerText);
-    const textX = (docPageWidth - textWidth) / 2.05;
-    doc.setTextColor(0, 0, 0); // Black text
-    doc.setFontSize(9);
-    doc.setFont("Helvetica", "normal"); // Helvetica is closest to Inter among standard fonts
-    doc.text(footerText, textX, footerY);
-
-    // No logo will be used in PDF footer (simplified approach)
-
-    // Add website URL
-    const websiteText = "https://bayriko.pawn.media";
-    const websiteY = footerY + 5;
-    doc.setFontSize(8);
-    doc.setTextColor(0, 128, 0); // Green color for URL
-    const websiteWidth = doc.getTextWidth(websiteText);
-    const websiteX = (docPageWidth - websiteWidth) / 2;
-    doc.text(websiteText, websiteX, websiteY);
-
-    // Add a link annotation for the URL text
-    doc.link(websiteX, websiteY - 3, websiteWidth, 4, {
-      url: "https://bayriko.pawn.media",
-    });
-
-    // Create a dynamic filename based on the project name and timestamp
-    const timestamp = new Date().getTime().toString().slice(-6);
-    let filename = "Invoice_" + timestamp + ".pdf";
-
-    // If there's a specific project selected in the filter, find the project name
-    if (projectId && projectId !== "all") {
-      // Find the project name in the projects list
-      const selectedProject = (projects as any[]).find(
-        (p) => p.id.toString() === projectId,
-      );
-      if (selectedProject) {
-        const projectName = selectedProject.name
-          .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
-          .substring(0, 20); // Limit to 20 characters
-        filename = projectName + "-" + filename;
+    // Get filename based on current organization and date
+    let filename = "Invoice";
+    if (currentOrganization?.name) {
+      filename = `${currentOrganization.name.replace(/[^a-zA-Z0-9]/g, "_")}_Invoice`;
+    }
+    
+    if (projectId && projectId !== "all-projects") {
+      const project = projects.find(p => p.id.toString() === projectId);
+      if (project) {
+        filename += `_${project.name.replace(/[^a-zA-Z0-9]/g, "_")}`;
       }
     }
-    // Or if we have tasks from a project, use the first project's name
-    else if (data.tasks.length > 0 && data.tasks[0].project) {
-      const projectName = data.tasks[0].project.name
-        .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
-        .substring(0, 20); // Limit to 20 characters
-      filename = projectName + "-" + filename;
-    }
-    // If no project is selected but organization data is available, use organization name
-    else if (currentOrganization?.name) {
-      const orgName = currentOrganization.name
-        .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace special characters with underscore
-        .substring(0, 20); // Limit to 20 characters
-      filename = orgName + "-" + filename;
-    }
+    
+    filename += `_${new Date().toISOString().slice(0, 10)}.pdf`;
 
     doc.save(filename);
   };
 
-  // Handle invoice details change
-  const handleDetailsChange = (field: keyof InvoiceDetails, value: string) => {
-    setInvoiceDetails((prev) => ({ ...prev, [field]: value }));
+  // Send Email handler
+  const handleSendEmail = async () => {
+    if (!data || !invoiceDetails.toEmail) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a recipient email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setEmailSending(true);
+
+    try {
+      // Generate PDF
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        putOnlyUsedFonts: true,
+        floatPrecision: 16,
+      });
+
+      generatePDF(doc);
+
+      // Convert PDF to base64
+      const pdfBase64 = doc.output('datauristring');
+      
+      // Send API request
+      const response = await apiRequest('POST', '/api/email/send-invoice', {
+        from: {
+          name: invoiceDetails.fromName,
+          email: invoiceDetails.fromEmail
+        },
+        to: {
+          name: invoiceDetails.toName,
+          email: invoiceDetails.toEmail
+        },
+        subject: `Invoice from ${invoiceDetails.fromOrgName || currentOrganization?.name || ""}`,
+        message: emailMessage,
+        pdfData: pdfBase64
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Email sent",
+          description: "Invoice has been sent successfully.",
+        });
+        setEmailDialogOpen(false);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to send email");
+      }
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Failed to send email",
+        description: error.message || "An error occurred while sending the email.",
+        variant: "destructive",
+      });
+    } finally {
+      setEmailSending(false);
+    }
   };
 
-  // Apply filters
   const applyFilters = () => {
-    // Manually refetch the payable tasks with updated filters
-    queryClient.invalidateQueries({
-      queryKey: ["/api/tasks/payable/report"],
+    // Filters are automatically applied via the query parameters
+    toast({
+      title: "Filters applied",
+      description: "Showing invoice data with current filters.",
     });
   };
 
@@ -841,145 +847,57 @@ export default function TaskPayablePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all-projects">All Projects</SelectItem>
-                {projects &&
-                  projects.map((project: Project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id.toString()}>
+                    {project.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <FolderKanban className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
+            <div className="absolute left-3 top-2.5 text-gray-400">
+              <FolderKanban className="h-4 w-4" />
+            </div>
           </div>
 
-          {/* Actions */}
+          {/* Apply Button */}
           <Button
-            className="bg-primary hover:bg-primary/90 text-white"
+            variant="outline"
+            className="h-10"
             onClick={applyFilters}
           >
-            Apply Filters
+            Apply
           </Button>
         </div>
       </div>
 
-      {/* Printable Area */}
-      <div ref={componentRef}>
-        {/* Invoice Details */}
-        <div className="bg-background border border-border rounded-lg p-6 mb-6 print-section">
-          {/* Invoice Title - Only visible when printing */}
-          <div className="hidden print:block mb-6">
-            {/* Task Invoice Title */}
-            <h1 className="text-xl font-bold text-center text-primary print-header mb-4">
-              Task Invoice
-            </h1>
-
-            {/* Organization Name and Invoice Details */}
-            <div className="flex justify-between mt-4">
-              {/* Left side - Organization info with logo */}
-              {currentOrganization?.name && (
-                <div className="text-left flex items-center">
-                  {/* Organization Logo */}
-                  {currentOrganization?.logoUrl && (
-                    <div className="mr-3">
-                      <img
-                        src={currentOrganization.logoUrl}
-                        alt={currentOrganization.name || "Organization logo"}
-                        className="max-h-8 max-w-32"
-                        style={{
-                          objectFit: "contain",
-                        }} /* Preserve aspect ratio */
-                      />
-                    </div>
-                  )}
-
-                  {/* Organization Name */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500"></p>
-                    <p className="text-m text-gray-700">
-                      {currentOrganization.name}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Right side - Invoice details */}
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">
-                  Invoice #: INV-{new Date().getTime().toString().slice(-6)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Date: {new Date().toLocaleDateString()}
-                </p>
-              </div>
+      {/* Invoice Preview Card */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <div ref={componentRef}>
+          {isLoading ? (
+            <div className="bg-dark-surface border border-dark-border rounded-lg p-6 space-y-4">
+              <Skeleton className="h-6 w-40 mb-4" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-1/2 mb-4" />
+              <Skeleton className="h-4 w-3/4 mb-2" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-4 w-1/3 mb-4" />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium mb-3">Bill From:</h3>
-              <Textarea
-                rows={4}
-                className="w-full p-3 rounded-md bg-card border border-input text-sm"
-                placeholder="Your company details..."
-                value={invoiceDetails.billFrom}
-                onChange={(e) =>
-                  handleDetailsChange("billFrom", e.target.value)
-                }
-              />
+          ) : error ? (
+            <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
+              <p className="text-red-500">
+                Error loading invoice data. Please try again.
+              </p>
             </div>
-            <div>
-              <h3 className="text-lg font-medium mb-3">Bill To:</h3>
-              <Textarea
-                rows={4}
-                className="w-full p-3 rounded-md bg-card border border-input text-sm"
-                placeholder="Client details..."
-                value={invoiceDetails.billTo}
-                onChange={(e) => handleDetailsChange("billTo", e.target.value)}
-              />
+          ) : data && data.tasks.length > 0 ? (
+            <PayableTaskTable data={data} invoiceDetails={invoiceDetails} />
+          ) : (
+            <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
+              <p className="text-gray-400">
+                No payable tasks found. Try adjusting your filters.
+              </p>
             </div>
-          </div>
-
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-3">Payment Terms</h3>
-            <Textarea
-              rows={2}
-              className="w-full p-3 rounded-md bg-card border border-input text-sm"
-              placeholder="Payment terms and conditions..."
-              value={invoiceDetails.paymentTerms}
-              onChange={(e) =>
-                handleDetailsChange("paymentTerms", e.target.value)
-              }
-            />
-          </div>
-
-          <div className="print:block hidden mt-4 text-sm text-muted-foreground">
-            <p>
-              Date Range: {startDate || "All"} to {endDate || "All"}
-            </p>
-          </div>
+          )}
         </div>
-
-        {/* Payable Tasks Table */}
-        {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        ) : error ? (
-          <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
-            <p className="text-red-400">
-              Error loading payable tasks. Please try again.
-            </p>
-          </div>
-        ) : data && data.tasks.length > 0 ? (
-          <PayableTaskTable data={data} invoiceDetails={invoiceDetails} />
-        ) : (
-          <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
-            <p className="text-gray-400">
-              No payable tasks found. Try adjusting your filters.
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Invoice Settings */}
