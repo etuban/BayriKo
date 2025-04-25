@@ -93,7 +93,7 @@ export function TaskGrid({ tasks }: TaskGridProps) {
                 </div>
               )}
               
-              {task.timeSpent !== undefined && task.timeSpent > 0 && (
+              {formatHours(task) !== 'N/A' && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
                   <span>Hours: {formatHours(task)}</span>
@@ -165,7 +165,7 @@ export function TaskGrid({ tasks }: TaskGridProps) {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => confirmDelete(task.id)}
+                      onClick={() => confirmDelete(Number(task.id))}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

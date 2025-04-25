@@ -190,7 +190,7 @@ export default function TasksPage() {
         </div>
       </div>
       
-      {/* Tasks Table */}
+      {/* Task Content */}
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-12 w-full" />
@@ -201,7 +201,11 @@ export default function TasksPage() {
           <p className="text-red-400">Error loading tasks. Please try again.</p>
         </div>
       ) : tasks && tasks.length > 0 ? (
-        <TaskTable tasks={tasks} />
+        viewMode === 'table' ? (
+          <TaskTable tasks={tasks} />
+        ) : (
+          <TaskGrid tasks={tasks} />
+        )
       ) : (
         <div className="bg-dark-surface border border-dark-border rounded-lg p-6 text-center">
           <p className="text-gray-400">No tasks found. Try adjusting your filters or create a new task.</p>
