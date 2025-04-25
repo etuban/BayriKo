@@ -293,11 +293,16 @@ export default function TaskPayablePage() {
                   }
                 }
                 
+                // Ensure task title is never undefined for display
+                const taskTitle = task.title || '';
+                // Safely handle description which might be null/undefined
+                const taskDescription = task.description || '';
+                
                 return `
                   <tr class="${idx % 2 === 1 ? 'alternate-row' : ''}">
                     <td>
-                      <div class="task-title">${task.title || ''}</div>
-                      ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                      <div class="task-title">${taskTitle}</div>
+                      ${taskDescription ? `<div class="task-description">${taskDescription}</div>` : ''}
                     </td>
                     <td style="text-align: center;">${dateStr}</td>
                     <td style="text-align: right;">${typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || "")}</td>
@@ -784,11 +789,15 @@ export default function TaskPayablePage() {
           }
         }
         
-        // Format task title and description
-        const taskText = task.title + (task.description ? `\n${task.description}` : "");
+        // For PDFs, we need to be explicit about splitting the title and description
+        // into separate array elements to ensure proper rendering
+        let taskCell = [task.title];
+        if (task.description) {
+          taskCell.push(task.description);
+        }
         
         return [
-          taskText,
+          taskCell, // Now an array with title as first element and description as second (if exists)
           dateStr,
           typeof task.hours === "number" ? task.hours.toFixed(2) : (task.hours || ""),
           task.pricingType === "hourly" ? `${((task.hourlyRate || 0) / 100).toFixed(2)}/hr` : "Fixed",
