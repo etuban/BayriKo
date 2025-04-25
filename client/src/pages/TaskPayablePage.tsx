@@ -934,14 +934,6 @@ export default function TaskPayablePage() {
           }
           return false; // Let jsPDF-AutoTable handle other cells
         },
-        // Use a different property name since columnStyles is already defined above
-        customColumnWidth: {
-          0: { cellWidth: 112, cellPadding: 3 }, // Task title with increased padding for description
-          1: { cellWidth: 18, halign: "left" }, // Date
-          2: { cellWidth: 15, halign: "left" }, // Hours
-          3: { cellWidth: 20, halign: "left" }, // Rate
-          4: { cellWidth: 17, halign: "right" }, // Total
-        },
         margin: { left: 14, right: 14, top: 30 }, // Increased top margin for headers
         tableWidth: 175,
       });
