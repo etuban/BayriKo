@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { PayableTaskTable } from "@/components/PayableTaskTable";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +12,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FolderKanban, Printer, Download, Building } from "lucide-react";
+import { 
+  FolderKanban, 
+  Printer, 
+  Download, 
+  Building, 
+  Mail,
+  X,
+  Loader2
+} from "lucide-react";
 import { GiReceiveMoney } from "react-icons/gi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Task, InvoiceDetails, Organization, Project } from "@/types";
@@ -20,6 +28,18 @@ import { useReactToPrint } from "react-to-print";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useAuth } from "@/context/AuthContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
 
 export default function TaskPayablePage() {
   const { user } = useAuth();
@@ -34,11 +54,25 @@ export default function TaskPayablePage() {
 
   // State for invoice details
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails>({
-    billFrom: "",
-    billTo: "",
+    fromOrgName: "",
+    fromName: "",
+    fromEmail: "",
+    fromContact: "",
+    toOrgName: "",
+    toName: "",
+    toEmail: "",
+    toContact: "",
     paymentTerms: "",
     footerHtml: "",
+    billFrom: "",
+    billTo: "",
   });
+  
+  // State for email dialog
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const { toast } = useToast();
 
   // Component ref for printing
   const componentRef = React.useRef<HTMLDivElement>(null);
@@ -67,6 +101,25 @@ export default function TaskPayablePage() {
       }
     }
   }, [organizations, user]);
+  
+  // Populate invoice details with user and organization data
+  useEffect(() => {
+    if (user && currentOrganization) {
+      setInvoiceDetails(prev => {
+        const updated = {
+          ...prev,
+          fromOrgName: currentOrganization.name || "",
+          fromName: user.fullName || "",
+          fromEmail: user.email || "",
+          fromContact: "",  // Default empty as we don't have this in user profile
+          // Set legacy fields for backward compatibility
+          billFrom: `${currentOrganization.name || ""}\n${user.fullName || ""}\n${user.email || ""}`,
+          billTo: prev.billTo || "",
+        };
+        return updated;
+      });
+    }
+  }, [user, currentOrganization]);
 
   // Fetch projects for filter dropdown, filtered by organization
   const { data: projects = [] } = useQuery<Project[]>({
@@ -109,6 +162,20 @@ export default function TaskPayablePage() {
     enabled: !!selectedOrganization,
   });
 
+  // Update email message when data changes
+  useEffect(() => {
+    if (user && currentOrganization && data) {
+      setEmailMessage(
+        `Dear ${invoiceDetails.toName || "Recipient"},\n\n` +
+        `Please find attached the invoice for tasks completed by ${currentOrganization.name}.\n\n` +
+        `The total amount due is ${data.grandTotal ? formatCurrency(data.grandTotal, "PHP") : ""}.` +
+        `\n\nPayment Terms:\n${invoiceDetails.paymentTerms || "Please process payment within 15 days of receipt."}` +
+        `\n\nIf you have any questions, please don't hesitate to contact me.` +
+        `\n\nBest regards,\n${user.fullName}`
+      );
+    }
+  }, [user, currentOrganization, data, invoiceDetails.toName, invoiceDetails.paymentTerms]);
+  
   // Function to handle manual printing
   const print = () => {
     const contentToPrint = componentRef.current;
@@ -318,7 +385,9 @@ export default function TaskPayablePage() {
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text("Bill From:", 14, 62);
-    const billFromLines = invoiceDetails.billFrom.split("\n");
+    const billFromText = invoiceDetails.billFrom || 
+      `${invoiceDetails.fromOrgName || ""}\n${invoiceDetails.fromName || ""}\n${invoiceDetails.fromEmail || ""}\n${invoiceDetails.fromContact || ""}`;
+    const billFromLines = billFromText.split("\n");
     doc.setFontSize(9);
     billFromLines.forEach((line, index) => {
       doc.text(line, 16, 67 + index * 4);
@@ -326,7 +395,9 @@ export default function TaskPayablePage() {
 
     doc.setFontSize(10);
     doc.text("Bill To:", 100, 62);
-    const billToLines = invoiceDetails.billTo.split("\n");
+    const billToText = invoiceDetails.billTo || 
+      `${invoiceDetails.toOrgName || ""}\n${invoiceDetails.toName || ""}\n${invoiceDetails.toEmail || ""}\n${invoiceDetails.toContact || ""}`;
+    const billToLines = billToText.split("\n");
     doc.setFontSize(9);
     billToLines.forEach((line, index) => {
       doc.text(line, 102, 67 + index * 4);

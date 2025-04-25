@@ -159,8 +159,23 @@ export interface TaskPayableFilters {
 }
 
 export interface InvoiceDetails {
-  billFrom: string;
-  billTo: string;
+  // Bill From
+  fromOrgName: string;
+  fromName: string;
+  fromEmail: string;
+  fromContact: string;
+  
+  // Bill To
+  toOrgName: string;
+  toName: string;
+  toEmail: string;
+  toContact: string;
+  
+  // Other details
   paymentTerms: string;
   footerHtml?: string;
+  
+  // Legacy fields (for backward compatibility)
+  billFrom?: string;
+  billTo?: string;
 }
