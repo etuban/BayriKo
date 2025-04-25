@@ -152,16 +152,16 @@ export function formatHours(task: {
 }
 
 // Status color mapping
-export function getStatusColor(status: string): { bg: string, text: string } {
+export function getStatusColor(status: string): string {
   switch (status) {
     case 'todo':
-      return { bg: 'bg-blue-100', text: 'text-blue-800' };
+      return 'bg-blue-500';
     case 'in_progress':
-      return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+      return 'bg-yellow-500';
     case 'completed':
-      return { bg: 'bg-green-100', text: 'text-green-800' };
+      return 'bg-green-500';
     default:
-      return { bg: 'bg-gray-100', text: 'text-gray-800' };
+      return 'bg-gray-500';
   }
 }
 

@@ -63,7 +63,7 @@ export function TaskGrid({ tasks }: TaskGridProps) {
               )}
             </div>
             
-            <Badge className={getStatusColor(task.status)}>
+            <Badge className={cn("text-white", getStatusColor(task.status))}>
               {formatStatus(task.status)}
             </Badge>
           </CardHeader>
@@ -93,7 +93,7 @@ export function TaskGrid({ tasks }: TaskGridProps) {
                 </div>
               )}
               
-              {task.timeSpent > 0 && (
+              {task.timeSpent !== undefined && task.timeSpent > 0 && (
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
                   <span>Hours: {formatHours(task)}</span>
@@ -146,7 +146,7 @@ export function TaskGrid({ tasks }: TaskGridProps) {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => openDrawer(task.id)}
+                      onClick={() => openDrawer('edit', Number(task.id))}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -165,7 +165,7 @@ export function TaskGrid({ tasks }: TaskGridProps) {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => confirmDelete(task)}
+                      onClick={() => confirmDelete(task.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
