@@ -81,24 +81,24 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 // Define slider images and captions
 const sliderItems = [
   {
-    image: "https://pawn.media/bayriko/steps/Bayriko-Task-Page.gif",
-    caption: "Assign tasks conveniently to yourself or your team.",
+    image: "https://pawn.media/bayriko/steps/Bayriko-Tasks.gif",
+    caption: "Log and edit tasks easily.",
   },
   {
-    image: "https://pawn.media/bayriko/steps/Bayriko-PDF-Invoice.gif",
-    caption: "Easy PDF invoice generation of your tasks.",
+    image: "https://pawn.media/bayriko/steps/Bayriko-PDF-Invoice-2.gif",
+    caption: "Send PDF invoices in a flash.",
   },
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-Users.gif",
-    caption: "Supervisor can manage users and their roles.",
+    caption: "Assemble your team, Mr. Cobb.",
   },
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-Projects.gif",
-    caption: "Create and manage projects for your team.",
+    caption: "Collaborate projects with your team.",
   },
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-Dashboard.gif",
-    caption: "Measure your productivity using key metrics.",
+    caption: "Measure your productivity.",
   },
 ];
 
@@ -137,12 +137,12 @@ export default function LoginPage() {
 
   // Setup carousels with autoplay
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 15000, stopOnInteraction: true }),
+    Autoplay({ delay: 16000, stopOnInteraction: true }),
   ]);
 
   // Second carousel for mobile view
   const [emblaRef2, emblaApi2] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 15000, stopOnInteraction: true }),
+    Autoplay({ delay: 16000, stopOnInteraction: true }),
   ]);
 
   // For dots navigation
@@ -540,16 +540,16 @@ export default function LoginPage() {
         <div className="hidden md:block fixed left-0 top-0 w-3/5 bg-gradient-to-b from-[#09090B] from-10% via-[#016810] via-50% to-[#09090B] to-90% h-screen">
           <div className="h-full flex flex-col justify-between p-4">
             {/* Top Logo */}
-            <div className="top-logo flex items-center justify-center">
+            <div className="top-logo flex items-center justify-center mb-4">
               <div className="flex items-center">
                 <div className="border border-white-8 w-24 h-24 bg-white rounded-full mt-2">
                   <GiReceiveMoney className="w-12 h-12 text-primary mt-6 ml-6" />
                 </div>
                 <div className="ml-4">
-                  <h1 className="text-7xl font-bold text-white mb-1 font-Kanit">
-                    BAYRIKO
+                  <h1 className="text-7xl font-bold text-white outline-grey tracking-[0.027em] mb-0 font-Kanit">
+                    BAYRI<span className="text-grey">KO</span>
                   </h1>
-                  <p className="text-white/80 text-lg max-w-md">
+                  <p className="text-white/80 text-md tracking-[0.06em] max-w-md">
                     Task to Invoice Management System
                   </p>
                 </div>

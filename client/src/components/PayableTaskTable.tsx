@@ -249,7 +249,7 @@ export function PayableTaskTable({
             justifyContent: "center",
           }}
         >
-          <a href="https://bayriko.pawn.media">
+          <a href="https://bayriko.site">
             <div
               className="bg-primary p-2 rounded-full"
               style={{
@@ -267,7 +267,7 @@ export function PayableTaskTable({
         <p style={{ marginTop: "8px" }}>
           This PDF Invoice is generated through{" "}
           <a
-            href="https://bayriko.pawn.media"
+            href="https://bayriko.site"
             style={{ color: "green", textDecoration: "underline" }}
           >
             BayriKo

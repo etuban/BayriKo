@@ -550,7 +550,7 @@ export default function TaskPayablePage() {
           <!-- Footer -->
           <div class="footer">
             <p>Generated with BayriKo Task Management System</p>
-            <p><a href="https://bayriko.pawn.media">https://bayriko.pawn.media</a></p>
+            <p><a href="https://bayriko.site">https://bayriko.site</a></p>
           </div>
         </div>
       </body>
@@ -980,7 +980,7 @@ export default function TaskPayablePage() {
     doc.setFontSize(9);
     doc.setTextColor(0, 50, 0);
     doc.setFont("Inter", "normal");
-    doc.text("https://bayriko.pawn.media", 105, startY + 4, {
+    doc.text("https://bayriko.site", 105, startY + 4, {
       align: "center",
     });
 

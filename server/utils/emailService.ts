@@ -162,7 +162,7 @@ export async function sendAccountApprovalEmail(user: User, organization?: Organi
     `<p>You've been assigned to the following organization: <strong>${organization.name}</strong></p>` : 
     '<p>Please contact your supervisor for organization assignment details.</p>';
   
-  const loginLink = `https://bayriko.pawn.media`;
+  const loginLink = `https://bayriko.site`;
   
   // Construct the HTML content
   const html = `
@@ -251,7 +251,7 @@ export async function sendWelcomeEmail(user: User, organization?: Organization):
     `<p>You've been assigned to the following organization: <strong>${organization.name}</strong></p>` : 
     '<p>You will need to be assigned to an organization by an administrator.</p>';
   
-  const loginLink = `https://bayriko.pawn.media`;
+  const loginLink = `https://bayriko.site`;
   
   // Construct the HTML content
   const html = `
@@ -339,7 +339,7 @@ export async function sendPasswordResetEmail(
   const subject = 'Reset Your BayriKo Password';
   
   // Create the reset URL
-  const baseUrl = process.env.APP_URL || 'https://bayriko.pawn.media';
+  const baseUrl = process.env.APP_URL || 'https://bayriko.site';
   const resetUrl = `${baseUrl}/login?reset=${resetToken}`;
   
   // Expiration information (24 hours from now)
@@ -429,7 +429,7 @@ export async function sendInvitationEmail(
   const subject = `You've Been Invited to Join BayriKo`;
   
   // Create the invitation URL
-  const baseUrl = process.env.APP_URL || 'https://bayriko.pawn.media';
+  const baseUrl = process.env.APP_URL || 'https://bayriko.site';
   const invitationUrl = `${baseUrl}/register?token=${invitationLink.token}`;
   
   // Expiration information
