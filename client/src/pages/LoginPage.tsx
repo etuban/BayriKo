@@ -94,11 +94,11 @@ const sliderItems = [
   },
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-Projects.gif",
-    caption: "Collaborate projects with your team.",
+    caption: "Invite people to collaborate with projects.",
   },
   {
     image: "https://pawn.media/bayriko/steps/Bayriko-Dashboard.gif",
-    caption: "Measure your productivity.",
+    caption: "Measure your work productivity.",
   },
 ];
 

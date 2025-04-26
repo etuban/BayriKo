@@ -256,9 +256,9 @@ export default function TaskPayablePage() {
     projectsMap.forEach((project, projectId) => {
       projectTasksHtml += `
         <div class="project-section">
-          <div class="project-header">${project.name}</div>
+          <div class="project-header" >${project.name}</div>
           <table>
-            <thead>
+            <thead style="background-color:#eeee;">
               <tr>
                 <th style="width: 40%;">Task</th>
                 <th style="width: 20%; text-align: center;">Date</th>
