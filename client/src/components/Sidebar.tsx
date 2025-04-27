@@ -5,10 +5,10 @@ import { useAuth } from "../context/AuthContext";
 import { UserProfileCard } from "./UserProfileCard";
 import { GiReceiveMoney } from "react-icons/gi";
 import {
-  LayoutDashboard,
+  ChartPieIcon,
   ListTodo,
-  BanknoteIcon,
-  FolderKanban,
+  FileSpreadsheetIcon,
+  SquareKanbanIcon,
   Users,
   Settings,
   ChevronRight,
@@ -16,6 +16,7 @@ import {
   LogOut,
   X,
   Building,
+  Building2,
   BarChart2,
   Bug,
 } from "lucide-react";
@@ -56,7 +57,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const navItems = [
     {
       title: "Dashboard",
-      icon: <LayoutDashboard className="w-5 h-5 mr-3" />,
+      icon: <ChartPieIcon className="w-5 h-5 mr-3" />,
       path: "/dashboard",
       display: user?.role !== "staff", // Hide Dashboard for staff users
     },
@@ -68,13 +69,13 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
     },
     {
       title: "PDF Invoice",
-      icon: <BanknoteIcon className="w-5 h-5 mr-3" />,
+      icon: <FileSpreadsheetIcon className="w-5 h-5 mr-3" />,
       path: "/payable",
       display: true,
     },
     {
       title: "Projects",
-      icon: <FolderKanban className="w-5 h-5 mr-3" />,
+      icon: <SquareKanbanIcon className="w-5 h-5 mr-3" />,
       path: "/projects",
       display: true, // Allow all users including staff to access Projects
     },
@@ -82,11 +83,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       title: "Project Comparison",
       icon: <BarChart2 className="w-5 h-5 mr-3" />,
       path: "/project-comparison",
-      display: user?.role !== "staff",
+      display: user?.role === "super_admin",
     },
     {
       title: "Organizations",
-      icon: <Building className="w-5 h-5 mr-3" />,
+      icon: <Building2 className="w-5 h-5 mr-3" />,
       path: "/organizations",
       display: user?.role === "super_admin",
     },
@@ -163,7 +164,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
                 <Link href={item.path}>
                   <div
                     className={cn(
-                      "flex items-center px-2 py-1 rounded-md w-full text-left transition-colors cursor-pointer",
+                      "flex items-center text-sm px-2 py-1 rounded-md w-full text-left transition-colors cursor-pointer",
                       location === item.path
                         ? "bg-primary text-white"
                         : "hover:bg-muted",

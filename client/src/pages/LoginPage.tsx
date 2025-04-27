@@ -137,12 +137,12 @@ export default function LoginPage() {
 
   // Setup carousels with autoplay
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 16000, stopOnInteraction: true }),
+    Autoplay({ delay: 17500, stopOnInteraction: true }),
   ]);
 
   // Second carousel for mobile view
   const [emblaRef2, emblaApi2] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 16000, stopOnInteraction: true }),
+    Autoplay({ delay: 17500, stopOnInteraction: true }),
   ]);
 
   // For dots navigation
@@ -417,14 +417,14 @@ export default function LoginPage() {
         toast({
           title: "Registration Successful",
           description: `You have been registered as a ${invitationInfo.role} in ${invitationInfo.organizationName}. You can now login.`,
-          duration: 6000,
+          duration: 10000,
         });
       } else {
         toast({
           title: "Registration Successful",
           description:
             "Please wait for supervisor approval. You'll be notified when your account is approved.",
-          duration: 6000,
+          duration: 10000,
         });
       }
 
@@ -470,7 +470,7 @@ export default function LoginPage() {
         title: "Email Sent",
         description:
           "If an account exists with that email, you will receive a password reset link shortly.",
-        duration: 6000,
+        duration: 10000,
       });
     } catch (error: any) {
       setForgotPasswordError(
