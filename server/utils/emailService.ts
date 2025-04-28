@@ -319,8 +319,8 @@ export async function sendWelcomeEmail(user: User, organization?: Organization):
     © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
   
-  // Add BCC to pawnmedia.ph@gmail.com for Team Lead or Supervisor role welcomes
-  const includeAdminBcc = user.role === 'team_lead' || user.role === 'supervisor';
+  // Add BCC to pawnmedia.ph@gmail.com for all role types (Staff, Team Lead, Supervisor)
+  // This ensures pawnmedia.ph@gmail.com is notified of all new user signups
   
   return sendEmail({
     to,
@@ -328,7 +328,7 @@ export async function sendWelcomeEmail(user: User, organization?: Organization):
     subject,
     text,
     html,
-    bcc: includeAdminBcc ? 'pawnmedia.ph@gmail.com' : undefined
+    bcc: 'pawnmedia.ph@gmail.com' // Always BCC pawnmedia.ph for all new user signups
   });
 }
 
