@@ -16,15 +16,21 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Clock
+  Clock,
+  X,
+  Calendar,
+  User,
+  ArrowUpRight,
+  FolderKanban
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
 } from "@/components/ui/tooltip";
+import { useLocation } from "wouter";
 
 interface TaskCalendarProps {
   tasks: Task[];
@@ -33,10 +39,12 @@ interface TaskCalendarProps {
 export function TaskCalendar({ tasks }: TaskCalendarProps) {
   const { user } = useAuth();
   const { openDrawer, confirmDelete } = useTask();
+  const [, navigate] = useLocation();
   
   // Current date state
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<'month' | 'week'>('month');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
   // Check if user can edit/delete based on role and ownership
   const canEdit = (task: Task) => {
@@ -112,7 +120,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     
     try {
       const [hours, minutes] = timeString.split(':');
-      const hour = parseInt(hours, 10);
+      const hour = parseInt(hours, 12);
       const ampm = hour >= 12 ? 'PM' : 'AM';
       const formattedHour = hour % 12 || 12;
       return `${formattedHour}:${minutes} ${ampm}`;
@@ -136,8 +144,8 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     tasks: Task[];
   }
   
-  // Time slots for week view (1-hour increments from 7 AM to 7 PM)
-  const timeSlots = Array.from({ length: 13 }, (_, i) => i + 7);
+  // Time slots for week view (1-hour increments from 8 AM to 11 PM)
+  const timeSlots = Array.from({ length: 16 }, (_, i) => i + 8);
 
   // Calendar data
   const calendarDays = useMemo(() => {
@@ -317,23 +325,15 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
             {task.title}
           </div>
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  className="text-xs text-primary underline hover:text-primary/90 ml-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  Details
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="p-3">
-                {renderTaskDetailsTooltip(task)}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button 
+            className="text-xs text-primary underline hover:text-primary/90 ml-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTask(task);
+            }}
+          >
+            Details
+          </button>
         </div>
         
         <div className="flex items-center gap-1 text-gray-400">
@@ -410,23 +410,15 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
             {task.title}
           </div>
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button 
-                  className="text-xs text-primary underline hover:text-primary/90 ml-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  Details
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="p-3">
-                {renderTaskDetailsTooltip(task)}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <button 
+            className="text-xs text-primary underline hover:text-primary/90 ml-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTask(task);
+            }}
+          >
+            Details
+          </button>
         </div>
         
         {task.assignedTo && (
@@ -443,8 +435,128 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     );
   };
   
+  // Enhanced modal-like task details dialog
+  const renderTaskDetailsDialog = () => {
+    if (!selectedTask) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setSelectedTask(null)}>
+        <div 
+          className="bg-dark-surface border border-dark-border rounded-lg shadow-lg w-full max-w-md p-4 relative"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Close button */}
+          <button
+            className="absolute top-2 right-2 h-6 w-6 rounded-full flex items-center justify-center hover:bg-dark-bg/50"
+            onClick={() => setSelectedTask(null)}
+          >
+            <X className="h-4 w-4" />
+          </button>
+          
+          {/* Task title */}
+          <h3 className="text-lg font-semibold mb-4 pr-6">{selectedTask.title}</h3>
+          
+          {/* Task details */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-x-4 gap-y-2">
+              <div className="flex items-center gap-2 text-foreground/60">
+                <FolderKanban className="h-4 w-4" />
+                <span className="text-sm font-medium">Project:</span>
+              </div>
+              <div className="col-span-2 text-sm">{selectedTask.project?.name || 'N/A'}</div>
+              
+              <div className="flex items-center gap-2 text-foreground/60">
+                <User className="h-4 w-4" />
+                <span className="text-sm font-medium">Assigned to:</span>
+              </div>
+              <div className="col-span-2 text-sm flex items-center">
+                {selectedTask.assignedTo ? (
+                  <>
+                    <Avatar className="h-5 w-5 mr-2">
+                      <AvatarFallback className="text-[10px]">
+                        {getInitials(selectedTask.assignedTo.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {selectedTask.assignedTo.fullName}
+                  </>
+                ) : 'Unassigned'}
+              </div>
+              
+              <div className="flex items-center gap-2 text-foreground/60">
+                <Calendar className="h-4 w-4" />
+                <span className="text-sm font-medium">Due Date:</span>
+              </div>
+              <div className="col-span-2 text-sm">
+                {selectedTask.dueDate ? formatDate(selectedTask.dueDate) : 'N/A'}
+              </div>
+              
+              {selectedTask.startTime && selectedTask.endTime && (
+                <>
+                  <div className="flex items-center gap-2 text-foreground/60">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-sm font-medium">Time:</span>
+                  </div>
+                  <div className="col-span-2 text-sm">
+                    {formatTime(selectedTask.startTime)} - {formatTime(selectedTask.endTime)}
+                  </div>
+                </>
+              )}
+              
+              <div className="flex items-center gap-2 text-foreground/60 col-span-3">
+                <span className="text-sm font-medium">Status:</span>
+                <span 
+                  className={cn(
+                    "px-2 py-1 rounded-full text-xs",
+                    selectedTask.status === "todo" && "bg-blue-500/20 text-blue-500",
+                    selectedTask.status === "in_progress" && "bg-yellow-500/20 text-yellow-500",
+                    selectedTask.status === "completed" && "bg-green-500/20 text-green-500"
+                  )}
+                >
+                  {formatStatus(selectedTask.status)}
+                </span>
+              </div>
+            </div>
+            
+            {selectedTask.description && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Description:</h4>
+                <div className="text-sm text-foreground/80 bg-dark-bg/50 p-3 rounded max-h-[150px] overflow-y-auto">
+                  {selectedTask.description}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between pt-4 mt-4 border-t border-dark-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedTask(null)}
+              >
+                Close
+              </Button>
+              
+              <Button
+                size="sm"
+                onClick={() => {
+                  openDrawer("view", selectedTask.id);
+                  setSelectedTask(null);
+                }}
+              >
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+                Open Task
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className="bg-dark-surface border border-dark-border rounded-lg overflow-hidden">
+      {/* Task Details Modal */}
+      {renderTaskDetailsDialog()}
+      
       {/* Calendar Header */}
       <div className="p-4 flex items-center justify-between border-b border-dark-border">
         <div className="flex items-center space-x-2">
