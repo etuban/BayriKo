@@ -178,41 +178,51 @@ export function TaskTable({ tasks }: TaskTableProps) {
   // Generate tooltip content for a task
   const getTaskTooltipContent = (task: Task) => {
     return (
-      <div className="max-w-md">
-        <div className="mb-2">
-          <div className="font-semibold text-base">{task.title}</div>
+      <div className="w-[350px] max-w-lg">
+        <div className="mb-3">
+          <div className="font-semibold text-lg">{task.title}</div>
           {task.description && (
-            <div className="text-sm text-gray-300 mt-1">
-              {task.description.length > 150 ? `${task.description.substring(0, 150)}...` : task.description}
+            <div className="text-sm text-gray-300 mt-2">
+              {task.description.length > 200 ? `${task.description.substring(0, 200)}...` : task.description}
             </div>
           )}
         </div>
         
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <span className="text-gray-400">Status:</span>{" "}
-            <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(task.status)} text-white`}>
+        <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm mb-2">
+          <div className="flex flex-col">
+            <span className="text-gray-400 text-xs mb-1">Status</span>
+            <span className={`px-2 py-1 rounded text-xs ${getStatusColor(task.status)} text-white inline-block w-fit`}>
               {formatStatus(task.status)}
             </span>
           </div>
           
-          <div>
-            <span className="text-gray-400">Due:</span>{" "}
-            <span>{formatDate(task.dueDate)}</span>
+          <div className="flex flex-col">
+            <span className="text-gray-400 text-xs mb-1">Due Date</span>
+            <span className="font-medium">{formatDate(task.dueDate)}</span>
           </div>
           
-          <div>
-            <span className="text-gray-400">Assigned:</span>{" "}
-            <span>{task.assignedTo?.fullName || "Unassigned"}</span>
+          <div className="flex flex-col">
+            <span className="text-gray-400 text-xs mb-1">Assigned To</span>
+            <span className="font-medium">{task.assignedTo?.fullName || "Unassigned"}</span>
           </div>
           
-          <div>
-            <span className="text-gray-400">Time:</span>{" "}
-            <span>{formatHours(task)}</span>
+          <div className="flex flex-col">
+            <span className="text-gray-400 text-xs mb-1">Time Tracking</span>
+            <span className="font-medium">{formatHours(task)}</span>
           </div>
+
+          {task.project && (
+            <div className="flex flex-col col-span-2">
+              <span className="text-gray-400 text-xs mb-1">Project</span>
+              <span className="font-medium flex items-center">
+                <FolderKanban className="w-3.5 h-3.5 mr-2 text-primary" />
+                {task.project.name}
+              </span>
+            </div>
+          )}
         </div>
         
-        <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-primary flex items-center">
+        <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-primary flex items-center justify-center">
           <ExternalLink className="w-3.5 h-3.5 mr-1" />
           Click to view detailed task page
         </div>
@@ -243,7 +253,11 @@ export function TaskTable({ tasks }: TaskTableProps) {
                     )}
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="p-3 max-w-sm bg-dark-surface border-dark-border">
+                <TooltipContent 
+                  side="top" 
+                  className="p-4 min-w-[350px] bg-dark-surface border border-dark-border shadow-lg" 
+                  sideOffset={5}
+                >
                   {getTaskTooltipContent(task)}
                 </TooltipContent>
               </Tooltip>
