@@ -302,17 +302,40 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
       <div
         key={task.id}
         className={cn(
-          "p-1 text-xs rounded cursor-pointer",
+          "p-1 text-xs rounded",
           "bg-primary/5 border-l-2 mb-1",
           { "border-blue-500": task.status === "todo" },
           { "border-yellow-500": task.status === "in_progress" },
           { "border-green-500": task.status === "completed" }
         )}
-        onClick={() => openDrawer("view", task.id)}
       >
-        <div className="font-medium truncate">
-          {task.title}
+        <div className="flex items-center justify-between">
+          <div 
+            className="font-medium truncate cursor-pointer flex-1"
+            onClick={() => openDrawer("view", task.id)}
+          >
+            {task.title}
+          </div>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  className="text-xs text-primary underline hover:text-primary/90 ml-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  Details
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="p-3">
+                {renderTaskDetailsTooltip(task)}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
+        
         <div className="flex items-center gap-1 text-gray-400">
           <Clock className="h-3 w-3" />
           <span>
@@ -323,21 +346,89 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
     ));
   };
   
+  // Generate a tooltip content for task details
+  const renderTaskDetailsTooltip = (task: Task) => {
+    return (
+      <div className="space-y-2 w-[250px]">
+        <div className="font-medium text-sm">{task.title}</div>
+        
+        <div className="text-xs grid grid-cols-3 gap-1">
+          <div className="font-medium">Status:</div>
+          <div className="col-span-2">{formatStatus(task.status)}</div>
+          
+          <div className="font-medium">Project:</div>
+          <div className="col-span-2">{task.project?.name || 'N/A'}</div>
+          
+          <div className="font-medium">Due Date:</div>
+          <div className="col-span-2">{task.dueDate ? formatDate(task.dueDate) : 'N/A'}</div>
+          
+          {task.startTime && task.endTime && (
+            <>
+              <div className="font-medium">Time:</div>
+              <div className="col-span-2">
+                {formatTime(task.startTime)} - {formatTime(task.endTime)}
+              </div>
+            </>
+          )}
+          
+          <div className="font-medium">Assigned to:</div>
+          <div className="col-span-2">{task.assignedTo?.fullName || 'Unassigned'}</div>
+          
+          {task.description && (
+            <>
+              <div className="font-medium col-span-3">Description:</div>
+              <div className="col-span-3 max-h-[80px] overflow-y-auto">
+                {task.description.length > 150 
+                  ? `${task.description.substring(0, 150)}...` 
+                  : task.description}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Render a task item for the month view
   const renderTaskItem = (task: Task) => {
     return (
       <div 
         key={task.id}
         className={cn(
-          "text-xs p-1 mb-1 rounded cursor-pointer transition-colors",
+          "text-xs p-1 mb-1 rounded transition-colors",
           "hover:bg-primary/10 border-l-2",
           { "border-blue-500": task.status === "todo" },
           { "border-yellow-500": task.status === "in_progress" },
           { "border-green-500": task.status === "completed" }
         )}
-        onClick={() => openDrawer("view", task.id)}
       >
-        <div className="font-medium truncate">{task.title}</div>
+        <div className="flex items-center justify-between">
+          <div 
+            className="font-medium truncate cursor-pointer flex-1"
+            onClick={() => openDrawer("view", task.id)}
+          >
+            {task.title}
+          </div>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  className="text-xs text-primary underline hover:text-primary/90 ml-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  Details
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="p-3">
+                {renderTaskDetailsTooltip(task)}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
         {task.assignedTo && (
           <div className="flex items-center text-gray-400 mt-1">
             <Avatar className="h-4 w-4 mr-1">
