@@ -25,6 +25,7 @@ import { TaskProvider } from "./context/TaskContext";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { useAuth } from "./context/AuthContext";
+import { PublicFooter } from "@/components/ui/public-footer";
 import { useEffect } from "react";
 
 // Protected route wrapper
@@ -137,6 +138,14 @@ function Router() {
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
+  const [location] = useLocation();
+  
+  const isPublicPage = [
+    '/privacy-policy', 
+    '/terms-of-service', 
+    '/cookies-policy', 
+    '/contact-us'
+  ].includes(location);
   
   return (
     <>
@@ -147,7 +156,12 @@ function AppContent() {
               <Router />
             </Layout>
           ) : (
-            <Router />
+            <div className="flex flex-col min-h-screen">
+              <div className="flex-1">
+                <Router />
+              </div>
+              {isPublicPage && <PublicFooter />}
+            </div>
           )}
         </TaskProvider>
       </NotificationProvider>

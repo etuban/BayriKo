@@ -27,98 +27,94 @@ export default function TermsOfServicePage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Introduction</h2>
           <p>
-            Welcome to BayriKo. These Terms of Service ("Terms") govern your access to and use of our task management application and services. By accessing or using BayriKo, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our services.
+            Welcome to BayriKo. These Terms of Service ("Terms") govern your use of our website and services. Please read these Terms carefully before using our services.
+          </p>
+          <p className="mt-4">
+            By accessing or using our services, you agree to be bound by these Terms. If you disagree with any part of the Terms, you may not access our services.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Definitions</h2>
           <ul className="list-disc pl-5 space-y-2">
-            <li><strong>"BayriKo," "we," "us,"</strong> and <strong>"our"</strong> refer to BayriKo and its parent company, Pawn Media.</li>
-            <li><strong>"Service"</strong> or <strong>"Services"</strong> refers to the BayriKo task management application, website, and related services.</li>
-            <li><strong>"User," "you,"</strong> and <strong>"your"</strong> refer to the individual or entity accessing or using the Services.</li>
-            <li><strong>"Content"</strong> refers to all text, data, information, images, and other materials uploaded, downloaded, or appearing on the Services.</li>
+            <li><strong>"BayriKo"</strong> refers to our company, our website, and our task management platform.</li>
+            <li><strong>"Services"</strong> refers to the task management platform and related services provided by BayriKo.</li>
+            <li><strong>"User"</strong> refers to any individual or entity that accesses or uses our Services.</li>
+            <li><strong>"Content"</strong> refers to any information, data, text, software, graphics, messages, or other materials that are uploaded, posted, or otherwise transmitted through our Services.</li>
           </ul>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Account Registration</h2>
-          <p>To use certain features of the Services, you must register for an account. When registering, you must provide accurate and complete information. You are solely responsible for:</p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>Maintaining the confidentiality of your account credentials</li>
-            <li>All activities that occur under your account</li>
-            <li>Notifying us immediately of any unauthorized use or security breach</li>
-          </ul>
-          <p className="mt-4">
-            We reserve the right to suspend or terminate accounts that violate these Terms or for any other reason at our sole discretion.
-          </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">User Conduct</h2>
-          <p>You agree not to:</p>
-          <ul className="list-disc pl-5 space-y-2">
-            <li>Use the Services in any way that violates applicable laws or regulations</li>
-            <li>Impersonate any person or entity</li>
-            <li>Upload or transmit viruses, malware, or other malicious code</li>
-            <li>Attempt to gain unauthorized access to any part of the Services</li>
-            <li>Interfere with or disrupt the Services or servers or networks connected to the Services</li>
-            <li>Harvest or collect user data without consent</li>
-            <li>Use the Services for any illegal or unauthorized purpose</li>
-          </ul>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Content</h2>
+          <h2 className="text-2xl font-semibold">Use of Services</h2>
           <p>
-            You retain all rights to Content you submit, post, or display on or through the Services. By submitting Content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, adapt, publish, transmit, and display such Content for the purpose of providing and improving the Services.
+            Our Services are designed to help organizations manage tasks, projects, and team collaboration. You may use our Services only as permitted by these Terms and any applicable laws and regulations.
           </p>
           <p className="mt-4">
-            You are solely responsible for Content you submit and its legality, reliability, and appropriateness. We do not endorse, support, represent, or guarantee the completeness, truthfulness, accuracy, or reliability of any Content.
+            To access certain features of our Services, you may be required to register for an account. When you register, you agree to provide accurate, current, and complete information about yourself and your organization.
           </p>
+          <p className="mt-4">
+            You are responsible for safeguarding your account credentials and for any activities or actions under your account. We encourage you to use strong passwords and to keep your account information secure.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">User Content</h2>
+          <p>
+            Our Services allow you to upload, store, and share Content. You retain ownership of any intellectual property rights that you hold in that Content. By uploading Content, you grant BayriKo a worldwide, royalty-free license to use, reproduce, modify, adapt, publish, translate, and distribute it in any existing or future media.
+          </p>
+          <p className="mt-4">
+            You represent and warrant that:
+          </p>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>You own the Content or have the right to use it and grant us the rights and license as provided in these Terms.</li>
+            <li>The Content does not violate the privacy rights, publicity rights, copyrights, contract rights, or any other rights of any person or entity.</li>
+            <li>The Content does not contain any material that is defamatory, obscene, indecent, abusive, offensive, harassing, violent, hateful, inflammatory, or otherwise objectionable.</li>
+          </ul>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Intellectual Property</h2>
           <p>
-            The Services and their original content, features, and functionality are owned by BayriKo and are protected by international copyright, trademark, patent, trade secret, and other intellectual property or proprietary rights laws.
-          </p>
-          <p className="mt-4">
-            You may not copy, modify, create derivative works, publicly display, publicly perform, republish, download, store, or transmit any materials from our Services without our written consent, except as provided in these Terms.
+            The Service and its original content (excluding Content provided by users), features, and functionality are and will remain the exclusive property of BayriKo and its licensors. The Service is protected by copyright, trademark, and other laws of both the Philippines and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of BayriKo.
           </p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Third-Party Services</h2>
+          <h2 className="text-2xl font-semibold">Termination</h2>
           <p>
-            Our Services may contain links to third-party websites or services that are not owned or controlled by BayriKo. We have no control over, and assume no responsibility for, the content, privacy policies, or practices of any third-party websites or services. You acknowledge and agree that BayriKo shall not be responsible or liable for any damage or loss caused by your use of any third-party websites or services.
+            We may terminate or suspend your account and bar access to the Service immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.
+          </p>
+          <p className="mt-4">
+            If you wish to terminate your account, you may simply discontinue using the Service or contact us to request account deletion.
+          </p>
+          <p className="mt-4">
+            All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.
           </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Limitation of Liability</h2>
           <p>
-            In no event shall BayriKo, its directors, employees, partners, agents, suppliers, or affiliates be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:
+            In no event shall BayriKo, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:
           </p>
           <ul className="list-disc pl-5 space-y-2">
-            <li>Your access to or use of or inability to access or use the Services</li>
-            <li>Any conduct or content of any third party on the Services</li>
-            <li>Any content obtained from the Services</li>
-            <li>Unauthorized access, use, or alteration of your transmissions or content</li>
+            <li>Your access to or use of or inability to access or use the Service;</li>
+            <li>Any conduct or content of any third party on the Service;</li>
+            <li>Any content obtained from the Service; and</li>
+            <li>Unauthorized access, use, or alteration of your transmissions or content,</li>
           </ul>
+          <p className="mt-4">
+            whether based on warranty, contract, tort (including negligence), or any other legal theory, whether or not we have been informed of the possibility of such damage, and even if a remedy set forth herein is found to have failed of its essential purpose.
+          </p>
         </section>
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Disclaimer</h2>
           <p>
-            Your use of the Services is at your sole risk. The Services are provided on an "AS IS" and "AS AVAILABLE" basis. BayriKo expressly disclaims all warranties of any kind, whether express or implied, including but not limited to the implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.
+            Your use of the Service is at your sole risk. The Service is provided on an "AS IS" and "AS AVAILABLE" basis. The Service is provided without warranties of any kind, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.
           </p>
-        </section>
-
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Changes to Terms</h2>
-          <p>
-            We reserve the right to modify or replace these Terms at any time at our sole discretion. We will provide notice of changes by posting the updated Terms on this page with a new "Last updated" date. Your continued use of the Services after any such changes constitutes your acceptance of the new Terms.
+          <p className="mt-4">
+            BayriKo does not warrant that: (a) the Service will function uninterrupted, secure, or available at any particular time or location; (b) any errors or defects will be corrected; (c) the Service is free of viruses or other harmful components; or (d) the results of using the Service will meet your requirements.
           </p>
         </section>
 
@@ -126,6 +122,19 @@ export default function TermsOfServicePage() {
           <h2 className="text-2xl font-semibold">Governing Law</h2>
           <p>
             These Terms shall be governed and construed in accordance with the laws of the Philippines, without regard to its conflict of law provisions.
+          </p>
+          <p className="mt-4">
+            Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect.
+          </p>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold">Changes to Terms</h2>
+          <p>
+            We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
+          </p>
+          <p className="mt-4">
+            By continuing to access or use our Service after any revisions become effective, you agree to be bound by the revised terms. If you do not agree to the new terms, you are no longer authorized to use the Service.
           </p>
         </section>
 
