@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTask } from "@/context/TaskContext";
 import { Task } from "@/types";
+import { useLocation } from "wouter";
 import {
   formatDate,
   formatStatus,
@@ -19,6 +20,7 @@ import {
   ChevronRight,
   ChevronUp,
   ArrowUpDown,
+  ExternalLink
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
@@ -28,6 +30,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -36,6 +44,7 @@ interface TaskTableProps {
 export function TaskTable({ tasks }: TaskTableProps) {
   const { user } = useAuth();
   const { openDrawer, confirmDelete } = useTask();
+  const [, navigate] = useLocation();
   
   // Sorting state
   const [sortField, setSortField] = useState<string | null>(null);

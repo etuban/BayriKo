@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
 import TasksPage from "@/pages/TasksPage";
+import TaskDetailsPage from "@/pages/TaskDetailsPage";
 import DashboardPage from "@/pages/DashboardPage";
 import PDFInvoicePage from "@/pages/TaskPayablePage"; // Renamed for better clarity
 import ProjectsPage from "@/pages/ProjectsPage";
@@ -121,6 +122,9 @@ function Router() {
       </Route>
       <Route path="/tasks">
         {() => <ProtectedRoute component={TasksPage} />}
+      </Route>
+      <Route path="/tasks/:id">
+        {(params) => <ProtectedRoute component={() => <TaskDetailsPage />} />}
       </Route>
       <Route path="/bug-report" component={BugReportPage} />
       
