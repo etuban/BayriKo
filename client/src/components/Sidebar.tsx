@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "../context/AuthContext";
 import { UserProfileCard } from "./UserProfileCard";
 import { GiReceiveMoney } from "react-icons/gi";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   ChartPieIcon,
   ListTodo,
@@ -156,33 +157,55 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             Main Menu
           </h2>
         )}
-        <ul>
-          {navItems
-            .filter((item) => item.display)
-            .map((item, index) => (
-              <li key={index} className="mb-1">
-                <Link href={item.path}>
-                  <div
-                    className={cn(
-                      "flex items-center text-sm px-2 py-1 rounded-md w-full text-left transition-colors cursor-pointer",
-                      location === item.path
-                        ? "bg-primary text-white"
-                        : "hover:bg-muted",
-                    )}
-                    onClick={handleNavClick}
-                  >
-                    {React.cloneElement(item.icon, {
-                      className:
-                        collapsed && !mobile
-                          ? "w-5 h-5 mx-auto"
-                          : "w-5 h-5 mr-3",
-                    })}
-                    {(!collapsed || mobile) && <span>{item.title}</span>}
-                  </div>
-                </Link>
-              </li>
-            ))}
-        </ul>
+        <TooltipProvider delayDuration={300}>
+          <ul>
+            {navItems
+              .filter((item) => item.display)
+              .map((item, index) => (
+                <li key={index} className="mb-1">
+                  {collapsed && !mobile ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Link href={item.path}>
+                          <div
+                            className={cn(
+                              "flex items-center text-sm px-2 py-1 rounded-md w-full text-left transition-colors cursor-pointer",
+                              location === item.path
+                                ? "bg-primary text-white"
+                                : "hover:bg-muted",
+                            )}
+                            onClick={handleNavClick}
+                          >
+                            {React.cloneElement(item.icon, {
+                              className: "w-5 h-5 mx-auto"
+                            })}
+                          </div>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">{item.title}</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Link href={item.path}>
+                      <div
+                        className={cn(
+                          "flex items-center text-sm px-2 py-1 rounded-md w-full text-left transition-colors cursor-pointer",
+                          location === item.path
+                            ? "bg-primary text-white"
+                            : "hover:bg-muted",
+                        )}
+                        onClick={handleNavClick}
+                      >
+                        {React.cloneElement(item.icon, {
+                          className: "w-5 h-5 mr-3"
+                        })}
+                        <span>{item.title}</span>
+                      </div>
+                    </Link>
+                  )}
+                </li>
+              ))}
+          </ul>
+        </TooltipProvider>
       </nav>
 
       {/* User Profile Section */}
@@ -190,42 +213,66 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
 
       {/* "Found a bug?" link for all users */}
       <div className={cn("px-4", collapsed && !mobile ? "text-center" : "")}>
-        <Link href="/bug-report">
-          <div
-            className={cn(
-              "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-amber-500 hover:text-amber-600",
-              collapsed && !mobile ? "justify-center" : "",
-            )}
-            onClick={handleNavClick}
-          >
-            <Bug
-              className={
-                collapsed && !mobile ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3"
-              }
-            />
-            {(!collapsed || mobile) && <span>Report a Bug</span>}
-          </div>
-        </Link>
+        {collapsed && !mobile ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link href="/bug-report">
+                <div
+                  className={cn(
+                    "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-amber-500 hover:text-amber-600 justify-center",
+                  )}
+                  onClick={handleNavClick}
+                >
+                  <Bug className="w-5 h-5 mx-auto" />
+                </div>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right">Report a Bug</TooltipContent>
+          </Tooltip>
+        ) : (
+          <Link href="/bug-report">
+            <div
+              className={cn(
+                "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-amber-500 hover:text-amber-600",
+              )}
+              onClick={handleNavClick}
+            >
+              <Bug className="w-5 h-5 mr-3" />
+              <span>Report a Bug</span>
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* Sign Out Button */}
       <div
         className={cn("p-4 mt-2", collapsed && !mobile ? "text-center" : "")}
       >
-        <button
-          onClick={() => logout()}
-          className={cn(
-            "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-red-500 hover:text-red-600",
-            collapsed && !mobile ? "justify-center" : "",
-          )}
-        >
-          <LogOut
-            className={
-              collapsed && !mobile ? "w-5 h-5 mx-auto" : "w-5 h-5 mr-3"
-            }
-          />
-          {(!collapsed || mobile) && <span>Sign Out</span>}
-        </button>
+        {collapsed && !mobile ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => logout()}
+                className={cn(
+                  "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-red-500 hover:text-red-600 justify-center",
+                )}
+              >
+                <LogOut className="w-5 h-5 mx-auto" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Sign Out</TooltipContent>
+          </Tooltip>
+        ) : (
+          <button
+            onClick={() => logout()}
+            className={cn(
+              "flex items-center px-4 py-2 rounded-md w-full text-left transition-colors hover:bg-muted text-red-500 hover:text-red-600",
+            )}
+          >
+            <LogOut className="w-5 h-5 mr-3" />
+            <span>Sign Out</span>
+          </button>
+        )}
       </div>
 
       {/* Toggle Button - Desktop only */}
