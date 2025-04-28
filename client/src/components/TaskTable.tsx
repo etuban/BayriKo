@@ -175,6 +175,51 @@ export function TaskTable({ tasks }: TaskTableProps) {
     );
   }, [tasks, sortField, sortDirection]);
 
+  // Generate tooltip content for a task
+  const getTaskTooltipContent = (task: Task) => {
+    return (
+      <div className="max-w-md">
+        <div className="mb-2">
+          <div className="font-semibold text-base">{task.title}</div>
+          {task.description && (
+            <div className="text-sm text-gray-300 mt-1">
+              {task.description.length > 150 ? `${task.description.substring(0, 150)}...` : task.description}
+            </div>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <span className="text-gray-400">Status:</span>{" "}
+            <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusColor(task.status)} text-white`}>
+              {formatStatus(task.status)}
+            </span>
+          </div>
+          
+          <div>
+            <span className="text-gray-400">Due:</span>{" "}
+            <span>{formatDate(task.dueDate)}</span>
+          </div>
+          
+          <div>
+            <span className="text-gray-400">Assigned:</span>{" "}
+            <span>{task.assignedTo?.fullName || "Unassigned"}</span>
+          </div>
+          
+          <div>
+            <span className="text-gray-400">Time:</span>{" "}
+            <span>{formatHours(task)}</span>
+          </div>
+        </div>
+        
+        <div className="mt-2 pt-2 border-t border-gray-700 text-xs text-primary flex items-center">
+          <ExternalLink className="w-3.5 h-3.5 mr-1" />
+          Click to view detailed task page
+        </div>
+      </div>
+    );
+  };
+
   // Render a single task row
   const renderTaskRow = (task: Task) => {
     const statusColor = getStatusColor(task.status);
@@ -182,17 +227,26 @@ export function TaskTable({ tasks }: TaskTableProps) {
       <tr
         key={task.id}
         className="task-row hover:bg-primary/10 hover:shadow-md transition-all duration-150 cursor-pointer border-b border-dark-border last:border-b-0"
-        onClick={() => openDrawer("view", task.id)}
+        onClick={() => navigate(`/tasks/${task.id}`)}
       >
         <td className="px-6 py-4 whitespace-nowrap" colSpan={2}>
           <div className="flex items-center">
             <div className="ml-4">
-              <div className="text-sm font-medium">{task.title}</div>
-              {task.description && (
-                <div className="text-xs text-gray-400 w-[33%]" title={task.description}>
-                  {task.description.length > 50 ? `${task.description.substring(0, 50)}...` : task.description}
-                </div>
-              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <div className="text-sm font-medium">{task.title}</div>
+                    {task.description && (
+                      <div className="text-xs text-gray-400 w-[33%]">
+                        {task.description.length > 50 ? `${task.description.substring(0, 50)}...` : task.description}
+                      </div>
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="p-3 max-w-sm bg-dark-surface border-dark-border">
+                  {getTaskTooltipContent(task)}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </td>
@@ -235,34 +289,48 @@ export function TaskTable({ tasks }: TaskTableProps) {
           {formatHours(task)}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-          {canEdit(task) && (
+          <div className="flex justify-end space-x-2">
+            {canEdit(task) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary hover:text-primary/80"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openDrawer("edit", task.id);
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            )}
+            {canDelete(task) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-400"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  confirmDelete(task.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary hover:text-primary/80 mr-2"
+              className="text-blue-500 hover:text-blue-400"
               onClick={(e) => {
                 e.stopPropagation();
-                openDrawer("edit", task.id);
+                navigate(`/tasks/${task.id}`);
               }}
             >
-              <Pencil className="h-4 w-4 mr-1" />
-              Edit
+              <ExternalLink className="h-4 w-4 mr-1" />
+              View
             </Button>
-          )}
-          {canDelete(task) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-500 hover:text-red-400"
-              onClick={(e) => {
-                e.stopPropagation();
-                confirmDelete(task.id);
-              }}
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Delete
-            </Button>
-          )}
+          </div>
         </td>
       </tr>
     );
