@@ -15,6 +15,7 @@ import * as feedbackController from './controllers/feedbackController';
 import * as bugReportController from './controllers/bugReportController';
 import * as passwordResetController from './controllers/passwordResetController';
 import * as invoiceController from './controllers/invoiceController';
+import * as contactController from './controllers/contactController';
 import { authenticateUser, authorizeRole } from './middleware/auth';
 import { runDatabaseMigration } from './dbMigration';
 import MemoryStore from 'memorystore';
@@ -178,6 +179,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Invoice email route
   app.post('/api/email/send-invoice', authenticateUser, invoiceController.sendInvoiceEmail);
+  
+  // Contact form route (no auth required)
+  app.post('/api/contact', contactController.submitContactForm);
 
   // Run database migrations
   try {

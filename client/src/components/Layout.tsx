@@ -5,6 +5,7 @@ import { TaskDrawer } from './TaskDrawer';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
 import { useTask } from '../context/TaskContext';
 import { cn } from '@/lib/utils';
+import { Footer } from './ui/footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -94,6 +95,9 @@ export function Layout({ children }: LayoutProps) {
         <main className="flex-1 overflow-y-auto bg-dark-bg p-3 sm:p-6">
           {children}
         </main>
+        
+        {/* Footer */}
+        <Footer />
       </div>
       
       {/* Task Drawer (Side panel for adding/editing tasks) */}

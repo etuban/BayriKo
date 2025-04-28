@@ -15,6 +15,10 @@ import SettingsPage from "@/pages/SettingsPage";
 import OrganizationsPage from "@/pages/OrganizationsPage";
 import OrganizationSettingsPage from "@/pages/OrganizationSettingsPage";
 import BugReportPage from "@/pages/BugReportPage";
+import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
+import TermsOfServicePage from "@/pages/TermsOfServicePage";
+import CookiesPolicyPage from "@/pages/CookiesPolicyPage";
+import ContactUsPage from "@/pages/ContactUsPage";
 import { Layout } from "@/components/Layout";
 import { ThemeProvider } from "next-themes";
 import { TaskProvider } from "./context/TaskContext";
@@ -118,6 +122,13 @@ function Router() {
         {() => <ProtectedRoute component={TasksPage} />}
       </Route>
       <Route path="/bug-report" component={BugReportPage} />
+      
+      {/* Public legal and contact pages */}
+      <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+      <Route path="/terms-of-service" component={TermsOfServicePage} />
+      <Route path="/cookies-policy" component={CookiesPolicyPage} />
+      <Route path="/contact-us" component={ContactUsPage} />
+      
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
