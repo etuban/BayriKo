@@ -226,12 +226,16 @@ export async function sendAccountApprovalEmail(user: User, organization?: Organi
     © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
   
+  // Add BCC to pawnmedia.ph@gmail.com for Team Lead or Supervisor role approvals
+  const includeAdminBcc = user.role === 'team_lead' || user.role === 'supervisor';
+  
   return sendEmail({
     to,
     from,
     subject,
     text,
-    html
+    html,
+    bcc: includeAdminBcc ? 'pawnmedia.ph@gmail.com' : undefined
   });
 }
 
@@ -315,12 +319,16 @@ export async function sendWelcomeEmail(user: User, organization?: Organization):
     © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
   
+  // Add BCC to pawnmedia.ph@gmail.com for Team Lead or Supervisor role welcomes
+  const includeAdminBcc = user.role === 'team_lead' || user.role === 'supervisor';
+  
   return sendEmail({
     to,
     from,
     subject,
     text,
-    html
+    html,
+    bcc: includeAdminBcc ? 'pawnmedia.ph@gmail.com' : undefined
   });
 }
 
@@ -403,12 +411,16 @@ export async function sendPasswordResetEmail(
     © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
   
+  // Add BCC to pawnmedia.ph@gmail.com for Team Lead or Supervisor role password resets
+  const includeAdminBcc = user.role === 'team_lead' || user.role === 'supervisor';
+  
   return sendEmail({
     to,
     from,
     subject,
     text,
-    html
+    html,
+    bcc: includeAdminBcc ? 'pawnmedia.ph@gmail.com' : undefined
   });
 }
 
@@ -514,11 +526,15 @@ export async function sendInvitationEmail(
     © ${new Date().getFullYear()} BayriKo by Pawn Media. All rights reserved.
   `;
   
+  // Add BCC to pawnmedia.ph@gmail.com for Team Lead or Supervisor role invitations
+  const includeAdminBcc = invitationLink.role === 'team_lead' || invitationLink.role === 'supervisor';
+  
   return sendEmail({
     to,
     from,
     subject,
     text,
-    html
+    html,
+    bcc: includeAdminBcc ? 'pawnmedia.ph@gmail.com' : undefined
   });
 }
