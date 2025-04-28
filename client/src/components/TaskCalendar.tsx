@@ -13,7 +13,7 @@ import {
   cn,
 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Plus, Clock, ExternalLink, Calendar, User, FolderKanban } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, ExternalLink, Calendar, User, Folder } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -372,7 +372,7 @@ export function TaskCalendar({ tasks }: TaskCalendarProps) {
             
             {task.project && (
               <div className="flex items-center text-xs text-gray-400 mt-1">
-                <FolderKanban className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                <Folder className="w-3.5 h-3.5 mr-1.5 text-primary" />
                 {task.project.name}
               </div>
             )}

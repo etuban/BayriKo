@@ -35,14 +35,15 @@
   /* Custom Task Tooltip Styling */
   .task-tooltip-content {
     position: relative;
-    background: var(--dark-surface);
-    border: 1px solid var(--dark-border);
+    background: #1e2033;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 1rem;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    padding: 1.25rem;
     z-index: 50;
-    min-width: 400px;
-    max-width: 500px;
+    min-width: 320px;
+    max-width: 400px;
+    width: max-content;
   }
 
   .task-tooltip-content[data-side="right"]::before {
@@ -52,9 +53,9 @@
     top: 16px;
     width: 12px;
     height: 12px;
-    background: var(--dark-surface);
-    border-left: 1px solid var(--dark-border);
-    border-bottom: 1px solid var(--dark-border);
+    background: #1e2033;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transform: rotate(45deg);
   }
 
@@ -66,9 +67,9 @@
     margin-left: -6px;
     width: 12px;
     height: 12px;
-    background: var(--dark-surface);
-    border-right: 1px solid var(--dark-border);
-    border-bottom: 1px solid var(--dark-border);
+    background: #1e2033;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transform: rotate(45deg);
   }
 
