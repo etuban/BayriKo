@@ -33,6 +33,7 @@ export interface EmailData {
   subject: string;
   text?: string;
   html?: string;
+  bcc?: string;
   attachments?: Array<{
     filename: string;
     content: string | Buffer;
@@ -61,6 +62,7 @@ export async function sendEmail(emailData: EmailData): Promise<boolean> {
       subject: emailData.subject,
       text: emailData.text,
       html: emailData.html,
+      bcc: emailData.bcc,
       attachments: emailData.attachments,
     });
 
