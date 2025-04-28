@@ -71,6 +71,33 @@
     border-bottom: 1px solid var(--dark-border);
     transform: rotate(45deg);
   }
+  
+  /* Calendar Task Detail Popup */
+  .task-calendar-popup {
+    position: absolute;
+    z-index: 50;
+    top: 0;
+    left: calc(100% + 8px);
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    width: 320px;
+  }
+  
+  .task-calendar-popup::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 16px;
+    width: 12px;
+    height: 12px;
+    background: var(--dark-surface);
+    border-left: 1px solid var(--dark-border);
+    border-bottom: 1px solid var(--dark-border);
+    transform: rotate(45deg);
+  }
 
   /* Print styles for pagination */
   @media print {
