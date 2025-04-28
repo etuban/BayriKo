@@ -32,6 +32,46 @@
     align-content: center;
   }
 
+  /* Custom Task Tooltip Styling */
+  .task-tooltip-content {
+    position: relative;
+    background: var(--dark-surface);
+    border: 1px solid var(--dark-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 1rem;
+    z-index: 50;
+    min-width: 400px;
+    max-width: 500px;
+  }
+
+  .task-tooltip-content[data-side="right"]::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 16px;
+    width: 12px;
+    height: 12px;
+    background: var(--dark-surface);
+    border-left: 1px solid var(--dark-border);
+    border-bottom: 1px solid var(--dark-border);
+    transform: rotate(45deg);
+  }
+
+  .task-tooltip-content[data-side="top"]::before {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    margin-left: -6px;
+    width: 12px;
+    height: 12px;
+    background: var(--dark-surface);
+    border-right: 1px solid var(--dark-border);
+    border-bottom: 1px solid var(--dark-border);
+    transform: rotate(45deg);
+  }
+
   /* Print styles for pagination */
   @media print {
     body {

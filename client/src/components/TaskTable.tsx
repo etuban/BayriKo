@@ -20,7 +20,10 @@ import {
   ChevronRight,
   ChevronUp,
   ArrowUpDown,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  Clock,
+  User
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
@@ -178,52 +181,82 @@ export function TaskTable({ tasks }: TaskTableProps) {
   // Generate tooltip content for a task
   const getTaskTooltipContent = (task: Task) => {
     return (
-      <div className="w-[350px] max-w-lg">
-        <div className="mb-3">
-          <div className="font-semibold text-lg">{task.title}</div>
-          {task.description && (
-            <div className="text-sm text-gray-300 mt-2">
+      <div className="w-full">
+        {/* Header with task title and status */}
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1">
+            <h3 className="font-bold text-lg text-white">{task.title}</h3>
+            
+            {task.project && (
+              <div className="flex items-center text-xs text-gray-400 mt-1">
+                <FolderKanban className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                {task.project.name}
+              </div>
+            )}
+          </div>
+          <span 
+            className={`px-2 py-1 rounded text-xs ${getStatusColor(task.status)} text-white inline-block mt-1`}
+          >
+            {formatStatus(task.status)}
+          </span>
+        </div>
+        
+        {/* Description section with background */}
+        {task.description && (
+          <div className="bg-dark-border/30 p-3 rounded-md mb-4">
+            <div className="text-sm text-gray-300 whitespace-pre-line">
               {task.description.length > 200 ? `${task.description.substring(0, 200)}...` : task.description}
             </div>
-          )}
-        </div>
+          </div>
+        )}
         
-        <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm mb-2">
-          <div className="flex flex-col">
-            <span className="text-gray-400 text-xs mb-1">Status</span>
-            <span className={`px-2 py-1 rounded text-xs ${getStatusColor(task.status)} text-white inline-block w-fit`}>
-              {formatStatus(task.status)}
-            </span>
-          </div>
-          
-          <div className="flex flex-col">
-            <span className="text-gray-400 text-xs mb-1">Due Date</span>
-            <span className="font-medium">{formatDate(task.dueDate)}</span>
-          </div>
-          
-          <div className="flex flex-col">
-            <span className="text-gray-400 text-xs mb-1">Assigned To</span>
-            <span className="font-medium">{task.assignedTo?.fullName || "Unassigned"}</span>
-          </div>
-          
-          <div className="flex flex-col">
-            <span className="text-gray-400 text-xs mb-1">Time Tracking</span>
-            <span className="font-medium">{formatHours(task)}</span>
-          </div>
-
-          {task.project && (
-            <div className="flex flex-col col-span-2">
-              <span className="text-gray-400 text-xs mb-1">Project</span>
-              <span className="font-medium flex items-center">
-                <FolderKanban className="w-3.5 h-3.5 mr-2 text-primary" />
-                {task.project.name}
-              </span>
+        {/* Details in a grid */}
+        <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm mb-3 bg-dark-border/20 p-3 rounded-md">
+          <div className="flex items-center">
+            <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+            <div>
+              <span className="text-gray-400 text-xs block">Due Date</span>
+              <span className="font-medium">{formatDate(task.dueDate)}</span>
             </div>
-          )}
+          </div>
+          
+          <div className="flex items-center">
+            <Clock className="w-4 h-4 text-gray-400 mr-2" />
+            <div>
+              <span className="text-gray-400 text-xs block">Time</span>
+              <span className="font-medium">{formatHours(task)}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center col-span-2">
+            <User className="w-4 h-4 text-gray-400 mr-2" />
+            <div>
+              <span className="text-gray-400 text-xs block">Assigned To</span>
+              <div className="flex items-center font-medium">
+                {task.assignedTo ? (
+                  <>
+                    <Avatar className="h-5 w-5 mr-1.5">
+                      <AvatarImage
+                        src={task.assignedTo.avatarUrl}
+                        alt={task.assignedTo.fullName}
+                      />
+                      <AvatarFallback className="text-[10px]">
+                        {getInitials(task.assignedTo.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {task.assignedTo.fullName}
+                  </>
+                ) : (
+                  "Unassigned"
+                )}
+              </div>
+            </div>
+          </div>
         </div>
         
-        <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-primary flex items-center justify-center">
-          <ExternalLink className="w-3.5 h-3.5 mr-1" />
+        {/* Footer with action prompt */}
+        <div className="mt-4 pt-3 border-t border-gray-700 text-xs text-primary flex items-center justify-center">
+          <ExternalLink className="w-4 h-4 mr-1.5" />
           Click to view detailed task page
         </div>
       </div>
@@ -254,9 +287,10 @@ export function TaskTable({ tasks }: TaskTableProps) {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent 
-                  side="top" 
-                  className="p-4 min-w-[350px] bg-dark-surface border border-dark-border shadow-lg" 
-                  sideOffset={5}
+                  side="right" 
+                  className="task-tooltip-content" 
+                  sideOffset={12}
+                  align="start"
                 >
                   {getTaskTooltipContent(task)}
                 </TooltipContent>
